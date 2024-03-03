@@ -24,7 +24,7 @@ real_signal_t generate_sine(generator_info_t info, double A, double T, double t1
     double omega = 2 * M_PI / T;
     double dt = 1.0 / info.sampling_frequency;
     for (uint64_t i = 0; i < signal.info.num_samples; i++) {
-        signal.pValues[i] = A * sin(omega * ( t1 + i * dt ));
+        signal.pValues[i] = A * sin(omega * ( i * dt )); // t1 + i * dt - t1 = i * dt
     }
     return signal;
 }
