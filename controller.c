@@ -12,32 +12,12 @@ struct ApplicationControls {
     GtkWidget* button_perform;
 
     GtkWidget* comboBoxText_Astype;
-    /*GtkWidget* label_Ap1name;
-    GtkWidget* label_Ap2name;
-    GtkWidget* label_Ap3name;
-    GtkWidget* label_Ap4name;
-    GtkWidget* label_Ap5name;*/
     GtkWidget* labels_Apname[MAX_PARAMS_PER_SIGNAL];
-
-    /*GtkWidget* entry_Ap1val;
-    GtkWidget* entry_Ap2val;
-    GtkWidget* entry_Ap3val;
-    GtkWidget* entry_Ap4val;
-    GtkWidget* entry_Ap5val;*/
     GtkWidget* entries_Apval[MAX_PARAMS_PER_SIGNAL];
 
     GtkWidget* comboBoxText_Bstype;
-    /*GtkWidget* label_Bp1name;
-    GtkWidget* label_Bp2name;
-    GtkWidget* label_Bp3name;
-    GtkWidget* label_Bp4name;
-    GtkWidget* label_Bp5name;*/
     GtkWidget* labels_Bpname[MAX_PARAMS_PER_SIGNAL];
-    /*GtkWidget* entry_Bp1val;
-    GtkWidget* entry_Bp2val;
-    GtkWidget* entry_Bp3val;
-    GtkWidget* entry_Bp4val;
-    GtkWidget* entry_Bp5val;*/
+
     GtkWidget* entries_Bpval[MAX_PARAMS_PER_SIGNAL];
 
     GtkWidget* fileChooserButton_ASave;
@@ -58,6 +38,7 @@ struct ApplicationBuilders {
 } builders;
 
 // #define EXTRACT_WIDGET(applicationControlsVarName, applicationBuildersVarName, widgetName, builderName) applicationControlsVarName.widgetName = GTK_WIDGET(gtk_builder_get_object(applicationBuildersVarName.builderName, #widgetName))
+// static const unsigned char custom_signal_idx = NUM_SIGNALS;
 
 static char* signal_def_param_names[NUM_PARAMS] = {
     "Amplitude (A)",
@@ -73,35 +54,20 @@ static char* signal_def_param_names[NUM_PARAMS] = {
     "Spike probability (p)"
 };
 
-//static const unsigned char custom_signal_idx = NUM_SIGNALS;
 static uint8_t param_affinity[NUM_SIGNALS][MAX_PARAMS_PER_SIGNAL + 1] = {
-    {0, 1, 2, 0xff}/*"012"*/,
-    {0, 1, 2, 0xff}/*"012"*/,
-    {0, 3, 1, 2, 0xff}/*"0312"*/,
-    {0, 3, 1, 2, 0xff}/*"0312"*/,
-    {0, 3, 1, 2, 0xff}/*"0312"*/,
-    {0, 3, 1, 2, 4, 0xff}/*"0312"*/,
-    {0, 3, 1, 2, 4, 0xff}/*"03124"*/,
-    {0, 3, 1, 2, 4, 0xff}/*"03124"*/,
-    {0, 1, 2, 5, 0xff}/*"0125"*/,
-    {0, 7, 6, 8, 0xff}/*"0768"*/,
-    {0, 1, 2, 8, 9, 0xff}/*"01289"*/,
-    {0xff}/*""*/
+    {0, 1, 2, 0xff},
+    {0, 1, 2, 0xff},
+    {0, 3, 1, 2, 0xff},
+    {0, 3, 1, 2, 0xff},
+    {0, 3, 1, 2, 0xff},
+    {0, 3, 1, 2, 4, 0xff},
+    {0, 3, 1, 2, 4, 0xff},
+    {0, 3, 1, 2, 4, 0xff},
+    {0, 1, 2, 5, 0xff},
+    {0, 7, 6, 8, 0xff},
+    {0, 1, 2, 8, 9, 0xff},
+    {0xff}
 };
-
-
-/**
- * @attention THe buffer pointed by `ppuParamIdx is allocated dynamically and needs to be freed by the user
-*/
-/*void resolve_param_affinity(uint8_t signal_idx, uint8_t** ppuParamIds, uint8_t* pNumParams) {
-    char* paramsString = param_affinity[signal_idx];
-    *pNumParams = strlen(paramsString);
-    *ppuParamIds = (uint8_t*)malloc(*pNumParams);
-    for (uint8_t i = 0; i < *pNumParams; i++) {
-        char* c = paramsString[i];
-        i[*ppuParamIds] = atoi()
-    }
-}*/
 
 /**
  * @note The `ppcParamNames` buffer should be allocated by the user and contain at least `MAX_PARAMS_PER_SIGNAL` pointers to char
@@ -155,8 +121,6 @@ void set_param_names(uint8_t signal_idx, signal_selector_t selector) {
     }
 }
 
-
-
 int controller_run(int* psArgc, char*** pppcArgv) {
     gtk_init(psArgc, pppcArgv);
     builders.viewBuilder = gtk_builder_new_from_file("view.xml");
@@ -168,27 +132,27 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     widgets.comboBoxText_op = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "comboBoxText_op"));
     widgets.button_perform = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_perform"));
     widgets.comboBoxText_Astype = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "comboBoxText_Astype"));
-    widgets.labels_Apname[0]/*label_Ap1name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap1name"));
-    widgets.labels_Apname[1]/*label_Ap2name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap2name"));
-    widgets.labels_Apname[2]/*label_Ap3name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap3name"));
-    widgets.labels_Apname[3]/*label_Ap4name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap4name"));
-    widgets.labels_Apname[4]/*label_Ap5name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap5name"));
-    widgets.entries_Apval[0]/*entry_Ap1val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap1val"));
-    widgets.entries_Apval[1]/*entry_Ap2val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap2val"));
-    widgets.entries_Apval[2]/*entry_Ap3val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap3val"));
-    widgets.entries_Apval[3]/*entry_Ap4val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap4val"));
-    widgets.entries_Apval[4]/*entry_Ap5val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap5val"));
+    widgets.labels_Apname[0] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap1name"));
+    widgets.labels_Apname[1] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap2name"));
+    widgets.labels_Apname[2] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap3name"));
+    widgets.labels_Apname[3] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap4name"));
+    widgets.labels_Apname[4] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap5name"));
+    widgets.entries_Apval[0] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap1val"));
+    widgets.entries_Apval[1] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap2val"));
+    widgets.entries_Apval[2] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap3val"));
+    widgets.entries_Apval[3] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap4val"));
+    widgets.entries_Apval[4] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap5val"));
     widgets.comboBoxText_Bstype = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "comboBoxText_Bstype"));
-    widgets.labels_Bpname[0]/*label_Bp1name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp1name"));
-    widgets.labels_Bpname[1]/*label_Bp2name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp2name"));
-    widgets.labels_Bpname[2]/*label_Bp3name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp3name"));
-    widgets.labels_Bpname[3]/*label_Bp4name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp4name"));
-    widgets.labels_Bpname[4]/*label_Bp5name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp5name"));
-    widgets.entries_Bpval[0]/*entry_Bp1val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp1val"));
-    widgets.entries_Bpval[1]/*entry_Bp2val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp2val"));
-    widgets.entries_Bpval[2]/*entry_Bp3val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp3val"));
-    widgets.entries_Bpval[3]/*entry_Bp4val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp4val"));
-    widgets.entries_Bpval[4]/*entry_Bp5val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp5val"));
+    widgets.labels_Bpname[0] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp1name"));
+    widgets.labels_Bpname[1] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp2name"));
+    widgets.labels_Bpname[2] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp3name"));
+    widgets.labels_Bpname[3] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp4name"));
+    widgets.labels_Bpname[4] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp5name"));
+    widgets.entries_Bpval[0] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp1val"));
+    widgets.entries_Bpval[1] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp2val"));
+    widgets.entries_Bpval[2] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp3val"));
+    widgets.entries_Bpval[3] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp4val"));
+    widgets.entries_Bpval[4] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp5val"));
     widgets.fileChooserButton_ASave = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "fileChooserButton_ASave"));
     widgets.button_Asave_bin = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_Asave_bin"));
     widgets.button_Asave_txt = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_Asave_txt"));
@@ -208,24 +172,18 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     return EXIT_SUCCESS;
 }
 
-void on_comboBoxText_op_changed(GtkComboBoxText* c) {
+void on_comboBoxText_op_changed(GtkComboBoxText* c, gpointer user_data) {
     
 }
 
 void on_button_perform_clicked(GtkButton* b) {
-    /* test */
-    //printf("ON BUttoN PERFORM CLICK\n");
-    //gtk_label_set_text (GTK_LABEL(widgets.label_Ap1name), "Amplitude");
+    g_info("Signal composition requested");
     g_error("Not implemented");
 }
 
 void on_comboBoxText_Astype_changed(GtkComboBox* c, gpointer user_data) {
-    //gtk_combo_box_get_active_id(c);
-    //gtk_combo_box_text_get_active_text()
     uint32_t signal_idx = gtk_combo_box_get_active(c);
     set_param_names(signal_idx, SIGNAL_A);
-
-    
 }
 
 void on_comboBoxText_Bstype_changed(GtkComboBox* c, gpointer user_data) {
@@ -274,19 +232,19 @@ void on_entry_Bp5val_insert_at_cursor(GtkEntry* e) {
 }
 
 void on_button_Asave_bin_clicked(GtkButton* b) {
-    
+    g_error("Not implemented");
 }
 
 void on_button_Asave_txt_clicked(GtkButton* b) {
-
+    g_error("Not implemented");
 }
 
 void on_button_Aload_clicked(GtkButton* b) {
-    
+    g_error("Not implemented");
 }
 
 void on_button_Bload_clicked(GtkButton* b) {
-    
+    g_error("Not implemented");
 }
 
 void on_entry_Asf_insert_at_cursor(GtkEntry* e) {
