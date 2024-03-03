@@ -146,7 +146,7 @@
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="text" translatable="yes">1</property>
-                        <signal name="insert-at-cursor" handler="on_entry_Ap1val_insert_at_cursor" swapped="no"/>
+                        <signal name="changed" handler="on_entry_Ap1val_changed" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left-attach">1</property>
@@ -160,7 +160,7 @@
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="text" translatable="yes">1</property>
-                        <signal name="insert-at-cursor" handler="on_entry_Ap2val_insert_at_cursor" swapped="no"/>
+                        <signal name="changed" handler="on_entry_Ap2val_changed" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left-attach">1</property>
@@ -235,7 +235,7 @@
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="text" translatable="yes">1</property>
-                        <signal name="insert-at-cursor" handler="on_entry_Ap5val_insert_at_cursor" swapped="no"/>
+                        <signal name="changed" handler="on_entry_Ap5val_changed" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left-attach">3</property>
@@ -249,7 +249,7 @@
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="text" translatable="yes">1</property>
-                        <signal name="insert-at-cursor" handler="on_entry_Ap3val_insert_at_cursor" swapped="no"/>
+                        <signal name="changed" handler="on_entry_Ap3val_changed" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left-attach">3</property>
@@ -263,7 +263,7 @@
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="text" translatable="yes">1</property>
-                        <signal name="insert-at-cursor" handler="on_entry_Ap4val_insert_at_cursor" swapped="no"/>
+                        <signal name="changed" handler="on_entry_Ap4val_changed" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left-attach">3</property>
@@ -348,7 +348,7 @@
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="text" translatable="yes">256</property>
-                        <signal name="insert-at-cursor" handler="on_entry_Asf_insert_at_cursor" swapped="no"/>
+                        <signal name="changed" handler="on_entry_Asf_changed" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left-attach">1</property>
@@ -470,7 +470,7 @@
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="text" translatable="yes">256</property>
-                    <signal name="insert-at-cursor" handler="on_entry_Bsf_insert_at_cursor" swapped="no"/>
+                    <signal name="changed" handler="on_entry_Bsf_changed" swapped="no"/>
                   </object>
                   <packing>
                     <property name="x">174</property>
@@ -553,7 +553,7 @@
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="text" translatable="yes">1</property>
-                        <signal name="insert-at-cursor" handler="on_entry_Bp1val_insert_at_cursor" swapped="no"/>
+                        <signal name="changed" handler="on_entry_Bp1val_changed" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left-attach">1</property>
@@ -567,7 +567,7 @@
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="text" translatable="yes">1</property>
-                        <signal name="insert-at-cursor" handler="on_entry_Bp2val_insert_at_cursor" swapped="no"/>
+                        <signal name="changed" handler="on_entry_Bp2val_changed" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left-attach">1</property>
@@ -614,7 +614,7 @@
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="text" translatable="yes">1</property>
-                        <signal name="insert-at-cursor" handler="on_entry_Bp5val_insert_at_cursor" swapped="no"/>
+                        <signal name="changed" handler="on_entry_Bp5val_changed" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left-attach">3</property>
@@ -628,7 +628,7 @@
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="text" translatable="yes">1</property>
-                        <signal name="insert-at-cursor" handler="on_entry_Bp3val_insert_at_cursor" swapped="no"/>
+                        <signal name="changed" handler="on_entry_Bp3val_changed" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left-attach">3</property>
@@ -642,7 +642,7 @@
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="text" translatable="yes">1</property>
-                        <signal name="insert-at-cursor" handler="on_entry_Bp4val_insert_at_cursor" swapped="no"/>
+                        <signal name="changed" handler="on_entry_Bp4val_changed" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left-attach">3</property>
@@ -703,7 +703,8 @@
                           <object class="GtkGrid">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="margin-bottom">8</property>
+                            <property name="margin-top">10</property>
+                            <property name="margin-bottom">10</property>
                             <property name="row-spacing">5</property>
                             <property name="column-homogeneous">True</property>
                             <child>
@@ -889,7 +890,9 @@
                           <object class="GtkGrid">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
+                            <property name="margin-top">10</property>
                             <property name="margin-bottom">10</property>
+                            <property name="row-spacing">5</property>
                             <property name="column-homogeneous">True</property>
                             <child>
                               <object class="GtkLabel">

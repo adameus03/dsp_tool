@@ -59,6 +59,17 @@
   "C_Cpp.default.compileCommands": "/home/mundus/base/sem6/CPS/ZAD1/builddir/compile_commands.json",
   "files.associations": {
     "gtk.h": "c",
-    "cstdio": "c"
+    "cstdio": "c",
+    "atomic": "cpp",
+    "*.tcc": "cpp",
+    "cstdint": "cpp",
+    "random": "cpp",
+    "stop_token": "cpp",
+    "stdlib.h": "c",
+    "cmath": "c",
+    "complex": "c",
+    "generator.h": "c",
+    "math.h": "c",
+    "stdio.h": "c"
   }
 }

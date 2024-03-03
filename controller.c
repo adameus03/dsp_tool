@@ -1,5 +1,7 @@
 #include "controller.h"
 #include <gtk/gtk.h>
+#include "model/generator.h"
+#include "model/gnuplot.h"
 
 #define NUM_PARAMS 10
 #define NUM_SIGNALS 12
@@ -31,11 +33,21 @@ struct ApplicationControls {
 
     GtkWidget* entry_Asf;
     GtkWidget* entry_Bsf;
+
+    GtkWidget* imageA1;
+    GtkWidget* imageA2;
+    GtkWidget* imageB1;
+    GtkWidget* imageB2;
 } widgets;
 
 struct ApplicationBuilders {
     GtkBuilder* viewBuilder;
 } builders;
+
+struct Signals {
+    real_signal_t signalA;
+    real_signal_t signalB;
+} signals;
 
 // #define EXTRACT_WIDGET(applicationControlsVarName, applicationBuildersVarName, widgetName, builderName) applicationControlsVarName.widgetName = GTK_WIDGET(gtk_builder_get_object(applicationBuildersVarName.builderName, #widgetName))
 // static const unsigned char custom_signal_idx = NUM_SIGNALS;
@@ -121,6 +133,158 @@ void set_param_names(uint8_t signal_idx, signal_selector_t selector) {
     }
 }
 
+uint8_t get_signal_idx_a() {
+    return gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_Astype));
+}
+
+uint8_t get_signal_idx_b() {
+    return gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_Bstype));
+}
+
+double get_sampling_frequency_a() {
+    const gchar* asf_text = gtk_entry_get_text(GTK_ENTRY(widgets.entry_Asf));
+    return atof(asf_text);
+}
+
+double get_sampling_frequency_b() {
+    const gchar* asf_text = gtk_entry_get_text(GTK_ENTRY(widgets.entry_Bsf));
+    return atof(asf_text);
+}
+
+double get_param1val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[0]))); }
+double get_param2val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[1]))); }
+double get_param3val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[2]))); }
+double get_param4val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[3]))); }
+double get_param5val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[4]))); }
+
+double get_param1val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[0]))); }
+double get_param2val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[1]))); }
+double get_param3val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[2]))); }
+double get_param4val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[3]))); }
+double get_param5val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[4]))); }
+
+void load_signal_A() {
+    if (signals.signalA.pValues != NULL) {
+        real_signal_free_values(&signals.signalA);
+    }
+    uint8_t signal_idx = get_signal_idx_a();
+    
+    generator_info_t info = { .sampling_frequency = get_sampling_frequency_a() };
+    switch (signal_idx) {
+        case 0:
+            g_error("Not implemented");
+            break;
+        case 1:
+            g_error("Not implemented");
+            break;
+        case 2:
+            signals.signalA = generate_sine(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
+            break;
+        case 3:
+            g_error("Not implemented");
+            break;
+        case 4:
+            g_error("Not implemented");
+            break;
+        case 5:
+            g_error("Not implemented");
+            break;
+        case 6:
+            g_error("Not implemented");
+            break;
+        case 7:
+            g_error("Not implemented");
+            break;
+        case 8:
+            g_error("Not implemented");
+            break;
+        case 9:
+            g_error("Not implemented");
+            break;
+        case 10:
+            g_error("Not implemented");
+            break;
+        case 11:
+            g_error("Not implemented");
+            break;
+    }
+}
+
+void load_signal_B() {
+    if (signals.signalB.pValues != NULL) {
+        real_signal_free_values(&signals.signalB);
+    }
+    uint8_t signal_idx = get_signal_idx_b();
+    
+    generator_info_t info = { .sampling_frequency = get_sampling_frequency_b() };
+    switch (signal_idx) {
+        case 0:
+            g_error("Not implemented");
+            break;
+        case 1:
+            g_error("Not implemented");
+            break;
+        case 2:
+            signals.signalB = generate_sine(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
+            break;
+        case 3:
+            g_error("Not implemented");
+            break;
+        case 4:
+            g_error("Not implemented");
+            break;
+        case 5:
+            g_error("Not implemented");
+            break;
+        case 6:
+            g_error("Not implemented");
+            break;
+        case 7:
+            g_error("Not implemented");
+            break;
+        case 8:
+            g_error("Not implemented");
+            break;
+        case 9:
+            g_error("Not implemented");
+            break;
+        case 10:
+            g_error("Not implemented");
+            break;
+        case 11:
+            g_error("Not implemented");
+            break;
+    }
+}
+
+void draw_plot_A() {
+    gnuplot_prepare_real_signal_plot(&signals.signalA, GNUPLOT_SCRIPT_PATH_PLOT_A);
+    gtk_image_set_from_file(GTK_IMAGE(widgets.imageA1), GNUPLOT_OUTFILE_PATH);
+}
+
+void draw_plot_B() {
+    gnuplot_prepare_real_signal_plot(&signals.signalB, GNUPLOT_SCRIPT_PATH_PLOT_B);
+    gtk_image_set_from_file(GTK_IMAGE(widgets.imageB1), GNUPLOT_OUTFILE_PATH);
+}
+
+void update_A_plots() {
+    load_signal_A();
+    draw_plot_A();
+}
+
+void update_B_plots() {
+    load_signal_B();
+    draw_plot_B();
+}
+
+void draw_histogram_A() {
+    g_error("Not implemented");
+}
+
+void draw_histogram_B() {
+    g_error("Not implemented");
+}
+
 int controller_run(int* psArgc, char*** pppcArgv) {
     gtk_init(psArgc, pppcArgv);
     builders.viewBuilder = gtk_builder_new_from_file("view.xml");
@@ -162,12 +326,32 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     widgets.button_Bload = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_Bload"));
     widgets.entry_Asf = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Asf"));
     widgets.entry_Bsf = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bsf"));
+    widgets.imageA1 = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "imageA1"));
+    widgets.imageA2 = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "imageA2"));
+    widgets.imageB1 = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "imageB1"));
+    widgets.imageB2 = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "imageB2"));
     
-    set_param_names(gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_Astype)), SIGNAL_A);
-    set_param_names(gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_Bstype)), SIGNAL_B);
+    signals.signalA = (real_signal_t) { .info = { .sampling_frequency = 0 }, .pValues = NULL };
+    signals.signalB = (real_signal_t) { .info = { .sampling_frequency = 0 }, .pValues = NULL };
+
+    set_param_names(get_signal_idx_a(), SIGNAL_A);
+    set_param_names(get_signal_idx_b(), SIGNAL_B);
+
+    load_signal_A();
+    load_signal_B();
+    draw_plot_A();
+    draw_plot_B();
 
     gtk_widget_show(widgets.window);
     gtk_main();
+
+    if (signals.signalA.pValues != NULL) {
+        real_signal_free_values(&signals.signalA);
+    }
+    if (signals.signalB.pValues != NULL) {
+        real_signal_free_values(&signals.signalB);
+    }
+    gnuplot_cleanup();
     
     return EXIT_SUCCESS;
 }
@@ -177,7 +361,7 @@ void on_comboBoxText_op_changed(GtkComboBoxText* c, gpointer user_data) {
 }
 
 void on_button_perform_clicked(GtkButton* b) {
-    g_info("Signal composition requested");
+    g_message("Signal combination requested");
     g_error("Not implemented");
 }
 
@@ -191,44 +375,45 @@ void on_comboBoxText_Bstype_changed(GtkComboBox* c, gpointer user_data) {
     set_param_names(signal_idx, SIGNAL_B);
 }
 
-void on_entry_Ap1val_insert_at_cursor(GtkEntry* e) {
 
+void on_entry_Ap1val_changed(GtkEntry* e) {
+    update_A_plots();
 }
 
-void on_entry_Ap2val_insert_at_cursor(GtkEntry* e) {
-    
+void on_entry_Ap2val_changed(GtkEntry* e) {
+    update_A_plots();
 }
 
-void on_entry_Ap3val_insert_at_cursor(GtkEntry* e) {
-    
+void on_entry_Ap3val_changed(GtkEntry* e) {
+    update_A_plots();
 }
 
-void on_entry_Ap4val_insert_at_cursor(GtkEntry* e) {
-    
+void on_entry_Ap4val_changed(GtkEntry* e) {
+    update_A_plots();
 }
 
-void on_entry_Ap5val_insert_at_cursor(GtkEntry* e) {
-    
+void on_entry_Ap5val_changed(GtkEntry* e) {
+    update_A_plots();
 }
 
-void on_entry_Bp1val_insert_at_cursor(GtkEntry* e) {
-
+void on_entry_Bp1val_changed(GtkEntry* e) {
+    update_B_plots();
 }
 
-void on_entry_Bp2val_insert_at_cursor(GtkEntry* e) {
-    
+void on_entry_Bp2val_changed(GtkEntry* e) {
+    update_B_plots();
 }
 
-void on_entry_Bp3val_insert_at_cursor(GtkEntry* e) {
-    
+void on_entry_Bp3val_changed(GtkEntry* e) {
+    update_B_plots();
 }
 
-void on_entry_Bp4val_insert_at_cursor(GtkEntry* e) {
-    
+void on_entry_Bp4val_changed(GtkEntry* e) {
+    update_B_plots();
 }
 
-void on_entry_Bp5val_insert_at_cursor(GtkEntry* e) {
-    
+void on_entry_Bp5val_changed(GtkEntry* e) {
+    update_B_plots();
 }
 
 void on_button_Asave_bin_clicked(GtkButton* b) {
@@ -247,12 +432,12 @@ void on_button_Bload_clicked(GtkButton* b) {
     g_error("Not implemented");
 }
 
-void on_entry_Asf_insert_at_cursor(GtkEntry* e) {
-    
+void on_entry_Asf_changed(GtkEntry* e) {
+    update_A_plots();
 }
 
-void on_entry_Bsf_insert_at_cursor(GtkEntry* e) {
-
+void on_entry_Bsf_changed(GtkEntry* e) {
+    update_B_plots();
 }
 
 
