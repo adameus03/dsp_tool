@@ -81,88 +81,6 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <child>
-                  <object class="GtkComboBoxText" id="comboBoxText_Astype">
-                    <property name="width-request">56</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="active">2</property>
-                    <items>
-                      <item translatable="yes">Uniform noise</item>
-                      <item translatable="yes">Gaussian noise</item>
-                      <item translatable="yes">Sine</item>
-                      <item translatable="yes">Half-wave rectified sine</item>
-                      <item translatable="yes">Full-wave rectified sine</item>
-                      <item translatable="yes">Rectangular</item>
-                      <item translatable="yes">Symmetric rectangular</item>
-                      <item translatable="yes">Triangle</item>
-                      <item translatable="yes">Heaviside</item>
-                      <item translatable="yes">Kronecker delta</item>
-                      <item translatable="yes">Impulse noise</item>
-                      <item translatable="yes">Custom</item>
-                    </items>
-                    <signal name="changed" handler="on_comboBoxText_Astype_changed" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x">114</property>
-                    <property name="y">28</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label_Ap1name">
-                    <property name="width-request">62</property>
-                    <property name="height-request">20</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Param1</property>
-                  </object>
-                  <packing>
-                    <property name="x">22</property>
-                    <property name="y">80</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="entry_Ap1val">
-                    <property name="width-request">168</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="text" translatable="yes">1</property>
-                    <signal name="insert-at-cursor" handler="on_entry_Ap1val_insert_at_cursor" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x">112</property>
-                    <property name="y">74</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label_Ap2name">
-                    <property name="width-request">63</property>
-                    <property name="height-request">20</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Param2</property>
-                  </object>
-                  <packing>
-                    <property name="x">23</property>
-                    <property name="y">130</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="entry_Ap2val">
-                    <property name="width-request">168</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="text" translatable="yes">1</property>
-                    <signal name="insert-at-cursor" handler="on_entry_Ap2val_insert_at_cursor" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x">111</property>
-                    <property name="y">123</property>
-                  </packing>
-                </child>
-                <child>
                   <object class="GtkLabel">
                     <property name="width-request">56</property>
                     <property name="height-request">30</property>
@@ -181,195 +99,300 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="label_Ap5name">
-                    <property name="width-request">46</property>
-                    <property name="height-request">20</property>
+                  <!-- n-columns=4 n-rows=3 -->
+                  <object class="GtkGrid">
+                    <property name="width-request">288</property>
+                    <property name="height-request">102</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Param5</property>
+                    <property name="column-spacing">10</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Signal type</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label_Ap1name">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Param1</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label_Ap2name">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Param2</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_Ap1val">
+                        <property name="width-request">168</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="text" translatable="yes">1</property>
+                        <signal name="insert-at-cursor" handler="on_entry_Ap1val_insert_at_cursor" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">1</property>
+                        <property name="top-attach">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_Ap2val">
+                        <property name="width-request">168</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="text" translatable="yes">1</property>
+                        <signal name="insert-at-cursor" handler="on_entry_Ap2val_insert_at_cursor" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">1</property>
+                        <property name="top-attach">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkComboBoxText" id="comboBoxText_Astype">
+                        <property name="width-request">56</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="active">2</property>
+                        <items>
+                          <item translatable="yes">Uniform noise</item>
+                          <item translatable="yes">Gaussian noise</item>
+                          <item translatable="yes">Sine</item>
+                          <item translatable="yes">Half-wave rectified sine</item>
+                          <item translatable="yes">Full-wave rectified sine</item>
+                          <item translatable="yes">Rectangular</item>
+                          <item translatable="yes">Symmetric rectangular</item>
+                          <item translatable="yes">Triangle</item>
+                          <item translatable="yes">Heaviside</item>
+                          <item translatable="yes">Kronecker delta</item>
+                          <item translatable="yes">Impulse noise</item>
+                          <item translatable="yes">Custom</item>
+                        </items>
+                        <signal name="changed" handler="on_comboBoxText_Astype_changed" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">1</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label_Ap5name">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Param5</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">2</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label_Ap3name">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Param3</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">2</property>
+                        <property name="top-attach">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label_Ap4name">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Param4</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">2</property>
+                        <property name="top-attach">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_Ap5val">
+                        <property name="width-request">168</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="text" translatable="yes">1</property>
+                        <signal name="insert-at-cursor" handler="on_entry_Ap5val_insert_at_cursor" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">3</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_Ap3val">
+                        <property name="width-request">168</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="text" translatable="yes">1</property>
+                        <signal name="insert-at-cursor" handler="on_entry_Ap3val_insert_at_cursor" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">3</property>
+                        <property name="top-attach">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_Ap4val">
+                        <property name="width-request">168</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="text" translatable="yes">1</property>
+                        <signal name="insert-at-cursor" handler="on_entry_Ap4val_insert_at_cursor" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">3</property>
+                        <property name="top-attach">2</property>
+                      </packing>
+                    </child>
                   </object>
                   <packing>
-                    <property name="x">416</property>
-                    <property name="y">33</property>
+                    <property name="x">25</property>
+                    <property name="y">29</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="label_Ap3name">
-                    <property name="width-request">46</property>
-                    <property name="height-request">20</property>
+                  <!-- n-columns=3 n-rows=3 -->
+                  <object class="GtkGrid">
+                    <property name="width-request">659</property>
+                    <property name="height-request">102</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Param3</property>
+                    <property name="row-spacing">5</property>
+                    <property name="column-spacing">10</property>
+                    <child>
+                      <object class="GtkFileChooserButton" id="fileChooserButton_ASave">
+                        <property name="width-request">249</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="title" translatable="yes"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="button_Asave_bin">
+                        <property name="label" translatable="yes">Save signal A to file as binary</property>
+                        <property name="width-request">211</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                        <signal name="clicked" handler="on_button_Asave_bin_clicked" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">1</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="button_Asave_txt">
+                        <property name="label" translatable="yes">Save signal A to file as text</property>
+                        <property name="width-request">197</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                        <signal name="clicked" handler="on_button_Asave_txt_clicked" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">2</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="width-request">122</property>
+                        <property name="height-request">20</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Sampling frequency</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_Asf">
+                        <property name="width-request">168</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="text" translatable="yes">256</property>
+                        <signal name="insert-at-cursor" handler="on_entry_Asf_insert_at_cursor" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">1</property>
+                        <property name="top-attach">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkFileChooserButton" id="fileChooserButton_ALoad">
+                        <property name="width-request">249</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="title" translatable="yes"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="button_Aload">
+                        <property name="label" translatable="yes">Load signal  A from binary file</property>
+                        <property name="width-request">213</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                        <signal name="clicked" handler="on_button_Aload_clicked" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">1</property>
+                        <property name="top-attach">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                   </object>
                   <packing>
-                    <property name="x">415</property>
-                    <property name="y">79</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label_Ap4name">
-                    <property name="width-request">46</property>
-                    <property name="height-request">20</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Param4</property>
-                  </object>
-                  <packing>
-                    <property name="x">416</property>
-                    <property name="y">125</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="entry_Ap5val">
-                    <property name="width-request">168</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="text" translatable="yes">1</property>
-                    <signal name="insert-at-cursor" handler="on_entry_Ap5val_insert_at_cursor" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x">488</property>
-                    <property name="y">26</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="entry_Ap3val">
-                    <property name="width-request">168</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="text" translatable="yes">1</property>
-                    <signal name="insert-at-cursor" handler="on_entry_Ap3val_insert_at_cursor" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x">487</property>
-                    <property name="y">71</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="entry_Ap4val">
-                    <property name="width-request">168</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="text" translatable="yes">1</property>
-                    <signal name="insert-at-cursor" handler="on_entry_Ap4val_insert_at_cursor" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x">488</property>
-                    <property name="y">117</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="width-request">68</property>
-                    <property name="height-request">15</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Signal type</property>
-                  </object>
-                  <packing>
-                    <property name="x">23</property>
-                    <property name="y">37</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkFileChooserButton" id="fileChooserButton_ASave">
-                    <property name="width-request">249</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="title" translatable="yes"/>
-                  </object>
-                  <packing>
-                    <property name="x">29</property>
-                    <property name="y">161</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="button_Asave_bin">
-                    <property name="label" translatable="yes">Save signal A to file as binary</property>
-                    <property name="width-request">211</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="receives-default">True</property>
-                    <signal name="clicked" handler="on_button_Asave_bin_clicked" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x">285</property>
-                    <property name="y">161</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="button_Asave_txt">
-                    <property name="label" translatable="yes">Save signal A to file as text</property>
-                    <property name="width-request">197</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="receives-default">True</property>
-                    <signal name="clicked" handler="on_button_Asave_txt_clicked" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x">503</property>
-                    <property name="y">160</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkFileChooserButton" id="fileChooserButton_ALoad">
-                    <property name="width-request">249</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="title" translatable="yes"/>
-                  </object>
-                  <packing>
-                    <property name="x">30</property>
-                    <property name="y">238</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="button_Aload">
-                    <property name="label" translatable="yes">Load signal  A from binary file</property>
-                    <property name="width-request">213</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="receives-default">True</property>
-                    <signal name="clicked" handler="on_button_Aload_clicked" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x">287</property>
-                    <property name="y">239</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="width-request">122</property>
-                    <property name="height-request">20</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Sampling frequency</property>
-                  </object>
-                  <packing>
-                    <property name="x">32</property>
-                    <property name="y">206</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="entry_Asf">
-                    <property name="width-request">168</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="text" translatable="yes">256</property>
-                    <signal name="insert-at-cursor" handler="on_entry_Asf_insert_at_cursor" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x">164</property>
-                    <property name="y">199</property>
+                    <property name="x">15</property>
+                    <property name="y">156</property>
                   </packing>
                 </child>
               </object>
@@ -397,183 +420,6 @@
                   <packing>
                     <property name="x">14</property>
                     <property name="y">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="width-request">68</property>
-                    <property name="height-request">30</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Signal type
-</property>
-                  </object>
-                  <packing>
-                    <property name="x">21</property>
-                    <property name="y">37</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkComboBoxText" id="comboBoxText_Bstype">
-                    <property name="width-request">180</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="active">2</property>
-                    <items>
-                      <item translatable="yes">Uniform noise</item>
-                      <item translatable="yes">Gaussian noise</item>
-                      <item translatable="yes">Sine</item>
-                      <item translatable="yes">Half-wave rectified sine</item>
-                      <item translatable="yes">Full-wave rectified sine</item>
-                      <item translatable="yes">Rectangular</item>
-                      <item translatable="yes">Symmetric rectangular</item>
-                      <item translatable="yes">Triangle</item>
-                      <item translatable="yes">Heaviside</item>
-                      <item translatable="yes">Kronecker delta</item>
-                      <item translatable="yes">Impulse noise</item>
-                      <item translatable="yes">Custom</item>
-                    </items>
-                    <signal name="changed" handler="on_comboBoxText_Bstype_changed" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x">104</property>
-                    <property name="y">28</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label_Bp1name">
-                    <property name="width-request">62</property>
-                    <property name="height-request">20</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Param1</property>
-                  </object>
-                  <packing>
-                    <property name="x">21</property>
-                    <property name="y">78</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="entry_Bp1val">
-                    <property name="width-request">168</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="text" translatable="yes">1</property>
-                    <signal name="insert-at-cursor" handler="on_entry_Bp1val_insert_at_cursor" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x">105</property>
-                    <property name="y">70</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label_Bp2name">
-                    <property name="width-request">63</property>
-                    <property name="height-request">20</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Param2</property>
-                  </object>
-                  <packing>
-                    <property name="x">22</property>
-                    <property name="y">121</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="entry_Bp2val">
-                    <property name="width-request">168</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="text" translatable="yes">1</property>
-                    <signal name="insert-at-cursor" handler="on_entry_Bp2val_insert_at_cursor" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x">106</property>
-                    <property name="y">114</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label_Bp5name">
-                    <property name="width-request">46</property>
-                    <property name="height-request">20</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Param5</property>
-                  </object>
-                  <packing>
-                    <property name="x">517</property>
-                    <property name="y">35</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label_Bp3name">
-                    <property name="width-request">46</property>
-                    <property name="height-request">20</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Param3</property>
-                  </object>
-                  <packing>
-                    <property name="x">518</property>
-                    <property name="y">74</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label_Bp4name">
-                    <property name="width-request">46</property>
-                    <property name="height-request">20</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Param4</property>
-                  </object>
-                  <packing>
-                    <property name="x">518</property>
-                    <property name="y">119</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="entry_Bp5val">
-                    <property name="width-request">168</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="text" translatable="yes">1</property>
-                    <signal name="insert-at-cursor" handler="on_entry_Bp5val_insert_at_cursor" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x">585</property>
-                    <property name="y">28</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="entry_Bp3val">
-                    <property name="width-request">168</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="text" translatable="yes">1</property>
-                    <signal name="insert-at-cursor" handler="on_entry_Bp3val_insert_at_cursor" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x">585</property>
-                    <property name="y">67</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="entry_Bp4val">
-                    <property name="width-request">171</property>
-                    <property name="height-request">34</property>
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="text" translatable="yes">1</property>
-                    <signal name="insert-at-cursor" handler="on_entry_Bp4val_insert_at_cursor" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x">585</property>
-                    <property name="y">111</property>
                   </packing>
                 </child>
                 <child>
@@ -631,6 +477,184 @@
                     <property name="y">200</property>
                   </packing>
                 </child>
+                <child>
+                  <!-- n-columns=4 n-rows=3 -->
+                  <object class="GtkGrid">
+                    <property name="width-request">100</property>
+                    <property name="height-request">80</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="column-spacing">10</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Signal type</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label_Bp1name">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Param1</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label_Bp2name">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Param2</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkComboBoxText" id="comboBoxText_Bstype">
+                        <property name="width-request">180</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="active">2</property>
+                        <items>
+                          <item translatable="yes">Uniform noise</item>
+                          <item translatable="yes">Gaussian noise</item>
+                          <item translatable="yes">Sine</item>
+                          <item translatable="yes">Half-wave rectified sine</item>
+                          <item translatable="yes">Full-wave rectified sine</item>
+                          <item translatable="yes">Rectangular</item>
+                          <item translatable="yes">Symmetric rectangular</item>
+                          <item translatable="yes">Triangle</item>
+                          <item translatable="yes">Heaviside</item>
+                          <item translatable="yes">Kronecker delta</item>
+                          <item translatable="yes">Impulse noise</item>
+                          <item translatable="yes">Custom</item>
+                        </items>
+                        <signal name="changed" handler="on_comboBoxText_Bstype_changed" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">1</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_Bp1val">
+                        <property name="width-request">168</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="text" translatable="yes">1</property>
+                        <signal name="insert-at-cursor" handler="on_entry_Bp1val_insert_at_cursor" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">1</property>
+                        <property name="top-attach">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_Bp2val">
+                        <property name="width-request">168</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="text" translatable="yes">1</property>
+                        <signal name="insert-at-cursor" handler="on_entry_Bp2val_insert_at_cursor" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">1</property>
+                        <property name="top-attach">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label_Bp5name">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Param5</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">2</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label_Bp3name">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Param3</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">2</property>
+                        <property name="top-attach">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label_Bp4name">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Param4</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">2</property>
+                        <property name="top-attach">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_Bp5val">
+                        <property name="width-request">168</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="text" translatable="yes">1</property>
+                        <signal name="insert-at-cursor" handler="on_entry_Bp5val_insert_at_cursor" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">3</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_Bp3val">
+                        <property name="width-request">168</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="text" translatable="yes">1</property>
+                        <signal name="insert-at-cursor" handler="on_entry_Bp3val_insert_at_cursor" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">3</property>
+                        <property name="top-attach">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_Bp4val">
+                        <property name="width-request">171</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="text" translatable="yes">1</property>
+                        <signal name="insert-at-cursor" handler="on_entry_Bp4val_insert_at_cursor" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">3</property>
+                        <property name="top-attach">2</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="x">33</property>
+                    <property name="y">34</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="left-attach">1</property>
@@ -679,6 +703,8 @@
                           <object class="GtkGrid">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
+                            <property name="margin-bottom">8</property>
+                            <property name="row-spacing">5</property>
                             <property name="column-homogeneous">True</property>
                             <child>
                               <object class="GtkLabel">
@@ -740,6 +766,9 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">unknown</property>
+                                <attributes>
+                                  <attribute name="weight" value="ultrabold"/>
+                                </attributes>
                               </object>
                               <packing>
                                 <property name="left-attach">1</property>
@@ -751,6 +780,9 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">unknown</property>
+                                <attributes>
+                                  <attribute name="weight" value="ultrabold"/>
+                                </attributes>
                               </object>
                               <packing>
                                 <property name="left-attach">1</property>
@@ -762,6 +794,9 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">unknown</property>
+                                <attributes>
+                                  <attribute name="weight" value="ultrabold"/>
+                                </attributes>
                               </object>
                               <packing>
                                 <property name="left-attach">1</property>
@@ -773,6 +808,9 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">unknown</property>
+                                <attributes>
+                                  <attribute name="weight" value="ultrabold"/>
+                                </attributes>
                               </object>
                               <packing>
                                 <property name="left-attach">1</property>
@@ -784,6 +822,9 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">unknown</property>
+                                <attributes>
+                                  <attribute name="weight" value="ultrabold"/>
+                                </attributes>
                               </object>
                               <packing>
                                 <property name="left-attach">1</property>
@@ -848,6 +889,7 @@
                           <object class="GtkGrid">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
+                            <property name="margin-bottom">10</property>
                             <property name="column-homogeneous">True</property>
                             <child>
                               <object class="GtkLabel">
@@ -909,6 +951,9 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">unknown</property>
+                                <attributes>
+                                  <attribute name="weight" value="ultrabold"/>
+                                </attributes>
                               </object>
                               <packing>
                                 <property name="left-attach">1</property>
@@ -920,6 +965,9 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">unknown</property>
+                                <attributes>
+                                  <attribute name="weight" value="ultrabold"/>
+                                </attributes>
                               </object>
                               <packing>
                                 <property name="left-attach">1</property>
@@ -931,6 +979,9 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">unknown</property>
+                                <attributes>
+                                  <attribute name="weight" value="ultrabold"/>
+                                </attributes>
                               </object>
                               <packing>
                                 <property name="left-attach">1</property>
@@ -942,6 +993,9 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">unknown</property>
+                                <attributes>
+                                  <attribute name="weight" value="ultrabold"/>
+                                </attributes>
                               </object>
                               <packing>
                                 <property name="left-attach">1</property>
@@ -953,6 +1007,9 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">unknown</property>
+                                <attributes>
+                                  <attribute name="weight" value="ultrabold"/>
+                                </attributes>
                               </object>
                               <packing>
                                 <property name="left-attach">1</property>

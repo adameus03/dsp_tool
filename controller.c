@@ -1,6 +1,10 @@
 #include "controller.h"
 #include <gtk/gtk.h>
 
+#define NUM_PARAMS 10
+#define NUM_SIGNALS 12
+#define MAX_PARAMS_PER_SIGNAL 5
+
 struct ApplicationControls {
     GtkWidget* window;
 
@@ -8,28 +12,33 @@ struct ApplicationControls {
     GtkWidget* button_perform;
 
     GtkWidget* comboBoxText_Astype;
-    GtkWidget* label_Ap1name;
+    /*GtkWidget* label_Ap1name;
     GtkWidget* label_Ap2name;
     GtkWidget* label_Ap3name;
     GtkWidget* label_Ap4name;
-    GtkWidget* label_Ap5name;
-    GtkWidget* entry_Ap1val;
+    GtkWidget* label_Ap5name;*/
+    GtkWidget* labels_Apname[MAX_PARAMS_PER_SIGNAL];
+
+    /*GtkWidget* entry_Ap1val;
     GtkWidget* entry_Ap2val;
     GtkWidget* entry_Ap3val;
     GtkWidget* entry_Ap4val;
-    GtkWidget* entry_Ap5val;
+    GtkWidget* entry_Ap5val;*/
+    GtkWidget* entries_Apval[MAX_PARAMS_PER_SIGNAL];
 
     GtkWidget* comboBoxText_Bstype;
-    GtkWidget* label_Bp1name;
+    /*GtkWidget* label_Bp1name;
     GtkWidget* label_Bp2name;
     GtkWidget* label_Bp3name;
     GtkWidget* label_Bp4name;
-    GtkWidget* label_Bp5name;
-    GtkWidget* entry_Bp1val;
+    GtkWidget* label_Bp5name;*/
+    GtkWidget* labels_Bpname[MAX_PARAMS_PER_SIGNAL];
+    /*GtkWidget* entry_Bp1val;
     GtkWidget* entry_Bp2val;
     GtkWidget* entry_Bp3val;
     GtkWidget* entry_Bp4val;
-    GtkWidget* entry_Bp5val;
+    GtkWidget* entry_Bp5val;*/
+    GtkWidget* entries_Bpval[MAX_PARAMS_PER_SIGNAL];
 
     GtkWidget* fileChooserButton_ASave;
     GtkWidget* button_Asave_bin;
@@ -50,10 +59,7 @@ struct ApplicationBuilders {
 
 // #define EXTRACT_WIDGET(applicationControlsVarName, applicationBuildersVarName, widgetName, builderName) applicationControlsVarName.widgetName = GTK_WIDGET(gtk_builder_get_object(applicationBuildersVarName.builderName, #widgetName))
 
-#define NUM_PARAMS 10
-#define NUM_SIGNALS 12
-
-static const char* signal_def_param_names[10] = {
+static char* signal_def_param_names[NUM_PARAMS] = {
     "Amplitude (A)",
     "Start time (t_1)",
     "Duration (d)",
@@ -63,36 +69,89 @@ static const char* signal_def_param_names[10] = {
     "Step time (t_s)",
     "First sample no (n_1)",
     "Spike sample no (n_s)", //"l",
-    "f",
-    "p"
+    "Sample freq for discrete signal (f)",
+    "Spike probability (p)"
 };
 
 //static const unsigned char custom_signal_idx = NUM_SIGNALS;
-static const char* param_affinity[NUM_SIGNALS] = {
-    "012",
-    "012",
-    "0312",
-    "0312",
-    "0312",
-    "0312",
-    "03124",
-    "03124",
-    "0125",
-    "0768",
-    "01289"
-    ""
+static uint8_t param_affinity[NUM_SIGNALS][MAX_PARAMS_PER_SIGNAL + 1] = {
+    {0, 1, 2, 0xff}/*"012"*/,
+    {0, 1, 2, 0xff}/*"012"*/,
+    {0, 3, 1, 2, 0xff}/*"0312"*/,
+    {0, 3, 1, 2, 0xff}/*"0312"*/,
+    {0, 3, 1, 2, 0xff}/*"0312"*/,
+    {0, 3, 1, 2, 4, 0xff}/*"0312"*/,
+    {0, 3, 1, 2, 4, 0xff}/*"03124"*/,
+    {0, 3, 1, 2, 4, 0xff}/*"03124"*/,
+    {0, 1, 2, 5, 0xff}/*"0125"*/,
+    {0, 7, 6, 8, 0xff}/*"0768"*/,
+    {0, 1, 2, 8, 9, 0xff}/*"01289"*/,
+    {0xff}/*""*/
 };
 
-void construct_param_names(uint8_t signal_idx) {
-    g_error("Not implemented");
+
+/**
+ * @attention THe buffer pointed by `ppuParamIdx is allocated dynamically and needs to be freed by the user
+*/
+/*void resolve_param_affinity(uint8_t signal_idx, uint8_t** ppuParamIds, uint8_t* pNumParams) {
+    char* paramsString = param_affinity[signal_idx];
+    *pNumParams = strlen(paramsString);
+    *ppuParamIds = (uint8_t*)malloc(*pNumParams);
+    for (uint8_t i = 0; i < *pNumParams; i++) {
+        char* c = paramsString[i];
+        i[*ppuParamIds] = atoi()
+    }
+}*/
+
+/**
+ * @note The `ppcParamNames` buffer should be allocated by the user and contain at least `MAX_PARAMS_PER_SIGNAL` pointers to char
+ * @returns Number of signal parameters
+*/
+uint8_t construct_param_names(uint8_t signal_idx, char** ppcParamNames) {
+    uint8_t* affinity = param_affinity[signal_idx];
+    uint8_t k = 0;
+    while (affinity[k] != 0xff) {
+        ppcParamNames[k] = signal_def_param_names[affinity[k]];
+        k++;
+    }
+    return k;
 }
 
-void set_param_names(uint8_t signal_idx) {
+typedef enum {
+    SIGNAL_A,
+    SIGNAL_B
+} signal_selector_t;
+
+void set_param_names(uint8_t signal_idx, signal_selector_t selector) {
+    char* paramNames[MAX_PARAMS_PER_SIGNAL];
+    uint8_t num_params = construct_param_names(signal_idx, paramNames);
+
     if (signal_idx >= NUM_SIGNALS) {
         g_error("Invalid signal index");
     }
     else {
-        gtk_label_set_text (GTK_LABEL(widgets.label_Ap1name), "Amplitude");
+        if (selector == SIGNAL_A) {
+            for (uint8_t i = 0; i < num_params; i++) {
+                gtk_label_set_text (GTK_LABEL(widgets.labels_Apname[i]), paramNames[i]);
+                gtk_widget_set_visible(widgets.labels_Apname[i], TRUE);
+                gtk_widget_set_visible(widgets.entries_Apval[i], TRUE);
+            }
+            for (uint8_t i = num_params; i < MAX_PARAMS_PER_SIGNAL; i++) {
+                gtk_widget_set_visible(widgets.labels_Apname[i], FALSE);
+                gtk_widget_set_visible(widgets.entries_Apval[i], FALSE);
+            }
+
+        } else { // SIGNAL_B
+            for (uint8_t i = 0; i < num_params; i++) {
+                gtk_label_set_text (GTK_LABEL(widgets.labels_Bpname[i]), paramNames[i]);
+                gtk_widget_set_visible(widgets.labels_Bpname[i], TRUE);
+                gtk_widget_set_visible(widgets.entries_Bpval[i], TRUE);
+            }
+            for (uint8_t i = num_params; i < MAX_PARAMS_PER_SIGNAL; i++) {
+                gtk_widget_set_visible(widgets.labels_Bpname[i], FALSE);
+                gtk_widget_set_visible(widgets.entries_Bpval[i], FALSE);
+            }
+        }
     }
 }
 
@@ -109,27 +168,27 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     widgets.comboBoxText_op = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "comboBoxText_op"));
     widgets.button_perform = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_perform"));
     widgets.comboBoxText_Astype = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "comboBoxText_Astype"));
-    widgets.label_Ap1name = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap1name"));
-    widgets.label_Ap2name = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap2name"));
-    widgets.label_Ap3name = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap3name"));
-    widgets.label_Ap4name = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap4name"));
-    widgets.label_Ap5name = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap5name"));
-    widgets.entry_Ap1val = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap1val"));
-    widgets.entry_Ap2val = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap2val"));
-    widgets.entry_Ap3val = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap3val"));
-    widgets.entry_Ap4val = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap4val"));
-    widgets.entry_Ap5val = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap5val"));
+    widgets.labels_Apname[0]/*label_Ap1name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap1name"));
+    widgets.labels_Apname[1]/*label_Ap2name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap2name"));
+    widgets.labels_Apname[2]/*label_Ap3name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap3name"));
+    widgets.labels_Apname[3]/*label_Ap4name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap4name"));
+    widgets.labels_Apname[4]/*label_Ap5name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap5name"));
+    widgets.entries_Apval[0]/*entry_Ap1val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap1val"));
+    widgets.entries_Apval[1]/*entry_Ap2val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap2val"));
+    widgets.entries_Apval[2]/*entry_Ap3val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap3val"));
+    widgets.entries_Apval[3]/*entry_Ap4val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap4val"));
+    widgets.entries_Apval[4]/*entry_Ap5val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Ap5val"));
     widgets.comboBoxText_Bstype = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "comboBoxText_Bstype"));
-    widgets.label_Bp1name = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp1name"));
-    widgets.label_Bp2name = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp2name"));
-    widgets.label_Bp3name = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp3name"));
-    widgets.label_Bp4name = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp4name"));
-    widgets.label_Bp5name = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp5name"));
-    widgets.entry_Bp1val = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp1val"));
-    widgets.entry_Bp2val = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp2val"));
-    widgets.entry_Bp3val = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp3val"));
-    widgets.entry_Bp4val = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp4val"));
-    widgets.entry_Bp5val = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp5val"));
+    widgets.labels_Bpname[0]/*label_Bp1name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp1name"));
+    widgets.labels_Bpname[1]/*label_Bp2name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp2name"));
+    widgets.labels_Bpname[2]/*label_Bp3name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp3name"));
+    widgets.labels_Bpname[3]/*label_Bp4name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp4name"));
+    widgets.labels_Bpname[4]/*label_Bp5name*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Bp5name"));
+    widgets.entries_Bpval[0]/*entry_Bp1val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp1val"));
+    widgets.entries_Bpval[1]/*entry_Bp2val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp2val"));
+    widgets.entries_Bpval[2]/*entry_Bp3val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp3val"));
+    widgets.entries_Bpval[3]/*entry_Bp4val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp4val"));
+    widgets.entries_Bpval[4]/*entry_Bp5val*/ = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bp5val"));
     widgets.fileChooserButton_ASave = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "fileChooserButton_ASave"));
     widgets.button_Asave_bin = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_Asave_bin"));
     widgets.button_Asave_txt = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_Asave_txt"));
@@ -140,6 +199,9 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     widgets.entry_Asf = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Asf"));
     widgets.entry_Bsf = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bsf"));
     
+    set_param_names(gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_Astype)), SIGNAL_A);
+    set_param_names(gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_Bstype)), SIGNAL_B);
+
     gtk_widget_show(widgets.window);
     gtk_main();
     
@@ -152,16 +214,23 @@ void on_comboBoxText_op_changed(GtkComboBoxText* c) {
 
 void on_button_perform_clicked(GtkButton* b) {
     /* test */
-    printf("ON BUttoN PERFORM CLICK\n");
-    gtk_label_set_text (GTK_LABEL(widgets.label_Ap1name), "Amplitude");
+    //printf("ON BUttoN PERFORM CLICK\n");
+    //gtk_label_set_text (GTK_LABEL(widgets.label_Ap1name), "Amplitude");
+    g_error("Not implemented");
 }
 
-void on_comboBoxText_Astype_changed(GtkComboBoxText* c) {
+void on_comboBoxText_Astype_changed(GtkComboBox* c, gpointer user_data) {
+    //gtk_combo_box_get_active_id(c);
+    //gtk_combo_box_text_get_active_text()
+    uint32_t signal_idx = gtk_combo_box_get_active(c);
+    set_param_names(signal_idx, SIGNAL_A);
+
     
 }
 
-void on_comboBoxText_Bstype_changed(GtkComboBoxText* c) {
-    
+void on_comboBoxText_Bstype_changed(GtkComboBox* c, gpointer user_data) {
+    uint32_t signal_idx = gtk_combo_box_get_active(c);
+    set_param_names(signal_idx, SIGNAL_B);
 }
 
 void on_entry_Ap1val_insert_at_cursor(GtkEntry* e) {
