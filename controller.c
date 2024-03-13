@@ -1,5 +1,6 @@
 #include "controller.h"
 #include <gtk/gtk.h>
+#include <locale.h>
 #include "model/generator.h"
 #include "model/gnuplot.h"
 
@@ -317,6 +318,8 @@ void init_scales() {
 
 int controller_run(int* psArgc, char*** pppcArgv) {
     gtk_init(psArgc, pppcArgv);
+    setlocale(LC_NUMERIC, "C");
+
     builders.viewBuilder = gtk_builder_new_from_file("view.xml");
     widgets.window = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "window"));
     
