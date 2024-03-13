@@ -176,8 +176,8 @@ double get_param3val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entr
 double get_param4val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[3]))); }
 double get_param5val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[4]))); }
 
-uint32_t get_adjustment_val_a() { return (uint32_t)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment1)); }
-uint32_t get_adjustment_val_b() { return (uint32_t)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment2)); }
+uint64_t get_adjustment_val_a() { return (uint64_t)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment1)); }
+uint64_t get_adjustment_val_b() { return (uint64_t)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment2)); }
 
 
 void load_signal_A() {
@@ -284,22 +284,26 @@ void draw_plot_B() {
     gtk_image_set_from_file(GTK_IMAGE(widgets.imageB1), GNUPLOT_OUTFILE_PATH);
 }
 
+void draw_histogram_A() {
+    gnuplot_prepare_real_signal_histogram(&signals.signalA, get_adjustment_val_a(), "Signal A histogram", GNUPLOT_SCRIPT_PATH_HISTOGRAM);
+    gtk_image_set_from_file(GTK_IMAGE(widgets.imageA2), GNUPLOT_OUTFILE_PATH);
+}
+
+void draw_histogram_B() {
+    gnuplot_prepare_real_signal_histogram(&signals.signalB, get_adjustment_val_b(), "Signal B histogram", GNUPLOT_SCRIPT_PATH_HISTOGRAM);
+    gtk_image_set_from_file(GTK_IMAGE(widgets.imageB2), GNUPLOT_OUTFILE_PATH);
+}
+
 void update_A_plots() {
     load_signal_A();
     draw_plot_A();
+    draw_histogram_A();
 }
 
 void update_B_plots() {
     load_signal_B();
     draw_plot_B();
-}
-
-void draw_histogram_A() {
-    g_error("Not implemented");
-}
-
-void draw_histogram_B() {
-    g_error("Not implemented");
+    draw_histogram_B();
 }
 
 void init_scales() {
@@ -368,10 +372,12 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     set_param_names(get_signal_idx_b(), SIGNAL_B);
     init_scales();
 
-    load_signal_A();
+    /*load_signal_A();
     load_signal_B();
     draw_plot_A();
-    draw_plot_B();
+    draw_plot_B();*/
+    update_A_plots();
+    update_B_plots();
 
     gtk_builder_connect_signals(builders.viewBuilder, NULL);
 
@@ -474,10 +480,10 @@ void on_entry_Bsf_changed(GtkEntry* e) {
 }
 
 void on_scaleA_value_changed(GtkScale* s) {
-    g_error("Not implemented");
+    update_A_plots();
 }
 
 void on_scaleB_value_changed(GtkScale* s) {
-    g_error("Not implemented");
+    update_B_plots();
 }
 
