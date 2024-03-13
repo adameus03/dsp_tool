@@ -22,9 +22,11 @@ void __gnuplot_prepare_real_signal_data(real_signal_t* pSignal) {
     fclose(data_file);
 }
 
-void gnuplot_prepare_real_signal_plot(real_signal_t* pSignal, const char* script_path) {
-    __gnuplot_prepare_real_signal_data(pSignal);
-    // Call gnuplot to create output image
+void __gnuplot_prepare_real_signal_historgram_data(real_signal_t* pSignal) {
+    
+}
+
+void __gnuplot_call(const char* script_path) {
     char cmd_buf[50];
     snprintf(cmd_buf, 50, "gnuplot %s", script_path);
     int status = system(cmd_buf);
@@ -32,8 +34,14 @@ void gnuplot_prepare_real_signal_plot(real_signal_t* pSignal, const char* script
         fprintf(stderr, "Error: gnuplot call failed");
     }
 }
-void gnuplot_prepare_complex_signal_plots(complex_signal_t* pSignal) {
 
+void gnuplot_prepare_real_signal_plot(real_signal_t* pSignal, const char* script_path) {
+    __gnuplot_prepare_real_signal_data(pSignal);
+    // Call gnuplot to create output image
+    __gnuplot_call(script_path);
+}
+void gnuplot_prepare_complex_signal_plots(complex_signal_t* pSignal) {
+    fprintf(stderr, "Error: Complex signal plotting not implemented yet\n");
 }
 void gnuplot_prepare_real_signal_histogram(real_signal_t* pSignal) {
     

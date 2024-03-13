@@ -7,6 +7,10 @@
 #define NUM_SIGNALS 12
 #define MAX_PARAMS_PER_SIGNAL 5
 
+#define MIN_NUM_HISTOGRAM_INTERVALS 1
+#define MAX_NUM_HISTOGRAM_INTERVALS 20
+#define DEFAULT_NUM_HISTOGRAM_INTERVALS 10
+
 struct ApplicationControls {
     GtkWidget* window;
 
@@ -38,7 +42,16 @@ struct ApplicationControls {
     GtkWidget* imageA2;
     GtkWidget* imageB1;
     GtkWidget* imageB2;
+
+    GtkWidget* scaleA;
+    GtkWidget* scaleB;
 } widgets;
+
+struct ApplicationControlHelpers {
+    GtkAdjustment* adjustment1;   ///////////////////////////
+                                 // For the scale widgets //
+    GtkAdjustment* adjustment2; ///////////////////////////
+} widget_helpers;
 
 struct ApplicationBuilders {
     GtkBuilder* viewBuilder;
@@ -163,6 +176,10 @@ double get_param3val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entr
 double get_param4val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[3]))); }
 double get_param5val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[4]))); }
 
+uint32_t get_adjustment_val_a() { return (uint32_t)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment1)); }
+uint32_t get_adjustment_val_b() { return (uint32_t)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment2)); }
+
+
 void load_signal_A() {
     if (signals.signalA.pValues != NULL) {
         real_signal_free_values(&signals.signalA);
@@ -285,13 +302,21 @@ void draw_histogram_B() {
     g_error("Not implemented");
 }
 
+void init_scales() {
+    gtk_adjustment_set_lower (widget_helpers.adjustment1, (gdouble)MIN_NUM_HISTOGRAM_INTERVALS);
+    gtk_adjustment_set_upper (widget_helpers.adjustment1, (gdouble)MAX_NUM_HISTOGRAM_INTERVALS);
+    gtk_adjustment_set_lower (widget_helpers.adjustment2, (gdouble)MIN_NUM_HISTOGRAM_INTERVALS);
+    gtk_adjustment_set_upper (widget_helpers.adjustment2, (gdouble)MAX_NUM_HISTOGRAM_INTERVALS);
+    gtk_adjustment_set_value (widget_helpers.adjustment1, (gdouble)DEFAULT_NUM_HISTOGRAM_INTERVALS);
+    gtk_adjustment_set_value (widget_helpers.adjustment2, (gdouble)DEFAULT_NUM_HISTOGRAM_INTERVALS);
+}
+
 int controller_run(int* psArgc, char*** pppcArgv) {
     gtk_init(psArgc, pppcArgv);
     builders.viewBuilder = gtk_builder_new_from_file("view.xml");
     widgets.window = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "window"));
     
     g_signal_connect (widgets.window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
-    gtk_builder_connect_signals(builders.viewBuilder, NULL);
 
     widgets.comboBoxText_op = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "comboBoxText_op"));
     widgets.button_perform = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_perform"));
@@ -330,17 +355,25 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     widgets.imageA2 = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "imageA2"));
     widgets.imageB1 = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "imageB1"));
     widgets.imageB2 = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "imageB2"));
+    widgets.scaleA = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "scaleA"));
+    widgets.scaleB = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "scaleB"));
+
+    widget_helpers.adjustment1 = GTK_ADJUSTMENT(gtk_builder_get_object(builders.viewBuilder, "adjustment1"));
+    widget_helpers.adjustment2 = GTK_ADJUSTMENT(gtk_builder_get_object(builders.viewBuilder, "adjustment2"));
     
     signals.signalA = (real_signal_t) { .info = { .sampling_frequency = 0 }, .pValues = NULL };
     signals.signalB = (real_signal_t) { .info = { .sampling_frequency = 0 }, .pValues = NULL };
 
     set_param_names(get_signal_idx_a(), SIGNAL_A);
     set_param_names(get_signal_idx_b(), SIGNAL_B);
+    init_scales();
 
     load_signal_A();
     load_signal_B();
     draw_plot_A();
     draw_plot_B();
+
+    gtk_builder_connect_signals(builders.viewBuilder, NULL);
 
     gtk_widget_show(widgets.window);
     gtk_main();
@@ -440,4 +473,11 @@ void on_entry_Bsf_changed(GtkEntry* e) {
     update_B_plots();
 }
 
+void on_scaleA_value_changed(GtkScale* s) {
+    g_error("Not implemented");
+}
+
+void on_scaleB_value_changed(GtkScale* s) {
+    g_error("Not implemented");
+}
 
