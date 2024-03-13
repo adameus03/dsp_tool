@@ -10,7 +10,7 @@ void __gnuplot_simple_call(const char* script_path) {
     snprintf(cmd_buf, 50, "gnuplot %s", script_path);
     int status = system(cmd_buf);
     if (status != 0) {
-        fprintf(stderr, "Error: gnuplot call failed (__gnuplot_simple_call)");
+        fprintf(stderr, "Error: gnuplot call failed (__gnuplot_simple_call)\n");
     }
 }
 
@@ -46,6 +46,6 @@ void __gnuplot_advanced_call(const char* script_path, gnuplot_arglist_t* pGnuplo
 
     int status = system(cmd_buf);
     if (status != 0) {
-        fprintf(stderr, "Error: gnuplot call failed (__gnuplot_advanced_call)");
+        fprintf(stderr, "Error: gnuplot call failed (__gnuplot_advanced_call)\n");
     }
 }

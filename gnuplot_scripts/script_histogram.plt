@@ -20,7 +20,7 @@ hist(x,width)=width*floor(x/width)+width/2.0
 
 set term png #output terminal and file
 set output outfile
-set xrange [min:max]
+set xrange [min:(max)]
 set yrange [0:]
 #to put an empty boundary around the
 #data inside an autoscaled graph.

@@ -213,7 +213,7 @@ void load_signal_A() {
             g_error("Not implemented");
             break;
         case 8:
-            g_error("Not implemented");
+            signals.signalA = generate_heaviside(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
             break;
         case 9:
             g_error("Not implemented");
@@ -260,7 +260,7 @@ void load_signal_B() {
             g_error("Not implemented");
             break;
         case 8:
-            g_error("Not implemented");
+            signals.signalB = generate_heaviside(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
             break;
         case 9:
             g_error("Not implemented");
@@ -407,11 +407,13 @@ void on_button_perform_clicked(GtkButton* b) {
 void on_comboBoxText_Astype_changed(GtkComboBox* c, gpointer user_data) {
     uint32_t signal_idx = gtk_combo_box_get_active(c);
     set_param_names(signal_idx, SIGNAL_A);
+    update_A_plots();
 }
 
 void on_comboBoxText_Bstype_changed(GtkComboBox* c, gpointer user_data) {
     uint32_t signal_idx = gtk_combo_box_get_active(c);
     set_param_names(signal_idx, SIGNAL_B);
+    update_B_plots();
 }
 
 

@@ -1,6 +1,7 @@
 #include "gnuplot.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h> //floor and ceil
 #include "transform.h"
 #include "__gcall.h"
 
@@ -78,6 +79,12 @@ void gnuplot_prepare_real_signal_histogram(real_signal_t* pSignal, uint64_t num_
             maximalSignalValue = *pValue;
         }
     }
+
+    //double minmax = maximalSignalValue - minimalSignalValue;
+    //minimalSignalValue -= 0.1 * minmax;
+    //maximalSignalValue += 0.1 * minmax;
+    //minimalSignalValue = floor(minimalSignalValue);
+    //maximalSignalValue = ceil(maximalSignalValue);
 
     //__gnuplot_prepare_real_signal_data(pSignal); /** @note The prepared data file should typically already be waiting there */
     gnuplot_arglist_t gnuplotArglist = { .num_args = 6U, .args = 0 };
