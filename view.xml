@@ -705,7 +705,6 @@
                           <object class="GtkImage" id="imageA1">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="pixbuf">wykres.png</property>
                           </object>
                           <packing>
                             <property name="left-attach">0</property>
@@ -716,7 +715,6 @@
                           <object class="GtkImage" id="imageA2">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="pixbuf">wykres.png</property>
                           </object>
                           <packing>
                             <property name="left-attach">0</property>
@@ -906,7 +904,6 @@
                           <object class="GtkImage" id="imageB1">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="pixbuf">wykres.png</property>
                           </object>
                           <packing>
                             <property name="left-attach">0</property>
@@ -917,7 +914,6 @@
                           <object class="GtkImage" id="imageB2">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="pixbuf">wykres.png</property>
                           </object>
                           <packing>
                             <property name="left-attach">0</property>
