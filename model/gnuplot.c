@@ -27,6 +27,12 @@ void __gnuplot_prepare_real_signal_data(real_signal_t* pSignal) {
     double dt = 1.0 / pSignal->info.sampling_frequency;
 
     for (uint64_t i = 0; i < pSignal->info.num_samples; i++) {
+        if (__isnan(pSignal->pValues[i])) {
+            continue;    
+        }
+        if ((pSignal->pValues[i] > MAX_SIGNAL_PLOTTED_VALUE) || (pSignal->pValues[i] < MIN_SIGNAL_PLOTTED_VALUE)) {
+            continue;
+        }
         fprintf(data_file, "%f %f\n", pSignal->info.start_time + i * dt, pSignal->pValues[i]);
     }
     
@@ -71,13 +77,34 @@ void gnuplot_prepare_real_signal_histogram(real_signal_t* pSignal, uint64_t num_
     double minimalSignalValue = pSignal->pValues[0];
     double maximalSignalValue = pSignal->pValues[0];
 
+    if (__isnan(minimalSignalValue)) { minimalSignalValue = 0; }
+    if (__isnan(maximalSignalValue)) { maximalSignalValue = 0; }
+    if ((minimalSignalValue < MIN_SIGNAL_PLOTTED_VALUE) || (minimalSignalValue > MAX_SIGNAL_PLOTTED_VALUE)) {
+        minimalSignalValue = 0;
+    }
+    if ((maximalSignalValue < MIN_SIGNAL_PLOTTED_VALUE) || (maximalSignalValue > MAX_SIGNAL_PLOTTED_VALUE)) {
+        maximalSignalValue = 0;
+    }
+
     for (uint64_t i = 1; i < pSignal->info.num_samples; i++) {
-        double* pValue = pSignal->pValues + i;
-        if (*pValue < minimalSignalValue) {
+        double* pValue = (pSignal->pValues) + i;
+        if (__isnan(*pValue)) {
+            continue;
+        if (((*pValue) < MIN_SIGNAL_PLOTTED_VALUE) || ((*pValue) > MAX_SIGNAL_PLOTTED_VALUE)) {
+            continue;
+        }
+        } else if (*pValue < minimalSignalValue) {
             minimalSignalValue = *pValue;
         } else if (*pValue > maximalSignalValue ) {
             maximalSignalValue = *pValue;
         }
+    }
+    
+    printf("Minimal=%f; maximal=%f\n", minimalSignalValue, maximalSignalValue);
+    if (maximalSignalValue - minimalSignalValue < 0.01) {
+        fprintf(stdout, "Info: Widened narrow minmax for gnuplot histogram\n");
+        minimalSignalValue -= 0.1;
+        maximalSignalValue += 0.1;
     }
 
     //double minmax = maximalSignalValue - minimalSignalValue;

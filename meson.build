@@ -1,4 +1,8 @@
 project('signal_plotter_combiner', 'c')
+
+#add_project_arguments('-g', language: 'c')
+#add_project_arguments('-O2', language: 'c')
+
 gtkdep = dependency('gtk+-3.0')
 #mdep = dependency('m', method : 'build-in') #https://stackoverflow.com/questions/60927711/how-to-set-meson-link-dependency-for-buildin-lib-as-lm-lrt - seems not to be working
 cc = meson.get_compiler('c')

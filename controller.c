@@ -18,6 +18,7 @@ struct ApplicationControls {
 
     GtkWidget* comboBoxText_op;
     GtkWidget* button_perform;
+    GtkWidget* button_swap;
 
     GtkWidget* comboBoxText_Astype;
     GtkWidget* labels_Apname[MAX_PARAMS_PER_SIGNAL];
@@ -338,6 +339,7 @@ int controller_run(int* psArgc, char*** pppcArgv) {
 
     widgets.comboBoxText_op = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "comboBoxText_op"));
     widgets.button_perform = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_perform"));
+    widgets.button_swap = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_swap"));
     widgets.comboBoxText_Astype = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "comboBoxText_Astype"));
     widgets.labels_Apname[0] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap1name"));
     widgets.labels_Apname[1] = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_Ap2name"));
@@ -437,6 +439,70 @@ void on_button_perform_clicked(GtkButton* b) {
     gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Astype), (gint)(NUM_SIGNALS - 1)); 
     set_param_names (NUM_SIGNALS - 1, SIGNAL_A);
     update_A_plots();
+}
+
+void on_button_swap_clicked(GtkButton* b) {
+    g_message("Signal swap requested");
+    real_signal_t temp = signals.signalA;
+    signals.signalA = signals.signalB;
+    signals.signalB = temp;
+
+    uint32_t signalA_idx = gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_Astype));
+    uint32_t signalB_idx = gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_Bstype));
+    gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Astype), signalB_idx);
+    gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Bstype), signalA_idx);
+    set_param_names(signalB_idx, SIGNAL_A);
+    set_param_names(signalA_idx, SIGNAL_B);
+
+    /*double p1va = get_param1val_a();
+    double p2va = get_param2val_a();
+    double p3va = get_param3val_a();
+    double p4va = get_param4val_a();
+    double p5va = get_param5val_a();
+    double p1vb = get_param1val_b();
+    double p2vb = get_param2val_b();
+    double p3vb = get_param3val_b();
+    double p4vb = get_param4val_b();
+    double p5vb = get_param5val_b();
+
+    char p1vaStr[20]; char p2vaStr[20]; char p3vaStr[20]; char p4vaStr[20]; char p5vaStr[20];
+    char p1vbStr[20]; char p2vbStr[20]; char p3vbStr[20]; char p4vbStr[20]; char p5vbStr[20];
+    snprintf(p1vaStr, 20, "%f", p1va); snprintf(p2vaStr, 20, "%f", p2va); snprintf(p3vaStr, 20, "%f", p3va); snprintf(p4vaStr, 20, "%f", p4va); snprintf(p5vaStr, 20, "%f", p5va);
+    snprintf(p1vbStr, 20, "%f", p1vb); snprintf(p2vbStr, 20, "%f", p2vb); snprintf(p3vbStr, 20, "%f", p3vb); snprintf(p4vbStr, 20, "%f", p4vb); snprintf(p5vbStr, 20, "%f", p5vb);*/
+
+    char* _p1vaStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Apval[0]));
+    char* _p2vaStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Apval[1]));
+    char* _p3vaStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Apval[2]));
+    char* _p4vaStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Apval[3]));
+    char* _p5vaStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Apval[4]));
+    char* _p1vbStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Bpval[0]));
+    char* _p2vbStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Bpval[1]));
+    char* _p3vbStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Bpval[2]));
+    char* _p4vbStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Bpval[3]));
+    char* _p5vbStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Bpval[4]));
+    char p1vaStr[20]; char p2vaStr[20]; char p3vaStr[20]; char p4vaStr[20]; char p5vaStr[20];
+    char p1vbStr[20]; char p2vbStr[20]; char p3vbStr[20]; char p4vbStr[20]; char p5vbStr[20];
+    strcpy(p1vaStr, _p1vaStr);strcpy(p2vaStr, _p2vaStr);strcpy(p3vaStr, _p3vaStr);strcpy(p4vaStr, _p4vaStr);strcpy(p5vaStr, _p5vaStr);
+    strcpy(p1vbStr, _p1vbStr);strcpy(p2vbStr, _p2vbStr);strcpy(p3vbStr, _p3vbStr);strcpy(p4vbStr, _p4vbStr);strcpy(p5vbStr, _p5vbStr);
+
+    gtk_entry_set_text (GTK_ENTRY(widgets.entries_Apval[0]), (const gchar*)p1vbStr);
+    gtk_entry_set_text (GTK_ENTRY(widgets.entries_Apval[1]), (const gchar*)p2vbStr);
+    gtk_entry_set_text (GTK_ENTRY(widgets.entries_Apval[2]), (const gchar*)p3vbStr);
+    gtk_entry_set_text (GTK_ENTRY(widgets.entries_Apval[3]), (const gchar*)p4vbStr);
+    gtk_entry_set_text (GTK_ENTRY(widgets.entries_Apval[4]), (const gchar*)p5vbStr);
+    gtk_entry_set_text (GTK_ENTRY(widgets.entries_Bpval[0]), (const gchar*)p1vaStr);
+    gtk_entry_set_text (GTK_ENTRY(widgets.entries_Bpval[1]), (const gchar*)p2vaStr);
+    gtk_entry_set_text (GTK_ENTRY(widgets.entries_Bpval[2]), (const gchar*)p3vaStr);
+    gtk_entry_set_text (GTK_ENTRY(widgets.entries_Bpval[3]), (const gchar*)p4vaStr);
+    gtk_entry_set_text (GTK_ENTRY(widgets.entries_Bpval[4]), (const gchar*)p5vaStr);
+
+    double adjA = (double)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment1));
+    double adjB = (double)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment2));
+    gtk_adjustment_set_value (GTK_ADJUSTMENT(widget_helpers.adjustment1), (gdouble)adjB);
+    gtk_adjustment_set_value (GTK_ADJUSTMENT(widget_helpers.adjustment2), (gdouble)adjA);
+    
+    update_A_plots();
+    update_B_plots();
 }
 
 void on_comboBoxText_Astype_changed(GtkComboBox* c, gpointer user_data) {
