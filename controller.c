@@ -3,6 +3,7 @@
 #include <locale.h>
 #include "model/generator.h"
 #include "model/combiner.h"
+#include "model/aggregator.h"
 #include "model/gnuplot.h"
 
 #define NUM_PARAMS 10
@@ -48,6 +49,17 @@ struct ApplicationControls {
 
     GtkWidget* scaleA;
     GtkWidget* scaleB;
+
+    GtkWidget* labelAmsv;
+    GtkWidget* labelAmsav;
+    GtkWidget* labelAmsp;
+    GtkWidget* labelAsv;
+    GtkWidget* labelArms;
+    GtkWidget* labelBmsv;
+    GtkWidget* labelBmsav;
+    GtkWidget* labelBmsp;
+    GtkWidget* labelBsv;
+    GtkWidget* labelBrms;    
 } widgets;
 
 struct ApplicationControlHelpers {
@@ -304,6 +316,40 @@ void draw_histogram_B() {
     gtk_image_set_from_file(GTK_IMAGE(widgets.imageB2), GNUPLOT_OUTFILE_PATH);
 }
 
+void evaluate_A_aggregates() {
+    double amsv = mean_signal_value(&signals.signalA);
+    double amsav = mean_signal_absolute_value(&signals.signalA);
+    double amsp = mean_signal_power(&signals.signalA);
+    double asv = signal_variance(&signals.signalA);
+    double arms = signal_RMS(&signals.signalA);
+
+    char amsvStr[20]; char amsavStr[20]; char amspStr[20]; char asvStr[20]; char armsStr[20];
+    snprintf(amsvStr, 20, "%f", amsv); snprintf(amsavStr, 20, "%f", amsav); snprintf(amspStr, 20, "%f", amsp); snprintf(asvStr, 20, "%f", asv); snprintf(armsStr, 20, "%f", arms);
+    
+    gtk_label_set_text(GTK_LABEL(widgets.labelAmsv), (const gchar*)amsvStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAmsav), (const gchar*)amsavStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAmsp), (const gchar*)amspStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAsv), (const gchar*)asvStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelArms), (const gchar*)armsStr);
+}
+
+void evaluate_B_aggregates() {
+    double bmsv = mean_signal_value(&signals.signalB);
+    double bmsav = mean_signal_absolute_value(&signals.signalB);
+    double bmsp = mean_signal_power(&signals.signalB);
+    double bsv = signal_variance(&signals.signalB);
+    double brms = signal_RMS(&signals.signalB);
+
+    char bmsvStr[20]; char bmsavStr[20]; char bmspStr[20]; char bsvStr[20]; char brmsStr[20];
+    snprintf(bmsvStr, 20, "%f", bmsv); snprintf(bmsavStr, 20, "%f", bmsav); snprintf(bmspStr, 20, "%f", bmsp); snprintf(bsvStr, 20, "%f", bsv); snprintf(brmsStr, 20, "%f", brms);
+
+    gtk_label_set_text(GTK_LABEL(widgets.labelBmsv), (const gchar*)bmsvStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBmsav), (const gchar*)bmsavStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBmsp), (const gchar*)bmspStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBsv), (const gchar*)bsvStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBrms), (const gchar*)brmsStr);
+}
+
 void update_A_plots() {
     //fprintf(stdout, "Info: Loading signal A\n");
     load_signal_A();
@@ -311,12 +357,15 @@ void update_A_plots() {
     draw_plot_A();
     //fprintf(stdout, "Info: Drawing histogram A\n");
     draw_histogram_A();
+
+    evaluate_A_aggregates();
 }
 
 void update_B_plots() {
     load_signal_B();
     draw_plot_B();
     draw_histogram_B();
+    evaluate_B_aggregates();
 }
 
 void init_scales() {
@@ -384,6 +433,17 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     
     signals.signalA = (real_signal_t) { .info = { .sampling_frequency = 0 }, .pValues = NULL };
     signals.signalB = (real_signal_t) { .info = { .sampling_frequency = 0 }, .pValues = NULL };
+
+    widgets.labelAmsv = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAmsv"));
+    widgets.labelAmsav = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAmsav"));
+    widgets.labelAmsp = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAmsp"));
+    widgets.labelAsv =  GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAsv"));
+    widgets.labelArms =  GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelArms"));
+    widgets.labelBmsv = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBmsv"));
+    widgets.labelBmsav = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBmsav"));
+    widgets.labelBmsp = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBmsp"));
+    widgets.labelBsv =  GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBsv"));
+    widgets.labelBrms =  GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBrms"));
 
     set_param_names(get_signal_idx_a(), SIGNAL_A);
     set_param_names(get_signal_idx_b(), SIGNAL_B);
