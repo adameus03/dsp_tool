@@ -2,6 +2,7 @@
 #include <gtk/gtk.h>
 #include <locale.h>
 #include "model/generator.h"
+#include "model/combiner.h"
 #include "model/gnuplot.h"
 
 #define NUM_PARAMS 10
@@ -52,6 +53,8 @@ struct ApplicationControlHelpers {
     GtkAdjustment* adjustment1;   ///////////////////////////
                                  // For the scale widgets //
     GtkAdjustment* adjustment2; ///////////////////////////
+
+    uint8_t op_idx; // for comboBoxText_op
 } widget_helpers;
 
 struct ApplicationBuilders {
@@ -182,10 +185,12 @@ uint64_t get_adjustment_val_b() { return (uint64_t)gtk_adjustment_get_value(GTK_
 
 
 void load_signal_A() {
-    if (signals.signalA.pValues != NULL) {
+    uint8_t signal_idx = get_signal_idx_a();
+
+    if ((signals.signalA.pValues != NULL) && (signal_idx != (NUM_SIGNALS - 1))) {
         real_signal_free_values(&signals.signalA);
     }
-    uint8_t signal_idx = get_signal_idx_a();
+    
     
     generator_info_t info = { .sampling_frequency = get_sampling_frequency_a() };
     switch (signal_idx) {
@@ -223,16 +228,18 @@ void load_signal_A() {
             g_error("Not implemented");
             break;
         case 11:
-            g_error("Not implemented");
+            // Keep the custom signal
+            signals.signalA.info.sampling_frequency = info.sampling_frequency;
             break;
     }
 }
 
 void load_signal_B() {
-    if (signals.signalB.pValues != NULL) {
+    uint8_t signal_idx = get_signal_idx_b();
+
+    if ((signals.signalB.pValues != NULL) && (signal_idx != (NUM_SIGNALS - 1))) {
         real_signal_free_values(&signals.signalB);
     }
-    uint8_t signal_idx = get_signal_idx_b();
     
     generator_info_t info = { .sampling_frequency = get_sampling_frequency_b() };
     switch (signal_idx) {
@@ -270,7 +277,8 @@ void load_signal_B() {
             g_error("Not implemented");
             break;
         case 11:
-            g_error("Not implemented");
+            // Keep the custom signal
+            signals.signalB.info.sampling_frequency = info.sampling_frequency;
             break;
     }
 }
@@ -296,8 +304,11 @@ void draw_histogram_B() {
 }
 
 void update_A_plots() {
+    //fprintf(stdout, "Info: Loading signal A\n");
     load_signal_A();
+    //fprintf(stdout, "Info: Drawing plot A\n");
     draw_plot_A();
+    //fprintf(stdout, "Info: Drawing histogram A\n");
     draw_histogram_A();
 }
 
@@ -367,6 +378,7 @@ int controller_run(int* psArgc, char*** pppcArgv) {
 
     widget_helpers.adjustment1 = GTK_ADJUSTMENT(gtk_builder_get_object(builders.viewBuilder, "adjustment1"));
     widget_helpers.adjustment2 = GTK_ADJUSTMENT(gtk_builder_get_object(builders.viewBuilder, "adjustment2"));
+    widget_helpers.op_idx = 0U;
     
     signals.signalA = (real_signal_t) { .info = { .sampling_frequency = 0 }, .pValues = NULL };
     signals.signalB = (real_signal_t) { .info = { .sampling_frequency = 0 }, .pValues = NULL };
@@ -398,13 +410,33 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     return EXIT_SUCCESS;
 }
 
-void on_comboBoxText_op_changed(GtkComboBoxText* c, gpointer user_data) {
-    
+void on_comboBoxText_op_changed(GtkComboBox* c, gpointer user_data) {
+    widget_helpers.op_idx = gtk_combo_box_get_active(c);
 }
 
 void on_button_perform_clicked(GtkButton* b) {
     g_message("Signal combination requested");
-    g_error("Not implemented");
+    switch (widget_helpers.op_idx) {
+        case 0U:
+            add_signal (&signals.signalA, &signals.signalB);
+            break;
+        case 1U:
+            substract_signal (&signals.signalA, &signals.signalB);
+            break;
+        case 2U:
+            multiply_signal (&signals.signalA, &signals.signalB);
+            break;
+        case 3U:
+            divide_signal (&signals.signalA, &signals.signalB);
+            break;
+        default:
+            g_error ("Unknown signal combination requested");
+            break;
+    }
+    // Set signal type as custom (the additional type)
+    gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Astype), (gint)(NUM_SIGNALS - 1)); 
+    set_param_names (NUM_SIGNALS - 1, SIGNAL_A);
+    update_A_plots();
 }
 
 void on_comboBoxText_Astype_changed(GtkComboBox* c, gpointer user_data) {
