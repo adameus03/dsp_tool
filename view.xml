@@ -311,19 +311,6 @@
                     <property name="row-spacing">5</property>
                     <property name="column-spacing">10</property>
                     <child>
-                      <object class="GtkFileChooserButton" id="fileChooserButton_ASave">
-                        <property name="width-request">249</property>
-                        <property name="height-request">34</property>
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="title" translatable="yes"/>
-                      </object>
-                      <packing>
-                        <property name="left-attach">0</property>
-                        <property name="top-attach">0</property>
-                      </packing>
-                    </child>
-                    <child>
                       <object class="GtkButton" id="button_Asave_bin">
                         <property name="label" translatable="yes">Save signal A to file as binary</property>
                         <property name="width-request">211</property>
@@ -387,6 +374,7 @@
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="title" translatable="yes"/>
+                        <signal name="file-set" handler="on_fileChooserButton_ALoad_file_set" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left-attach">0</property>
@@ -406,6 +394,19 @@
                       <packing>
                         <property name="left-attach">1</property>
                         <property name="top-attach">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkFileChooserButton" id="fileChooserButton_ASave">
+                        <property name="width-request">249</property>
+                        <property name="height-request">34</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="title" translatable="yes"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">0</property>
                       </packing>
                     </child>
                     <child>

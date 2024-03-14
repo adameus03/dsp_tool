@@ -5,6 +5,7 @@
 #include "model/combiner.h"
 #include "model/aggregator.h"
 #include "model/gnuplot.h"
+#include "model/signal_fio.h"
 
 #define NUM_PARAMS 10
 #define NUM_SIGNALS 12
@@ -68,6 +69,8 @@ struct ApplicationControlHelpers {
     GtkAdjustment* adjustment2; ///////////////////////////
 
     uint8_t op_idx; // for comboBoxText_op
+    char* a_load_filename;
+    char* b_load_filename;
 } widget_helpers;
 
 struct ApplicationBuilders {
@@ -430,6 +433,8 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     widget_helpers.adjustment1 = GTK_ADJUSTMENT(gtk_builder_get_object(builders.viewBuilder, "adjustment1"));
     widget_helpers.adjustment2 = GTK_ADJUSTMENT(gtk_builder_get_object(builders.viewBuilder, "adjustment2"));
     widget_helpers.op_idx = 0U;
+    widget_helpers.a_load_filename = NULL;
+    widget_helpers.b_load_filename = NULL;
     
     signals.signalA = (real_signal_t) { .info = { .sampling_frequency = 0 }, .pValues = NULL };
     signals.signalB = (real_signal_t) { .info = { .sampling_frequency = 0 }, .pValues = NULL };
@@ -540,10 +545,15 @@ void on_button_swap_clicked(GtkButton* b) {
     char* _p3vbStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Bpval[2]));
     char* _p4vbStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Bpval[3]));
     char* _p5vbStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Bpval[4]));
+    char* _asfStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entry_Asf));
+    char* _bsfStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entry_Bsf));
+
     char p1vaStr[20]; char p2vaStr[20]; char p3vaStr[20]; char p4vaStr[20]; char p5vaStr[20];
     char p1vbStr[20]; char p2vbStr[20]; char p3vbStr[20]; char p4vbStr[20]; char p5vbStr[20];
+    char asfStr[20]; char bsfStr[20];
     strcpy(p1vaStr, _p1vaStr);strcpy(p2vaStr, _p2vaStr);strcpy(p3vaStr, _p3vaStr);strcpy(p4vaStr, _p4vaStr);strcpy(p5vaStr, _p5vaStr);
     strcpy(p1vbStr, _p1vbStr);strcpy(p2vbStr, _p2vbStr);strcpy(p3vbStr, _p3vbStr);strcpy(p4vbStr, _p4vbStr);strcpy(p5vbStr, _p5vbStr);
+    strcpy(asfStr, _asfStr);strcpy(bsfStr, _bsfStr);
 
     gtk_entry_set_text (GTK_ENTRY(widgets.entries_Apval[0]), (const gchar*)p1vbStr);
     gtk_entry_set_text (GTK_ENTRY(widgets.entries_Apval[1]), (const gchar*)p2vbStr);
@@ -555,6 +565,10 @@ void on_button_swap_clicked(GtkButton* b) {
     gtk_entry_set_text (GTK_ENTRY(widgets.entries_Bpval[2]), (const gchar*)p3vaStr);
     gtk_entry_set_text (GTK_ENTRY(widgets.entries_Bpval[3]), (const gchar*)p4vaStr);
     gtk_entry_set_text (GTK_ENTRY(widgets.entries_Bpval[4]), (const gchar*)p5vaStr);
+    gtk_entry_set_text (GTK_ENTRY(widgets.entry_Asf), (const gchar*)bsfStr);
+    gtk_entry_set_text (GTK_ENTRY(widgets.entry_Bsf), (const gchar*)asfStr);
+
+
 
     double adjA = (double)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment1));
     double adjB = (double)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment2));
@@ -619,7 +633,44 @@ void on_entry_Bp5val_changed(GtkEntry* e) {
 }
 
 void on_button_Asave_bin_clicked(GtkButton* b) {
-    g_error("Not implemented");
+    //https://docs.gtk.org/gtk3/class.FileChooserDialog.html
+
+    GtkWidget *dialog;
+    GtkFileChooser *chooser;
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
+    gint res;
+
+    dialog = gtk_file_chooser_dialog_new ("Save File",
+                                        GTK_WINDOW(widgets.window),
+                                        action,
+                                        /*_("_Cancel")*/"Cancel",
+                                        GTK_RESPONSE_CANCEL,
+                                        /*_("_Save")*/"Save",
+                                        GTK_RESPONSE_ACCEPT,
+                                        NULL);
+    chooser = GTK_FILE_CHOOSER (dialog);
+
+    gtk_file_chooser_set_do_overwrite_confirmation (chooser, TRUE);
+
+    gtk_file_chooser_set_current_name (chooser,
+                                        /*_("Untitled document")*/"Untitled signal");
+    
+
+    res = gtk_dialog_run (GTK_DIALOG (dialog));
+    if (res == GTK_RESPONSE_ACCEPT)
+    {
+        char *filename;
+
+        filename = gtk_file_chooser_get_filename (chooser);
+        
+        fprintf(stdout, "Info: Saving signal A into file '%s'\n", filename);
+        real_signal_file_payload_t payload = real_signal_file_payload_create (&signals.signalA);
+        fio_write_rpayload (&payload, (const char*)filename);
+
+        g_free (filename);
+    }
+
+    gtk_widget_destroy (dialog);
 }
 
 void on_button_Asave_txt_clicked(GtkButton* b) {
@@ -627,7 +678,28 @@ void on_button_Asave_txt_clicked(GtkButton* b) {
 }
 
 void on_button_Aload_clicked(GtkButton* b) {
-    g_error("Not implemented");
+    if (widget_helpers.a_load_filename != NULL) {
+        real_signal_file_payload_t payload = fio_read_rpayload ((const char*)widget_helpers.a_load_filename);
+        real_signal_t fetchedSignal = fetch_rsignal (&payload);
+
+        real_signal_free_values (&signals.signalA);
+        signals.signalA.info.num_samples = fetchedSignal.info.num_samples;
+        signals.signalA.info.sampling_frequency = fetchedSignal.info.sampling_frequency;
+        signals.signalA.info.start_time = fetchedSignal.info.start_time;
+        signals.signalA.pValues = fetchedSignal.pValues; //passing buffer ownership
+
+        double asf = signals.signalA.info.sampling_frequency;
+        //printf("%f / %f / %f\n", asf, signals.signalA.info.sampling_frequency, fetchedSignal.info.sampling_frequency);
+        char asfStr[50]; snprintf(asfStr, 50, "%f", asf);
+        gtk_entry_set_text (GTK_ENTRY(widgets.entry_Asf), (const gchar*)asfStr);
+
+        // Set signal type as custom (the additional type)
+        gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Astype), (gint)(NUM_SIGNALS - 1)); 
+        set_param_names (NUM_SIGNALS - 1, SIGNAL_A);
+
+        
+        update_A_plots();
+    }
 }
 
 void on_button_Bload_clicked(GtkButton* b) {
@@ -650,3 +722,8 @@ void on_scaleB_value_changed(GtkScale* s) {
     update_B_plots();
 }
 
+void on_fileChooserButton_ALoad_file_set(GtkFileChooserButton* fcb) {
+    const gchar* fileName = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER(fcb));
+    fprintf(stdout, "Info: '%s' choosen for writing signal A\n", fileName);
+    widget_helpers.a_load_filename = (char*)fileName;
+}
