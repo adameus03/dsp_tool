@@ -10,6 +10,7 @@ mdep = cc.find_library('m', required : false)
 executable('signal_plotter_combiner', [
     'main.c', 
     'controller.c', 
+    'gui_tweaks.c',
     'model/gnuplot.c', 
     'model/generator.c',
     'model/signal.c',

@@ -360,6 +360,7 @@
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="text" translatable="yes">256</property>
+                        <property name="input-purpose">number</property>
                         <signal name="changed" handler="on_entry_Asf_changed" swapped="no"/>
                       </object>
                       <packing>
@@ -368,17 +369,14 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkFileChooserButton" id="fileChooserButton_ALoad">
-                        <property name="width-request">249</property>
-                        <property name="height-request">34</property>
+                      <object class="GtkLabel">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="title" translatable="yes"/>
-                        <signal name="file-set" handler="on_fileChooserButton_ALoad_file_set" swapped="no"/>
+                        <property name="label" translatable="yes">Saving options</property>
                       </object>
                       <packing>
                         <property name="left-attach">0</property>
-                        <property name="top-attach">2</property>
+                        <property name="top-attach">0</property>
                       </packing>
                     </child>
                     <child>
@@ -392,25 +390,34 @@
                         <signal name="clicked" handler="on_button_Aload_clicked" swapped="no"/>
                       </object>
                       <packing>
-                        <property name="left-attach">1</property>
+                        <property name="left-attach">2</property>
                         <property name="top-attach">2</property>
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkFileChooserButton" id="fileChooserButton_ASave">
+                      <object class="GtkFileChooserButton" id="fileChooserButton_ALoad">
                         <property name="width-request">249</property>
                         <property name="height-request">34</property>
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="title" translatable="yes"/>
+                        <signal name="file-set" handler="on_fileChooserButton_ALoad_file_set" swapped="no"/>
                       </object>
                       <packing>
-                        <property name="left-attach">0</property>
-                        <property name="top-attach">0</property>
+                        <property name="left-attach">1</property>
+                        <property name="top-attach">2</property>
                       </packing>
                     </child>
                     <child>
-                      <placeholder/>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Loader</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">2</property>
+                      </packing>
                     </child>
                     <child>
                       <placeholder/>
@@ -470,6 +477,7 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="title" translatable="yes"/>
+                    <signal name="file-set" handler="on_fileChooserButton_BLoad_file_set" swapped="no"/>
                   </object>
                   <packing>
                     <property name="x">31</property>
@@ -496,6 +504,7 @@
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="text" translatable="yes">256</property>
+                    <property name="input-purpose">number</property>
                     <signal name="changed" handler="on_entry_Bsf_changed" swapped="no"/>
                   </object>
                   <packing>

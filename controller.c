@@ -1,6 +1,7 @@
 #include "controller.h"
 #include <gtk/gtk.h>
 #include <locale.h>
+#include "gui_tweaks.h"
 #include "model/generator.h"
 #include "model/combiner.h"
 #include "model/aggregator.h"
@@ -36,7 +37,6 @@ struct ApplicationControls {
     GtkWidget* button_Asave_txt;
     GtkWidget* fileChooserButton_ALoad;
     GtkWidget* button_Aload;
-
     GtkWidget* fileChooserButton_BLoad;
     GtkWidget* button_Bload;
 
@@ -248,6 +248,14 @@ void load_signal_A() {
             signals.signalA.info.sampling_frequency = info.sampling_frequency;
             break;
     }
+
+    // Disable/enable sampling freqency modification if needed
+    // can focus+opacity+editable
+    if (signal_idx == (NUM_SIGNALS - 1)) {
+        disable_entry (GTK_ENTRY(widgets.entry_Asf));
+    } else {
+        enable_entry (GTK_ENTRY(widgets.entry_Asf));
+    }
 }
 
 void load_signal_B() {
@@ -296,6 +304,14 @@ void load_signal_B() {
             // Keep the custom signal
             signals.signalB.info.sampling_frequency = info.sampling_frequency;
             break;
+    }
+
+    // Disable/enable sampling freqency modification if needed
+    // can focus+opacity+editable
+    if (signal_idx == (NUM_SIGNALS - 1)) {
+        disable_entry (GTK_ENTRY(widgets.entry_Bsf));
+    } else {
+        enable_entry (GTK_ENTRY(widgets.entry_Bsf));
     }
 }
 
@@ -378,6 +394,9 @@ void init_scales() {
     gtk_adjustment_set_upper (widget_helpers.adjustment2, (gdouble)MAX_NUM_HISTOGRAM_INTERVALS);
     gtk_adjustment_set_value (widget_helpers.adjustment1, (gdouble)DEFAULT_NUM_HISTOGRAM_INTERVALS);
     gtk_adjustment_set_value (widget_helpers.adjustment2, (gdouble)DEFAULT_NUM_HISTOGRAM_INTERVALS);
+
+    disable_scroll(widgets.scaleA);
+    disable_scroll(widgets.scaleB);
 }
 
 int controller_run(int* psArgc, char*** pppcArgv) {
@@ -703,7 +722,27 @@ void on_button_Aload_clicked(GtkButton* b) {
 }
 
 void on_button_Bload_clicked(GtkButton* b) {
-    g_error("Not implemented");
+    if (widget_helpers.b_load_filename != NULL) {
+        real_signal_file_payload_t payload = fio_read_rpayload ((const char*)widget_helpers.b_load_filename);
+        real_signal_t fetchedSignal = fetch_rsignal (&payload);
+
+        real_signal_free_values (&signals.signalB);
+        signals.signalB.info.num_samples = fetchedSignal.info.num_samples;
+        signals.signalB.info.sampling_frequency = fetchedSignal.info.sampling_frequency;
+        signals.signalB.info.start_time = fetchedSignal.info.start_time;
+        signals.signalB.pValues = fetchedSignal.pValues; //passing buffer ownership
+
+        double bsf = signals.signalB.info.sampling_frequency;
+        //printf("%f / %f / %f\n", asf, signals.signalA.info.sampling_frequency, fetchedSignal.info.sampling_frequency);
+        char bsfStr[50]; snprintf(bsfStr, 50, "%f", bsf);
+        gtk_entry_set_text (GTK_ENTRY(widgets.entry_Bsf), (const gchar*)bsfStr);
+
+        // Set signal type as custom (the additional type)
+        gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Bstype), (gint)(NUM_SIGNALS - 1)); 
+        set_param_names (NUM_SIGNALS - 1, SIGNAL_B);
+        
+        update_B_plots();
+    }
 }
 
 void on_entry_Asf_changed(GtkEntry* e) {
@@ -724,6 +763,12 @@ void on_scaleB_value_changed(GtkScale* s) {
 
 void on_fileChooserButton_ALoad_file_set(GtkFileChooserButton* fcb) {
     const gchar* fileName = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER(fcb));
-    fprintf(stdout, "Info: '%s' choosen for writing signal A\n", fileName);
+    fprintf(stdout, "Info: '%s' choosen for reading signal A\n", fileName);
     widget_helpers.a_load_filename = (char*)fileName;
+}
+
+void on_fileChooserButton_BLoad_file_set(GtkFileChooserButton* fcb) {
+    const gchar* fileName = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER(fcb));
+    fprintf(stdout, "Info: '%s' choosen for reading signal B\n", fileName);
+    widget_helpers.b_load_filename = (char*)fileName;
 }
