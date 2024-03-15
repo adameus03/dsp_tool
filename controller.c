@@ -683,7 +683,7 @@ void on_button_Asave_bin_clicked(GtkButton* b) {
 
         filename = gtk_file_chooser_get_filename (chooser);
         
-        fprintf(stdout, "Info: Saving signal A into file '%s'\n", filename);
+        fprintf(stdout, "Info: Saving signal A (binary) into file '%s'\n", filename);
         real_signal_file_payload_t payload = real_signal_file_payload_create (&signals.signalA);
         fio_write_rpayload (&payload, (const char*)filename);
 
@@ -694,7 +694,44 @@ void on_button_Asave_bin_clicked(GtkButton* b) {
 }
 
 void on_button_Asave_txt_clicked(GtkButton* b) {
-    g_error("Not implemented");
+    //https://docs.gtk.org/gtk3/class.FileChooserDialog.html
+
+    GtkWidget *dialog;
+    GtkFileChooser *chooser;
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
+    gint res;
+
+    dialog = gtk_file_chooser_dialog_new ("Save File",
+                                        GTK_WINDOW(widgets.window),
+                                        action,
+                                        /*_("_Cancel")*/"Cancel",
+                                        GTK_RESPONSE_CANCEL,
+                                        /*_("_Save")*/"Save",
+                                        GTK_RESPONSE_ACCEPT,
+                                        NULL);
+    chooser = GTK_FILE_CHOOSER (dialog);
+
+    gtk_file_chooser_set_do_overwrite_confirmation (chooser, TRUE);
+
+    gtk_file_chooser_set_current_name (chooser,
+                                        /*_("Untitled document")*/"Untitled signal");
+    
+
+    res = gtk_dialog_run (GTK_DIALOG (dialog));
+    if (res == GTK_RESPONSE_ACCEPT)
+    {
+        char *filename;
+
+        filename = gtk_file_chooser_get_filename (chooser);
+        
+        fprintf(stdout, "Info: Saving signal A (human-readable) into file '%s'\n", filename);
+        real_signal_file_payload_t payload = real_signal_file_payload_create (&signals.signalA);
+        fio_write_rpayload_human_readable(&payload, (const char*)filename);
+
+        g_free (filename);
+    }
+
+    gtk_widget_destroy (dialog);
 }
 
 void on_button_Aload_clicked(GtkButton* b) {

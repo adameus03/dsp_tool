@@ -50,6 +50,27 @@ void fio_write_rpayload (real_signal_file_payload_t* pPayload, const char* fileP
     }
 }
 
+void fio_write_rpayload_human_readable (real_signal_file_payload_t* pPayload, const char* filePath) {
+    FILE* pFile = fopen (filePath, "w");
+    if (pFile == NULL) {
+        fprintf(stderr, "Error: Failed to open file '%s' for writing human-readable rsignal\n", filePath);
+        return;
+    }
+    
+    fprintf(pFile, "start_time sampling_frequency num_samples\n");
+    fprintf(pFile, "%f %f %lu\n\n", pPayload->header.info.start_time, pPayload->header.info.sampling_frequency, pPayload->header.info.num_samples);
+
+    fprintf(pFile, "# value\n");
+    for (uint64_t i = 0; i < pPayload->header.info.num_samples; i++) {
+        double* pValue = pPayload->pData + i;
+        fprintf(pFile, "%lu %f\n", i, *pValue);
+    }
+    
+    if (fclose (pFile) != 0) {
+        fprintf(stderr, "Error: Failure while closing rsignal human-readable payload output file\n");
+    }
+}
+
 #define return_blank_signal_payload return (real_signal_file_payload_t) { .header.info = { .num_samples = 0, .sampling_frequency = 0, .start_time = 0 }, .pData = 0 }
 
 real_signal_file_payload_t fio_read_rpayload (const char* filePath) {

@@ -20,4 +20,6 @@ real_signal_t fetch_rsignal (real_signal_file_payload_t* pPayload);
 
 void fio_write_rpayload (real_signal_file_payload_t* pPayload, const char* filePath);
 
+void fio_write_rpayload_human_readable (real_signal_file_payload_t* pPayload, const char* filePath);
+
 real_signal_file_payload_t fio_read_rpayload (const char* filePath);
