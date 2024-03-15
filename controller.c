@@ -214,7 +214,7 @@ void load_signal_A() {
             signals.signalA = generate_uniform_noise(info, get_param1val_a(), get_param2val_a(), get_param3val_a());
             break;
         case 1:
-            g_error("Not implemented");
+            signals.signalA = generate_gaussian_noise(info, get_param1val_a(), get_param2val_a(), get_param3val_a());
             break;
         case 2:
             signals.signalA = generate_sine(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
@@ -271,7 +271,7 @@ void load_signal_B() {
             signals.signalB = generate_uniform_noise(info, get_param1val_b(), get_param2val_b(), get_param3val_b());
             break;
         case 1:
-            g_error("Not implemented");
+            signals.signalB = generate_gaussian_noise(info, get_param1val_b(), get_param2val_b(), get_param3val_b());
             break;
         case 2:
             signals.signalB = generate_sine(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
