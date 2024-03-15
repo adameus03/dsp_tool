@@ -3,10 +3,24 @@
 #define __USE_MISC
 #include <math.h>
 #include <stdio.h> // for logging
+#include <stdlib.h> // for rand
 
 
 real_signal_t generate_uniform_noise(generator_info_t info, double A, double t1, double d) {
-    
+    real_signal_t signal = {
+        .info = {
+            .num_samples = d * info.sampling_frequency,
+            .start_time = t1,
+            .sampling_frequency = info.sampling_frequency
+        },
+        .pValues = 0
+    };
+    real_signal_alloc_values(&signal);
+
+    for (uint64_t i = 0; i < signal.info.num_samples; i++) {
+        signal.pValues[i] = A * (-1 + 2 * ((double)rand()) / (double)RAND_MAX);
+    }
+    return signal;
 }
 real_signal_t generate_gaussian_noise(generator_info_t info, double A, double t1, double d) {
 
