@@ -1,6 +1,6 @@
 #include "gui_tweaks.h"
 
-/* No-op to prevent @w from propagating "scroll" events it receives.
+/* No-op to prevent `w` from propagating "scroll" events it receives.
  */
 void disable_scroll_cb( GtkWidget *w ) {}
 
