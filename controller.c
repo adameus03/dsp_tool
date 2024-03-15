@@ -94,9 +94,10 @@ static char* signal_def_param_names[NUM_PARAMS] = {
 
     "Step time (t_s)",
     "First sample no (n_1)",
-    "Spike sample no (n_s)", //"l",
-    "Sample freq for discrete signal (f)",
-    "Spike probability (p)"
+    "Spike sample no (n_s)",
+    //"Sample freq for discrete signal (f)",
+    "Spike probability (p)",
+    "Number of samples (l)"
 };
 
 static uint8_t param_affinity[NUM_SIGNALS][MAX_PARAMS_PER_SIGNAL + 1] = {
@@ -109,8 +110,8 @@ static uint8_t param_affinity[NUM_SIGNALS][MAX_PARAMS_PER_SIGNAL + 1] = {
     {0, 3, 1, 2, 4, 0xff},
     {0, 3, 1, 2, 4, 0xff},
     {0, 1, 2, 5, 0xff},
-    {0, 7, 6, 8, 0xff},
-    {0, 1, 2, 8, 9, 0xff},
+    {0, 7, 6, 9, 0xff},
+    {0, 1, 2, 8, 0xff},
     {0xff}
 };
 
@@ -220,28 +221,28 @@ void load_signal_A() {
             signals.signalA = generate_sine(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
             break;
         case 3:
-            g_error("Not implemented");
+            signals.signalA = generate_half_wave_rectified_sine(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
             break;
         case 4:
-            g_error("Not implemented");
+            signals.signalA = generate_full_wave_rectified_sine(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
             break;
         case 5:
-            g_error("Not implemented");
+            signals.signalA = generate_rectangular(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a(), get_param5val_a());
             break;
         case 6:
-            g_error("Not implemented");
+            signals.signalA = generate_symmetric_rectangular(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a(), get_param5val_a());
             break;
         case 7:
-            g_error("Not implemented");
+            signals.signalA = generate_triangle(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a(), get_param5val_a());
             break;
         case 8:
             signals.signalA = generate_heaviside(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
             break;
         case 9:
-            g_error("Not implemented");
+            signals.signalA = generate_kronecker_delta(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
             break;
         case 10:
-            g_error("Not implemented");
+            signals.signalA = generate_impulse_noise(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
             break;
         case 11:
             // Keep the custom signal
@@ -277,28 +278,28 @@ void load_signal_B() {
             signals.signalB = generate_sine(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
             break;
         case 3:
-            g_error("Not implemented");
+            signals.signalB = generate_half_wave_rectified_sine(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
             break;
         case 4:
-            g_error("Not implemented");
+            signals.signalB = generate_full_wave_rectified_sine(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
             break;
         case 5:
-            g_error("Not implemented");
+            signals.signalB = generate_rectangular(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b(), get_param5val_b());
             break;
         case 6:
-            g_error("Not implemented");
+            signals.signalB = generate_symmetric_rectangular(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b(), get_param5val_b());
             break;
         case 7:
-            g_error("Not implemented");
+            signals.signalB = generate_triangle(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b(), get_param5val_b());
             break;
         case 8:
             signals.signalB = generate_heaviside(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
             break;
         case 9:
-            g_error("Not implemented");
+            signals.signalB = generate_kronecker_delta(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
             break;
         case 10:
-            g_error("Not implemented");
+            signals.signalB = generate_impulse_noise(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
             break;
         case 11:
             // Keep the custom signal

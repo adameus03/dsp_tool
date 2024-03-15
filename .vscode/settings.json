@@ -70,7 +70,8 @@
     "complex": "c",
     "generator.h": "c",
     "math.h": "c",
-    "stdio.h": "c"
+    "stdio.h": "c",
+    "features.h": "c"
   },
   "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild"
 }

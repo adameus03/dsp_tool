@@ -50,13 +50,13 @@ void fio_write_rpayload (real_signal_file_payload_t* pPayload, const char* fileP
     }
 }
 
-#define return_blank_signal return (real_signal_file_payload_t) { .header.info = { .num_samples = 0, .sampling_frequency = 0, .start_time = 0 }, .pData = 0 }
+#define return_blank_signal_payload return (real_signal_file_payload_t) { .header.info = { .num_samples = 0, .sampling_frequency = 0, .start_time = 0 }, .pData = 0 }
 
 real_signal_file_payload_t fio_read_rpayload (const char* filePath) {
     FILE* pFile = fopen (filePath, "r");
     if (pFile == NULL) {
         fprintf(stderr, "Error: Failed to open file '%s' for reading rsignal\n", filePath);
-        return_blank_signal;
+        return_blank_signal_payload;
     }
     
     real_signal_file_payload_t payload;
@@ -66,12 +66,12 @@ real_signal_file_payload_t fio_read_rpayload (const char* filePath) {
 
     if (fclose(pFile) != 0) {
         fprintf(stderr, "Error: Failure while closing rsignal payload input file\n");
-        return_blank_signal;
+        return_blank_signal_payload;
     }
 
     if (n != (payload.header.info.num_samples + sizeof(payload.header.raw) / sizeof(uint64_t))) {
         fprintf(stderr, "Error: File I/O failure while reading rsignal file payload\n");
-        return_blank_signal;
+        return_blank_signal_payload;
     }
 
     return payload;

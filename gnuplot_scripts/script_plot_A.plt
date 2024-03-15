@@ -7,7 +7,7 @@ set title "Signal A"
 set xlabel "t [s]" font _font
 set ylabel "A [V]" font _font
 
-set style line 1 dashtype 1 linecolor rgb "#000000" linewidth 1.5 pointtype 7 pointsize 0.1
+set style line 1 dashtype 1 linecolor rgb "#000000" linewidth 1.5 pointtype 7 pointsize 0.5
 
 plot './data.txt' notitle with points linestyle 1 axes x1y1
 set output
