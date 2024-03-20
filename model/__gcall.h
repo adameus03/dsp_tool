@@ -4,6 +4,8 @@
 */
 
 #include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 void __gnuplot_simple_call(const char* script_path) {
     char cmd_buf[50];
