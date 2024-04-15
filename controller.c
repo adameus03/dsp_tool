@@ -60,7 +60,15 @@ struct ApplicationControls {
     GtkWidget* labelBmsav;
     GtkWidget* labelBmsp;
     GtkWidget* labelBsv;
-    GtkWidget* labelBrms;    
+    GtkWidget* labelBrms;
+
+    GtkWidget* checkButton_AsReconstruct;
+    GtkWidget* comboBoxText_AsReconstructionMethod;
+    GtkWidget* entry_Asqt;
+    GtkWidget* checkButton_BsReconstruct;
+    GtkWidget* comboBoxText_BsReconstructionMethod;
+    GtkWidget* entry_Bsqt;
+
 } widgets;
 
 struct ApplicationControlHelpers {
@@ -184,6 +192,26 @@ double get_sampling_frequency_b() {
     const gchar* asf_text = gtk_entry_get_text(GTK_ENTRY(widgets.entry_Bsf));
     return atof(asf_text);
 }
+
+double get_quantization_threshold_a() {
+    const gchar* asqt_text = gtk_entry_get_text(GTK_ENTRY(widgets.entry_Asqt));
+    return atof(asqt_text);
+}
+
+double get_quantization_threshold_b() {
+    const gchar* bsqt_text = gtk_entry_get_text(GTK_ENTRY(widgets.entry_Bsqt));
+    return atof(bsqt_text);
+}
+
+uint8_t get_reconstruction_method_idx_a() {
+    return gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_AsReconstructionMethod));   
+}
+
+uint8_t get_reconstruction_method_idx_b() {
+    return gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_BsReconstructionMethod));
+}
+
+
 
 double get_param1val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[0]))); }
 double get_param2val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[1]))); }
@@ -469,6 +497,14 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     widgets.labelBmsp = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBmsp"));
     widgets.labelBsv =  GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBsv"));
     widgets.labelBrms =  GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBrms"));
+
+    widgets.checkButton_AsReconstruct = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "checkButton_AsReconstruct"));
+    widgets.comboBoxText_AsReconstructionMethod = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "comboBoxText_AsReconstructionMethod"));
+    widgets.entry_Asqt = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Asqt"));
+    widgets.checkButton_BsReconstruct = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "checkButton_BsReconstruct"));
+    widgets.comboBoxText_BsReconstructionMethod = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "comboBoxText_BsReconstructionMethod"));
+    widgets.entry_Bsqt = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bsqt"));
+
 
     set_param_names(get_signal_idx_a(), SIGNAL_A);
     set_param_names(get_signal_idx_b(), SIGNAL_B);
@@ -809,4 +845,28 @@ void on_fileChooserButton_BLoad_file_set(GtkFileChooserButton* fcb) {
     const gchar* fileName = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER(fcb));
     fprintf(stdout, "Info: '%s' choosen for reading signal B\n", fileName);
     widget_helpers.b_load_filename = (char*)fileName;
+}
+
+void on_entry_Asqt_changed(GtkEntry* e) {
+    g_error("Not implemented");
+}
+
+void on_entry_Bsqt_changed(GtkEntry* e) {
+    g_error("Not implemented");
+}
+
+void on_checkButton_AsReconstruct_toggled(GtkToggleButton* t) {
+    g_error("Not implemented");
+}
+
+void on_checkButton_BsReconstruct_toggled(GtkToggleButton* t) {
+    g_error("Not implemented");
+}
+
+void on_comboBoxText_AsReconstructionMethod_changed(GtkComboBox* c, gpointer user_data) {
+    g_error("Not implemented");
+}
+
+void on_comboBoxText_BsReconstructionMethod_changed(GtkComboBox* c, gpointer user_data) {
+    g_error("Not implemented");
 }
