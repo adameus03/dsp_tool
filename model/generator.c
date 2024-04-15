@@ -22,6 +22,8 @@ double __standard_gaussian_rand() {
 }
 
 real_signal_t generate_uniform_noise(generator_info_t info, double A, double t1, double d) {
+    if (info.sampling_frequency == 0.0) { return_blank_signal; }
+    
     real_signal_t signal = {
         .info = {
             .num_samples = d * info.sampling_frequency,
@@ -39,6 +41,8 @@ real_signal_t generate_uniform_noise(generator_info_t info, double A, double t1,
 }
 
 real_signal_t generate_gaussian_noise(generator_info_t info, double A, double t1, double d) {
+    if (info.sampling_frequency == 0.0) { return_blank_signal; }
+    
     real_signal_t signal = {
         .info = {
             .num_samples = d * info.sampling_frequency,
@@ -56,6 +60,8 @@ real_signal_t generate_gaussian_noise(generator_info_t info, double A, double t1
 }
 
 real_signal_t generate_sine(generator_info_t info, double A, double T, double t1, double d) {
+    if (info.sampling_frequency == 0.0) { return_blank_signal; }
+    
     real_signal_t signal = {
         .info = {
             .num_samples = d * info.sampling_frequency,
@@ -75,6 +81,8 @@ real_signal_t generate_sine(generator_info_t info, double A, double T, double t1
 }
 
 real_signal_t generate_half_wave_rectified_sine(generator_info_t info, double A, double T, double t1, double d) {
+    if (info.sampling_frequency == 0.0) { return_blank_signal; }
+
     real_signal_t signal = generate_sine (info,A, T, t1, d);
     for (uint64_t i = 0; i < signal.info.num_samples; i++) {
         double* pValue = signal.pValues + i;
@@ -83,6 +91,8 @@ real_signal_t generate_half_wave_rectified_sine(generator_info_t info, double A,
     return signal;
 }
 real_signal_t generate_full_wave_rectified_sine(generator_info_t info, double A, double T, double t1, double d) {
+    if (info.sampling_frequency == 0.0) { return_blank_signal; }
+
     real_signal_t signal = generate_sine (info,A, T, t1, d);
     for (uint64_t i = 0; i < signal.info.num_samples; i++) {
         double* pValue = signal.pValues + i;
@@ -92,6 +102,7 @@ real_signal_t generate_full_wave_rectified_sine(generator_info_t info, double A,
 }
 real_signal_t generate_rectangular(generator_info_t info, double A, double T, double t1, double d, double kw) {
     if (T == 0.0) { return_blank_signal; }
+    if (info.sampling_frequency == 0.0) { return_blank_signal; }
 
     real_signal_t signal = {
         .info = {
@@ -104,6 +115,10 @@ real_signal_t generate_rectangular(generator_info_t info, double A, double T, do
     real_signal_alloc_values(&signal);
 
     uint64_t num_samples_per_period = info.sampling_frequency * T;
+    if (num_samples_per_period == 0) { 
+        fprintf(stderr, "Error: num_samples_per_period evaluated to 0");
+        return_blank_signal;
+    }
     uint64_t num_high_samples_per_period = num_samples_per_period * kw;
     uint64_t num_full_periods = signal.info.num_samples / num_samples_per_period;
     uint64_t num_remainder_samples = signal.info.num_samples % num_samples_per_period;
@@ -133,6 +148,7 @@ real_signal_t generate_rectangular(generator_info_t info, double A, double T, do
 }
 real_signal_t generate_symmetric_rectangular(generator_info_t info, double A, double T, double t1, double d, double kw) {
     if (T == 0.0) { return_blank_signal; }
+    if (info.sampling_frequency == 0.0) { return_blank_signal; }
     
     real_signal_t signal = {
         .info = {
@@ -145,6 +161,10 @@ real_signal_t generate_symmetric_rectangular(generator_info_t info, double A, do
     real_signal_alloc_values(&signal);
 
     uint64_t num_samples_per_period = info.sampling_frequency * T;
+    if (num_samples_per_period == 0) { 
+        fprintf(stderr, "Error: num_samples_per_period evaluated to 0");
+        return_blank_signal;
+    }
     uint64_t num_high_samples_per_period = num_samples_per_period * kw;
     uint64_t num_full_periods = signal.info.num_samples / num_samples_per_period;
     uint64_t num_remainder_samples = signal.info.num_samples % num_samples_per_period;
@@ -174,6 +194,7 @@ real_signal_t generate_symmetric_rectangular(generator_info_t info, double A, do
 }
 real_signal_t generate_triangle(generator_info_t info, double A, double T, double t1, double d, double kw) {
     if (T == 0.0) { return_blank_signal; }
+    if (info.sampling_frequency == 0.0) { return_blank_signal; }
     
     real_signal_t signal = {
         .info = {
@@ -186,6 +207,10 @@ real_signal_t generate_triangle(generator_info_t info, double A, double T, doubl
     real_signal_alloc_values(&signal);
 
     uint64_t num_samples_per_period = info.sampling_frequency * T;
+    if (num_samples_per_period == 0) { 
+        fprintf(stderr, "Error: num_samples_per_period evaluated to 0");
+        return_blank_signal;
+    }
     uint64_t num_high_samples_per_period = num_samples_per_period * kw;
     uint64_t num_full_periods = signal.info.num_samples / num_samples_per_period;
     uint64_t num_remainder_samples = signal.info.num_samples % num_samples_per_period;
@@ -214,6 +239,8 @@ real_signal_t generate_triangle(generator_info_t info, double A, double T, doubl
     return signal;
 }
 real_signal_t generate_heaviside(generator_info_t info, double A, double t1, double d, double ts) {
+    if (info.sampling_frequency == 0.0) { return_blank_signal; }
+    
     real_signal_t signal = {
         .info = {
             .num_samples = d * info.sampling_frequency,
@@ -245,6 +272,7 @@ real_signal_t generate_heaviside(generator_info_t info, double A, double t1, dou
 }
 real_signal_t generate_kronecker_delta(generator_info_t info, double A, uint64_t ns, uint64_t n1, uint64_t l) {
     if (l == 0) { return_blank_signal; }
+    if (info.sampling_frequency == 0.0) { return_blank_signal; }
 
     real_signal_t signal = {
         .info = {
@@ -267,6 +295,8 @@ real_signal_t generate_kronecker_delta(generator_info_t info, double A, uint64_t
     return signal;
 }
 real_signal_t generate_impulse_noise(generator_info_t info, double A, double t1, double d, double p) {
+    if (info.sampling_frequency == 0.0) { return_blank_signal; }
+    
     real_signal_t signal = {
         .info = {
             .num_samples = d * info.sampling_frequency,

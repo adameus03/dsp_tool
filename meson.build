@@ -18,5 +18,8 @@ executable('signal_plotter_combiner', [
     'model/combiner.c',
     'model/aggregator.c',
     'model/__gcall.h',
-    'model/signal_fio.c'
+    'model/signal_fio.c',
+    'model/converters/adc.c',
+    'model/converters/dac.c',
+    'model/measures/similarity.c'
 ], dependencies : [gtkdep, mdep], export_dynamic: true) #https://stackoverflow.com/questions/49545752/error-did-you-compile-with-rdynamic-seen-only-when-application-installed-usi

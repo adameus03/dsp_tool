@@ -102,7 +102,7 @@
             <property name="column-spacing">5</property>
             <property name="column-homogeneous">True</property>
             <child>
-              <object class="GtkFixed">
+              <object class="GtkFixed" id="r">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <child>
@@ -124,7 +124,7 @@
                   </packing>
                 </child>
                 <child>
-                  <!-- n-columns=4 n-rows=3 -->
+                  <!-- n-columns=6 n-rows=3 -->
                   <object class="GtkGrid">
                     <property name="width-request">288</property>
                     <property name="height-request">102</property>
@@ -295,6 +295,43 @@
                         <property name="top-attach">2</property>
                       </packing>
                     </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="width-request">137</property>
+                        <property name="height-request">20</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Quantization threshold</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">4</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_Asqt">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="text" translatable="yes">0</property>
+                        <signal name="changed" handler="on_entry_Asqt_changed" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">5</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                   </object>
                   <packing>
                     <property name="x">25</property>
@@ -302,7 +339,7 @@
                   </packing>
                 </child>
                 <child>
-                  <!-- n-columns=3 n-rows=3 -->
+                  <!-- n-columns=4 n-rows=3 -->
                   <object class="GtkGrid">
                     <property name="width-request">659</property>
                     <property name="height-request">102</property>
@@ -420,6 +457,39 @@
                       </packing>
                     </child>
                     <child>
+                      <object class="GtkCheckButton" id="checkButton_AsReconstruct">
+                        <property name="label" translatable="yes">Enable resampling/reconstruction</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">False</property>
+                        <property name="draw-indicator">True</property>
+                        <signal name="toggled" handler="on_checkButton_AsReconstruct_toggled" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">2</property>
+                        <property name="top-attach">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkComboBoxText" id="comboBoxText_AsReconstructionMethod">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="active">0</property>
+                        <items>
+                          <item translatable="yes">Zero-order extrapolation</item>
+                          <item translatable="yes">Sinc reconstruction</item>
+                        </items>
+                        <signal name="changed" handler="on_comboBoxText_AsReconstructionMethod_changed" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">3</property>
+                        <property name="top-attach">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
                       <placeholder/>
                     </child>
                   </object>
@@ -513,7 +583,7 @@
                   </packing>
                 </child>
                 <child>
-                  <!-- n-columns=4 n-rows=3 -->
+                  <!-- n-columns=6 n-rows=3 -->
                   <object class="GtkGrid">
                     <property name="width-request">100</property>
                     <property name="height-request">80</property>
@@ -684,10 +754,79 @@
                         <property name="top-attach">2</property>
                       </packing>
                     </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Quantization threshold</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">4</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_Bsqt">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="text" translatable="yes">0</property>
+                        <signal name="changed" handler="on_entry_Bsqt_changed" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">5</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                   </object>
                   <packing>
                     <property name="x">33</property>
                     <property name="y">34</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkCheckButton" id="checkButton_BsReconstruct">
+                    <property name="label" translatable="yes">Enable resampling/reconstruction</property>
+                    <property name="width-request">105</property>
+                    <property name="height-request">20</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">False</property>
+                    <property name="draw-indicator">True</property>
+                    <signal name="toggled" handler="on_checkButton_BsReconstruct_toggled" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="x">358</property>
+                    <property name="y">207</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkComboBoxText" id="comboBoxText_BsReconstructionMethod">
+                    <property name="width-request">56</property>
+                    <property name="height-request">34</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="active">0</property>
+                    <items>
+                      <item translatable="yes">Zero-order extrapolation</item>
+                      <item translatable="yes">Sinc reconstruction</item>
+                    </items>
+                    <signal name="changed" handler="on_comboBoxText_BsReconstructionMethod_changed" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="x">597</property>
+                    <property name="y">199</property>
                   </packing>
                 </child>
               </object>
