@@ -1118,9 +1118,9 @@ void on_entry_AsNeighCoeffVal_changed(GtkEntry* e) {
     reconstruct_signal(SIGNAL_A);
     
     // Update plots
-    update_A_plots();
+    update_A_plots_no_sigload();
     
-    g_error("Not implemented");
+    //g_error("Not implemented");
 }
 
 void on_entry_BsNeighCoeffVal_changed(GtkEntry* e) {
@@ -1128,7 +1128,7 @@ void on_entry_BsNeighCoeffVal_changed(GtkEntry* e) {
     reconstruct_signal(SIGNAL_B);
     
     // Update plots
-    update_B_plots();
+    update_B_plots_no_sigload();
     
-    g_error("Not implemented");
+    //g_error("Not implemented");
 }

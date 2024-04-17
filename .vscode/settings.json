@@ -71,7 +71,8 @@
     "generator.h": "c",
     "math.h": "c",
     "stdio.h": "c",
-    "features.h": "c"
+    "features.h": "c",
+    "compare": "c"
   },
   "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild"
 }
