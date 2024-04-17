@@ -35,14 +35,14 @@ double __dac_reconstruct_sinc(real_signal_t* pSignal, uint64_t numNeighCoeff, do
 
     uint64_t centralSampleIndex = (t - tMin) / dt;
     double dt_shift_proportion = (t - (tMin + dt * centralSampleIndex)) / dt;
-    if (dt_shift_proportion > 0.5 
+    /*if (dt_shift_proportion > 0.5 
         && centralSampleIndex != pSignal->info.num_samples) {
 
         centralSampleIndex++;
-    }
+    }*/
 
-    sum += pSignal->pValues[centralSampleIndex]* (1 - __dac_normalized_sinus_cardinalis(t * pSignal->info.sampling_frequency - centralSampleIndex));
-    //* __dac_normalized_sinus_cardinalis((t - (tMin + dt * centralSampleIndex)) / dt);
+    sum += pSignal->pValues[centralSampleIndex] //* (1 - __dac_normalized_sinus_cardinalis(t * pSignal->info.sampling_frequency - centralSampleIndex));
+    * __dac_normalized_sinus_cardinalis(-dt_shift_proportion);
     if (numNeighCoeff == 0) {
         return sum;
     }
@@ -58,30 +58,30 @@ double __dac_reconstruct_sinc(real_signal_t* pSignal, uint64_t numNeighCoeff, do
         : 0;
 
     for (uint64_t i = centralSampleIndex + 1; i < rightIndexBoundExclusive; i++) {
-        sum += pSignal->pValues[i] * (1 - __dac_normalized_sinus_cardinalis(t * pSignal->info.sampling_frequency - i));
+        sum += pSignal->pValues[i] //* __dac_normalized_sinus_cardinalis(t * pSignal->info.sampling_frequency - i);
         
-        /** __dac_normalized_sinus_cardinalis(
+        * __dac_normalized_sinus_cardinalis(
             i - centralSampleIndex 
-            + (t - (tMin + dt * centralSampleIndex)) / dt
-        );*/
+            - dt_shift_proportion
+        );
     }
 
     if (centralSampleIndex > 0) {
         for (uint64_t i = centralSampleIndex - 1; i > leftIndexBoundInclusive; i--) {
-            sum += pSignal->pValues[i] * (1 - __dac_normalized_sinus_cardinalis(t * pSignal->info.sampling_frequency - i));
+            sum += pSignal->pValues[i] //* __dac_normalized_sinus_cardinalis(t * pSignal->info.sampling_frequency - i);
             
-            /** __dac_normalized_sinus_cardinalis(
-                i - centralSampleIndex
-                + (t - (tMin + dt * centralSampleIndex)) / dt
-            );*/
+            * __dac_normalized_sinus_cardinalis(
+                ((double)i) - ((double)centralSampleIndex)
+                - dt_shift_proportion
+            );
         }
     }
     
-    sum += pSignal->pValues[leftIndexBoundInclusive] * (1 - __dac_normalized_sinus_cardinalis(t * pSignal->info.sampling_frequency - leftIndexBoundInclusive));
-    /** __dac_normalized_sinus_cardinalis(
-                leftIndexBoundInclusive - centralSampleIndex
-                + (t - (tMin + dt * centralSampleIndex)) / dt
-    );*/
+    sum += pSignal->pValues[leftIndexBoundInclusive] //* __dac_normalized_sinus_cardinalis(t * pSignal->info.sampling_frequency - leftIndexBoundInclusive);
+    * __dac_normalized_sinus_cardinalis(
+                ((double)leftIndexBoundInclusive) - ((double)centralSampleIndex)
+                - dt_shift_proportion
+    );
 
     return sum;
 }
@@ -107,6 +107,14 @@ double dac_reconstruct_single_real_signal_sample(dac_config_t* pConfig, real_sig
 #define dac_return_blank_signal return (real_signal_t) { .info = { .num_samples = 0, .sampling_frequency = 0, .start_time = 0 }, .pValues = 0 }
 
 real_signal_t dac_reconstruct_real_signal(dac_config_t* pConfig, pseudo_dac_caps_t* pCaps, real_signal_t* pSignal) {
+    if (pSignal->info.num_samples == 0) {
+        fprintf(stderr, "Error: Trying to reconstruct signal with 0 samples.");
+        dac_return_blank_signal;
+    } else if (pSignal->info.sampling_frequency == 0.0) {
+        fprintf(stderr, "Error: Trying to reconstruct signal with 0 sampling frequency.");
+        dac_return_blank_signal;
+    }
+    
     if (pCaps->output_sampling_freq <= 0.0) { dac_return_blank_signal; }
     
     double oldDt = 1.0 / pSignal->info.sampling_frequency;

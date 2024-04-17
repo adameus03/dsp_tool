@@ -1023,14 +1023,18 @@ void on_fileChooserButton_BLoad_file_set(GtkFileChooserButton* fcb) {
 void on_entry_Asqt_changed(GtkEntry* e) {
     //update_A_plots();
     //load_signal_A();
-    reconstruct_signal(SIGNAL_A);
+
+    //reconstruct_signal(SIGNAL_A);
+    quantization_handler_A();
     update_A_plots_no_sigload();
 }
 
 void on_entry_Bsqt_changed(GtkEntry* e) {
     //update_B_plots();
     //load_signal_B();
-    reconstruct_signal(SIGNAL_B);
+
+    //reconstruct_signal(SIGNAL_B);
+    quantization_handler_B();
     update_B_plots_no_sigload();
 }
 
