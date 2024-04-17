@@ -8,6 +8,8 @@
 #include "model/gnuplot.h"
 #include "model/signal_fio.h"
 
+#include "model/converters/adc.h"
+
 #define NUM_PARAMS 10
 #define NUM_SIGNALS 12
 #define MAX_PARAMS_PER_SIGNAL 5
@@ -245,6 +247,31 @@ double get_param5val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entr
 uint64_t get_adjustment_val_a() { return (uint64_t)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment1)); }
 uint64_t get_adjustment_val_b() { return (uint64_t)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment2)); }
 
+void quantization_handler_A() {
+    double quant_threshold = get_quantization_threshold_a();
+    if (quant_threshold <= 0.0) {
+        g_message("Zero quantization threshold for signal A. Skipping quantization.");
+        return;
+    } else {
+        adc_caps_t adcCaps = {
+            .quantization_threshold = quant_threshold
+        };
+        adc_quantize_real_signal(&adcCaps, &signals.signalA);
+    }
+}
+
+void quantization_handler_B() {
+    double quant_threshold = get_quantization_threshold_b();
+    if (quant_threshold <= 0.0) {
+        g_message("Zero quantization threshold for signal B. Skipping quantization.");
+        return;
+    } else {
+        adc_caps_t adcCaps = {
+            .quantization_threshold = quant_threshold
+        };
+        adc_quantize_real_signal(&adcCaps, &signals.signalB);
+    }
+}
 
 void load_signal_A() {
     uint8_t signal_idx = get_signal_idx_a();
@@ -302,6 +329,9 @@ void load_signal_A() {
     } else {
         enable_entry (GTK_ENTRY(widgets.entry_Asf));
     }
+
+    // Handle quantization
+    quantization_handler_A();
 }
 
 void load_signal_B() {
@@ -359,6 +389,9 @@ void load_signal_B() {
     } else {
         enable_entry (GTK_ENTRY(widgets.entry_Bsf));
     }
+
+    // Handle quantization
+    quantization_handler_B();
 }
 
 void draw_plot_A() {
@@ -870,11 +903,11 @@ void on_fileChooserButton_BLoad_file_set(GtkFileChooserButton* fcb) {
 }
 
 void on_entry_Asqt_changed(GtkEntry* e) {
-    g_error("Not implemented");
+    update_A_plots();
 }
 
 void on_entry_Bsqt_changed(GtkEntry* e) {
-    g_error("Not implemented");
+    update_B_plots();
 }
 
 void on_checkButton_AsReconstruct_toggled(GtkToggleButton* t) {
