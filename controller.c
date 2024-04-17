@@ -9,6 +9,7 @@
 #include "model/signal_fio.h"
 
 #include "model/converters/adc.h"
+#include "model/converters/dac.h"
 
 #define NUM_PARAMS 10
 #define NUM_SIGNALS 12
@@ -228,6 +229,30 @@ uint64_t get_sinc_neigh_coeff_val_b() {
     return (uint64_t)atoll(neigh_coeff_text_b);
 }
 
+/**
+ * @returns 1 if reconstruction mode for signal A is enabled (checkbox checked), 0 otherwise 
+*/
+uint8_t get_reconstruction_mode_enabled_a() {
+    gboolean checkbox_a__val = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.checkButton_AsReconstruct));
+    if (checkbox_a__val == TRUE) {
+        return 1U;
+    } else {
+        return 0U;
+    }
+}
+
+/**
+ * @returns 1 if reconstruction mode for signal B is enabled (checkbox checked), 0 otherwise 
+*/
+uint8_t get_reconstruction_mode_enabled_b() {
+    gboolean checkbox_b__val = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.checkButton_BsReconstruct));
+    if (checkbox_b__val == TRUE) {
+        return 1U;
+    } else {
+        return 0U;
+    }
+}
+
 
 
 
@@ -394,6 +419,62 @@ void load_signal_B() {
     quantization_handler_B();
 }
 
+/**
+ * @todo Verify
+*/
+void __replace_real_signal(real_signal_t* signalAddr, real_signal_t newSignal) {
+    real_signal_free_values (signalAddr);
+    signalAddr->info = newSignal.info;
+    signalAddr->pValues = newSignal.pValues;
+}
+
+void __reconstruct_signal_caps_helper(signal_selector_t signalSelector, dac_config_t* pDacConfig) {
+    pseudo_dac_caps_t caps = {};
+    if (signalSelector == SIGNAL_A) {
+        caps.output_sampling_freq = get_sampling_frequency_a();
+    } else { // SIGNAL_B
+        caps.output_sampling_freq = get_sampling_frequency_b();
+    }
+
+    real_signal_t reconstructedSignal = {};
+    if (signalSelector == SIGNAL_A) {
+        reconstructedSignal = dac_reconstruct_real_signal (pDacConfig, &caps, &signals.signalA);
+    } else { //SIGNAL_B
+        reconstructedSignal = dac_reconstruct_real_signal (pDacConfig, &caps, &signals.signalB);
+    }
+
+    __replace_real_signal (
+        signalSelector == SIGNAL_A ? &signals.signalA : &signals.signalB,
+        reconstructedSignal
+    );
+}
+
+void reconstruct_signal(signal_selector_t signalSelector) {
+    dac_config_t dacConfig = { };
+    uint8_t rtype;
+    if (signalSelector == SIGNAL_A) {
+        rtype = get_reconstruction_method_idx_a();
+        
+    } else { // SIGNAL_B
+        rtype = get_reconstruction_method_idx_b();
+    }
+
+    if (rtype == 0) {
+        dacConfig.reconstruction_type = DAC_RECONSTRUCTION_ZERO_ORDER_EXTRAPOLATION;
+        dacConfig.pReconstruction_config = NULL;
+        __reconstruct_signal_caps_helper(signalSelector, &dacConfig);
+    } else if (rtype == 1) {
+        dacConfig.reconstruction_type = DAC_RECONSTRUCTION_SINC;
+        sinc_reconstruction_config_t sincReconstructionConfig = {
+            .symmetric_num_neighbours = signalSelector == SIGNAL_A ? get_sinc_neigh_coeff_val_a() : get_sinc_neigh_coeff_val_b()
+        };
+        dacConfig.pReconstruction_config = &sincReconstructionConfig;
+        __reconstruct_signal_caps_helper(signalSelector, &dacConfig);
+    } else {
+        g_error("Invalid reconstruction type detected!");
+    }
+}
+
 void draw_plot_A() {
     gnuplot_prepare_real_signal_plot(&signals.signalA, GNUPLOT_SCRIPT_PATH_PLOT_A);
     gtk_image_set_from_file(GTK_IMAGE(widgets.imageA1), GNUPLOT_OUTFILE_PATH);
@@ -448,9 +529,7 @@ void evaluate_B_aggregates() {
     gtk_label_set_text(GTK_LABEL(widgets.labelBrms), (const gchar*)brmsStr);
 }
 
-void update_A_plots() {
-    //fprintf(stdout, "Info: Loading signal A\n");
-    load_signal_A();
+void update_A_plots_no_sigload() {
     //fprintf(stdout, "Info: Drawing plot A\n");
     draw_plot_A();
     //fprintf(stdout, "Info: Drawing histogram A\n");
@@ -459,11 +538,21 @@ void update_A_plots() {
     evaluate_A_aggregates();
 }
 
-void update_B_plots() {
-    load_signal_B();
+void update_B_plots_no_sigload() {
     draw_plot_B();
     draw_histogram_B();
     evaluate_B_aggregates();
+}
+
+void update_A_plots() {
+    //fprintf(stdout, "Info: Loading signal A\n");
+    load_signal_A();
+    update_A_plots_no_sigload();
+}
+
+void update_B_plots() {
+    load_signal_B();
+    update_B_plots_no_sigload();   
 }
 
 void init_scales() {
@@ -476,6 +565,19 @@ void init_scales() {
 
     disable_scroll(widgets.scaleA);
     disable_scroll(widgets.scaleB);
+}
+
+/**
+ * Makes the reconstruction GUI hidden by default
+*/
+void init_reconstruction_gui() {
+    //disable_combo_box(GTK_COMBO_BOX(widgets.comboBoxText_AsReconstructionMethod));
+    gtk_widget_set_visible(widgets.comboBoxText_AsReconstructionMethod, FALSE);
+    gtk_widget_set_visible(widgets.label_AsNeighCoeff, FALSE);
+    gtk_widget_set_visible(widgets.entry_AsNeighCoeffVal, FALSE);
+    gtk_widget_set_visible(widgets.comboBoxText_BsReconstructionMethod, FALSE);
+    gtk_widget_set_visible(widgets.label_BsNeighCoeff, FALSE);
+    gtk_widget_set_visible(widgets.entry_BsNeighCoeffVal, FALSE);
 }
 
 int controller_run(int* psArgc, char*** pppcArgv) {
@@ -564,6 +666,7 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     set_param_names(get_signal_idx_a(), SIGNAL_A);
     set_param_names(get_signal_idx_b(), SIGNAL_B);
     init_scales();
+    init_reconstruction_gui();
 
     /*load_signal_A();
     load_signal_B();
@@ -875,19 +978,34 @@ void on_button_Bload_clicked(GtkButton* b) {
 }
 
 void on_entry_Asf_changed(GtkEntry* e) {
-    update_A_plots();
+    if (get_reconstruction_mode_enabled_a() == 1U) {
+        g_message("Calling reconstruct_signal for SIGNAL_A");
+        //load_signal_A();
+        reconstruct_signal(SIGNAL_A);
+        update_A_plots_no_sigload();
+    } else {
+        update_A_plots();
+    }
+    
 }
 
 void on_entry_Bsf_changed(GtkEntry* e) {
-    update_B_plots();
+    if (get_reconstruction_mode_enabled_b() == 1U) {
+        g_message("Calling reconstruct_signal for SIGNAL_B");
+        //load_signal_B();
+        reconstruct_signal(SIGNAL_B);
+        update_B_plots_no_sigload();
+    } else {
+        update_B_plots();
+    }
 }
 
 void on_scaleA_value_changed(GtkScale* s) {
-    update_A_plots();
+    update_A_plots_no_sigload();
 }
 
 void on_scaleB_value_changed(GtkScale* s) {
-    update_B_plots();
+    update_B_plots_no_sigload();
 }
 
 void on_fileChooserButton_ALoad_file_set(GtkFileChooserButton* fcb) {
@@ -903,33 +1021,114 @@ void on_fileChooserButton_BLoad_file_set(GtkFileChooserButton* fcb) {
 }
 
 void on_entry_Asqt_changed(GtkEntry* e) {
-    update_A_plots();
+    //update_A_plots();
+    //load_signal_A();
+    reconstruct_signal(SIGNAL_A);
+    update_A_plots_no_sigload();
 }
 
 void on_entry_Bsqt_changed(GtkEntry* e) {
-    update_B_plots();
+    //update_B_plots();
+    //load_signal_B();
+    reconstruct_signal(SIGNAL_B);
+    update_B_plots_no_sigload();
 }
 
-void on_checkButton_AsReconstruct_toggled(GtkToggleButton* t) {
-    g_error("Not implemented");
+void on_checkButton_AsReconstruct_toggled(GtkToggleButton* t) { 
+    if (get_reconstruction_mode_enabled_a() == 1U) {
+        gtk_widget_set_visible(widgets.comboBoxText_AsReconstructionMethod, TRUE);
+    
+        uint8_t reconstruction_method_index = get_reconstruction_method_idx_a();
+        if (reconstruction_method_index == 0) {
+            // Keep other configuration widgets hidden
+        }
+        else if (reconstruction_method_index == 1) {
+            // Show sinc reconstruction configuration widgets
+            gtk_widget_set_visible(widgets.label_AsNeighCoeff, TRUE);
+            gtk_widget_set_visible(widgets.entry_AsNeighCoeffVal, TRUE);
+        } else {
+            g_error("Invalid reconstruction method selected for signal A!");
+        }
+    } else {
+        gtk_widget_set_visible(widgets.comboBoxText_AsReconstructionMethod, FALSE);
+        gtk_widget_set_visible(widgets.label_AsNeighCoeff, FALSE);
+        gtk_widget_set_visible(widgets.entry_AsNeighCoeffVal, FALSE);
+    }
+    
 }
 
 void on_checkButton_BsReconstruct_toggled(GtkToggleButton* t) {
-    g_error("Not implemented");
+    if (get_reconstruction_mode_enabled_b() == 1U) {
+        gtk_widget_set_visible(widgets.comboBoxText_BsReconstructionMethod, TRUE);
+    
+        uint8_t reconstruction_method_index = get_reconstruction_method_idx_b();
+        if (reconstruction_method_index == 0) {
+            // Keep other configuration widgets hidden
+        }
+        else if (reconstruction_method_index == 1) {
+            // Show sinc reconstruction configuration widgets
+            gtk_widget_set_visible(widgets.label_BsNeighCoeff, TRUE);
+            gtk_widget_set_visible(widgets.entry_BsNeighCoeffVal, TRUE);
+        } else {
+            g_error("Invalid reconstruction method selected for signal B!");
+        }
+    } else {
+        gtk_widget_set_visible(widgets.comboBoxText_BsReconstructionMethod, FALSE);
+        gtk_widget_set_visible(widgets.label_BsNeighCoeff, FALSE);
+        gtk_widget_set_visible(widgets.entry_BsNeighCoeffVal, FALSE);
+    }
+    
+    
 }
 
 void on_comboBoxText_AsReconstructionMethod_changed(GtkComboBox* c, gpointer user_data) {
-    g_error("Not implemented");
+    uint8_t reconstruction_method_index = get_reconstruction_method_idx_a();
+    if (reconstruction_method_index == 0) {
+        // Keep other configuration widgets hidden
+        gtk_widget_set_visible(widgets.label_AsNeighCoeff, FALSE);
+        gtk_widget_set_visible(widgets.entry_AsNeighCoeffVal, FALSE);
+    }
+    else if (reconstruction_method_index == 1) {
+        // Show sinc reconstruction configuration widgets
+        gtk_widget_set_visible(widgets.label_AsNeighCoeff, TRUE);
+        gtk_widget_set_visible(widgets.entry_AsNeighCoeffVal, TRUE);
+    } else {
+        g_error("Invalid reconstruction method selected for signal A!");
+    }
 }
 
 void on_comboBoxText_BsReconstructionMethod_changed(GtkComboBox* c, gpointer user_data) {
-    g_error("Not implemented");
+    uint8_t reconstruction_method_index = get_reconstruction_method_idx_b();
+    if (reconstruction_method_index == 0) {
+        // Keep other configuration widgets hidden
+        gtk_widget_set_visible(widgets.label_BsNeighCoeff, FALSE);
+        gtk_widget_set_visible(widgets.entry_BsNeighCoeffVal, FALSE);
+    }
+    else if (reconstruction_method_index == 1) {
+        // Show sinc reconstruction configuration widgets
+        gtk_widget_set_visible(widgets.label_BsNeighCoeff, TRUE);
+        gtk_widget_set_visible(widgets.entry_BsNeighCoeffVal, TRUE);
+    } else {
+        g_error("Invalid reconstruction method selected for signal B!");
+    }
 }
 
 void on_entry_AsNeighCoeffVal_changed(GtkEntry* e) {
+    // Reconstruct signal
+    reconstruct_signal(SIGNAL_A);
+    
+    // Update plots
+    update_A_plots();
+    
     g_error("Not implemented");
 }
 
 void on_entry_BsNeighCoeffVal_changed(GtkEntry* e) {
+    // Reconstruct signal
+    reconstruct_signal(SIGNAL_B);
+    
+    // Update plots
+    update_B_plots();
+    
     g_error("Not implemented");
 }

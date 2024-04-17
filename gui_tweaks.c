@@ -33,3 +33,13 @@ void disable_entry (GtkEntry *e) {
     gtk_widget_set_can_focus (GTK_WIDGET(e), FALSE);
     gtk_editable_set_editable (GTK_EDITABLE (e), FALSE);
 }
+
+void enable_combo_box( GtkComboBox* c ) {
+    gtk_widget_set_opacity (GTK_WIDGET(c), 1.0);
+    gtk_widget_set_can_focus (GTK_WIDGET(c), TRUE);
+}
+
+void disable_combo_box( GtkComboBox* c ) {
+    gtk_widget_set_opacity (GTK_WIDGET(c), 0.6);
+    gtk_widget_set_can_focus (GTK_WIDGET(c), FALSE);
+}
