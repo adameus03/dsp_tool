@@ -69,6 +69,11 @@ struct ApplicationControls {
     GtkWidget* comboBoxText_BsReconstructionMethod;
     GtkWidget* entry_Bsqt;
 
+    GtkWidget* label_AsNeighCoeff;
+    GtkWidget* entry_AsNeighCoeffVal;
+    GtkWidget* label_BsNeighCoeff;
+    GtkWidget* entry_BsNeighCoeffVal;
+
 } widgets;
 
 struct ApplicationControlHelpers {
@@ -210,6 +215,18 @@ uint8_t get_reconstruction_method_idx_a() {
 uint8_t get_reconstruction_method_idx_b() {
     return gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_BsReconstructionMethod));
 }
+
+uint64_t get_sinc_neigh_coeff_val_a() {
+    const gchar* neigh_coeff_text_a = gtk_entry_get_text(GTK_ENTRY(widgets.entry_AsNeighCoeffVal));
+    return (uint64_t)atoll(neigh_coeff_text_a);
+}
+
+uint64_t get_sinc_neigh_coeff_val_b() {
+    const gchar* neigh_coeff_text_b = gtk_entry_get_text(GTK_ENTRY(widgets.entry_BsNeighCoeffVal));
+    return (uint64_t)atoll(neigh_coeff_text_b);
+}
+
+
 
 
 
@@ -504,6 +521,11 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     widgets.checkButton_BsReconstruct = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "checkButton_BsReconstruct"));
     widgets.comboBoxText_BsReconstructionMethod = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "comboBoxText_BsReconstructionMethod"));
     widgets.entry_Bsqt = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bsqt"));
+
+    widgets.label_AsNeighCoeff = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_AsNeighCoeff"));
+    widgets.entry_AsNeighCoeffVal = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_AsNeighCoeffVal"));
+    widgets.label_BsNeighCoeff = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_BsNeighCoeff"));
+    widgets.entry_BsNeighCoeffVal = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_BsNeighCoeffVal"));
 
 
     set_param_names(get_signal_idx_a(), SIGNAL_A);
@@ -868,5 +890,13 @@ void on_comboBoxText_AsReconstructionMethod_changed(GtkComboBox* c, gpointer use
 }
 
 void on_comboBoxText_BsReconstructionMethod_changed(GtkComboBox* c, gpointer user_data) {
+    g_error("Not implemented");
+}
+
+void on_entry_AsNeighCoeffVal_changed(GtkEntry* e) {
+    g_error("Not implemented");
+}
+
+void on_entry_BsNeighCoeffVal_changed(GtkEntry* e) {
     g_error("Not implemented");
 }
