@@ -24,30 +24,90 @@ double __dac_normalized_sinus_cardinalis(double t) {
 double __dac_reconstruct_sinc(real_signal_t* pSignal, uint64_t numNeighCoeff, double t) {
     if (pSignal->info.num_samples == 0) {
         fprintf(stderr, "Error: Trying to reconstruct signal with 0 samples.");
-        return 0;
+        return 0.0;
     } else if (pSignal->info.sampling_frequency == 0.0) {
         fprintf(stderr, "Error: Trying to reconstruct signal with 0 sampling frequency.");
-        return 0;
+        return 0.0;
     }
+
+    if (numNeighCoeff == 0) {
+        return 0.0;
+    }
+
     double sum = 0.0;
     double dt = 1.0 / pSignal->info.sampling_frequency;
     double tMin = pSignal->info.start_time;
 
-    uint64_t centralSampleIndex = (t - tMin) / dt;
-    double dt_shift_proportion = (t - (tMin + dt * centralSampleIndex)) / dt;
-    /*if (dt_shift_proportion > 0.5 
-        && centralSampleIndex != pSignal->info.num_samples) {
+    //uint64_t centralSampleIndex = (t - tMin) / dt;
+    //double dt_shift_proportion = (t - (tMin + dt * centralSampleIndex)) / dt;
+    
+    //sum += pSignal->pValues[centralSampleIndex] //* (1 - __dac_normalized_sinus_cardinalis(t * pSignal->info.sampling_frequency - centralSampleIndex));
+    //* __dac_normalized_sinus_cardinalis(-dt_shift_proportion);
+    
+    uint64_t nearestLeftSampleIndex = (t - tMin) / dt;
+    uint64_t nearestRightSampleIndex = nearestLeftSampleIndex + 1;
 
-        centralSampleIndex++;
-    }*/
+    uint64_t theoreticalRightIndexBoundExclusive = nearestRightSampleIndex + numNeighCoeff;
 
-    sum += pSignal->pValues[centralSampleIndex] //* (1 - __dac_normalized_sinus_cardinalis(t * pSignal->info.sampling_frequency - centralSampleIndex));
-    * __dac_normalized_sinus_cardinalis(-dt_shift_proportion);
-    if (numNeighCoeff == 0) {
-        return sum;
+    uint64_t rightIndexBoundExclusive = theoreticalRightIndexBoundExclusive > pSignal->info.num_samples 
+        ? pSignal->info.num_samples 
+        : theoreticalRightIndexBoundExclusive;
+
+    uint64_t leftIndexBoundInclusive = nearestLeftSampleIndex < numNeighCoeff - 1
+        ? 0 
+        : nearestLeftSampleIndex - (numNeighCoeff - 1);
+
+    
+    for (uint64_t i = nearestRightSampleIndex; i < rightIndexBoundExclusive; i++) {
+        double* pValue = pSignal->pValues + i;
+        sum += *pValue * __dac_normalized_sinus_cardinalis((tMin + i * dt - t) / dt);
     }
 
-    uint64_t theoreticalRightIndexBoundExclusive = centralSampleIndex + numNeighCoeff + 1;
+    for (uint64_t i = nearestLeftSampleIndex; i > leftIndexBoundInclusive; i--) {
+        double* pValue = pSignal->pValues + i;
+        sum += *pValue * __dac_normalized_sinus_cardinalis((tMin + i * dt - t) / dt);
+    }
+    sum += pSignal->pValues[leftIndexBoundInclusive] * __dac_normalized_sinus_cardinalis((tMin + leftIndexBoundInclusive * dt - t) / dt);
+
+    
+    /*double tLeft = tMin + nearestLeftSampleIndex * dt;
+    double tRight = tMin + nearestRightSampleIndex * dt;
+
+    long int nLeftFormal = tLeft / dt;
+    long int nRightFormal = tRight / dt;
+
+
+    long nFormal = nRightFormal;
+
+    for (uint64_t i = 0; i < numNeighCoeff; i++) {
+        
+        if (nearestRightSampleIndex + i >= pSignal->info.num_samples) {
+            break;
+        }
+        printf("I'm in left loop (t = %f)\n", t);
+        sum += pSignal->pValues[nearestRightSampleIndex + i] * __dac_normalized_sinus_cardinalis(t/dt - nFormal);
+        nFormal++;
+    } 
+
+    nFormal = nLeftFormal;
+    for (uint64_t i = numNeighCoeff - 1; i > 0; i--) {
+        if (nearestLeftSampleIndex < i ) {
+            break;
+        }
+        printf("I'm in right loop (t = %f)\n", t);
+        sum += pSignal->pValues[nearestLeftSampleIndex - i] * __dac_normalized_sinus_cardinalis(t/dt - nFormal);
+        nFormal--;
+    }
+
+    printf("I'm in right loop (end) (t = %f)\n", t);
+    sum += pSignal->pValues[nearestLeftSampleIndex] * __dac_normalized_sinus_cardinalis(t/dt - nFormal);*/
+
+
+    /*if (numNeighCoeff == 0) {
+        return sum;
+    }*/
+
+    /*uint64_t theoreticalRightIndexBoundExclusive = centralSampleIndex + numNeighCoeff + 1;
 
     uint64_t rightIndexBoundExclusive = theoreticalRightIndexBoundExclusive >= pSignal->info.num_samples 
         ? pSignal->info.num_samples 
@@ -58,7 +118,7 @@ double __dac_reconstruct_sinc(real_signal_t* pSignal, uint64_t numNeighCoeff, do
         : 0;
 
     for (uint64_t i = centralSampleIndex + 1; i < rightIndexBoundExclusive; i++) {
-        sum += pSignal->pValues[i] //* __dac_normalized_sinus_cardinalis(t * pSignal->info.sampling_frequency - i);
+        sum += pSignal->pValues[i] // __dac_normalized_sinus_cardinalis(t * pSignal->info.sampling_frequency - i);
         
         * __dac_normalized_sinus_cardinalis(
             i - centralSampleIndex 
@@ -68,7 +128,7 @@ double __dac_reconstruct_sinc(real_signal_t* pSignal, uint64_t numNeighCoeff, do
 
     if (centralSampleIndex > 0) {
         for (uint64_t i = centralSampleIndex - 1; i > leftIndexBoundInclusive; i--) {
-            sum += pSignal->pValues[i] //* __dac_normalized_sinus_cardinalis(t * pSignal->info.sampling_frequency - i);
+            sum += pSignal->pValues[i] // __dac_normalized_sinus_cardinalis(t * pSignal->info.sampling_frequency - i);
             
             * __dac_normalized_sinus_cardinalis(
                 ((double)i) - ((double)centralSampleIndex)
@@ -77,11 +137,11 @@ double __dac_reconstruct_sinc(real_signal_t* pSignal, uint64_t numNeighCoeff, do
         }
     }
     
-    sum += pSignal->pValues[leftIndexBoundInclusive] //* __dac_normalized_sinus_cardinalis(t * pSignal->info.sampling_frequency - leftIndexBoundInclusive);
+    sum += pSignal->pValues[leftIndexBoundInclusive] // __dac_normalized_sinus_cardinalis(t * pSignal->info.sampling_frequency - leftIndexBoundInclusive);
     * __dac_normalized_sinus_cardinalis(
                 ((double)leftIndexBoundInclusive) - ((double)centralSampleIndex)
                 - dt_shift_proportion
-    );
+    );*/
 
     return sum;
 }
