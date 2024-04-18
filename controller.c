@@ -11,6 +11,8 @@
 #include "model/converters/adc.h"
 #include "model/converters/dac.h"
 
+#include "model/measures/similarity.h"
+
 #define NUM_PARAMS 10
 #define NUM_SIGNALS 12
 #define MAX_PARAMS_PER_SIGNAL 5
@@ -76,6 +78,24 @@ struct ApplicationControls {
     GtkWidget* entry_AsNeighCoeffVal;
     GtkWidget* label_BsNeighCoeff;
     GtkWidget* entry_BsNeighCoeffVal;
+
+    GtkWidget* labelAsmse;
+    GtkWidget* labelAssnr;
+    GtkWidget* labelAspsnr;
+    GtkWidget* labelAsmd;
+    GtkWidget* labelAqmse;
+    GtkWidget* labelAqsnr;
+    GtkWidget* labelAqpsnr;
+    GtkWidget* labelAqmd;
+    GtkWidget* labelBsmse;
+    GtkWidget* labelBssnr;
+    GtkWidget* labelBspsnr;
+    GtkWidget* labelBsmd;
+    GtkWidget* labelBqmse;
+    GtkWidget* labelBqsnr;
+    GtkWidget* labelBqpsnr;
+    GtkWidget* labelBqmd;
+
 
 } widgets;
 
@@ -149,6 +169,11 @@ typedef enum {
     SIGNAL_A,
     SIGNAL_B
 } signal_selector_t;
+
+typedef enum {
+    SIMILARITY_MEASURE_DESTINY_SAMPLING,
+    SIMILIARITY_MEASURE_DESTINY_QUANTIZATION
+} similiarity_measure_destiny_selector_t;
 
 void set_param_names(uint8_t signal_idx, signal_selector_t selector) {
     char* paramNames[MAX_PARAMS_PER_SIGNAL];
@@ -272,6 +297,53 @@ double get_param5val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entr
 uint64_t get_adjustment_val_a() { return (uint64_t)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment1)); }
 uint64_t get_adjustment_val_b() { return (uint64_t)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment2)); }
 
+void __evaluate_similarity_measures(real_signal_t* pSignalOriginal,
+                                    real_signal_t* pSignalImitated,
+                                    similiarity_measure_destiny_selector_t measureDestinySelector,
+                                    signal_selector_t signalSelector) {
+    double mse = signal_mean_squared_error(pSignalImitated, pSignalOriginal);
+    double snr = signal_to_noise(pSignalImitated, pSignalOriginal);
+    double psnr = peak_signal_to_noise(pSignalImitated, pSignalOriginal);
+    double md = signal_max_difference(pSignalImitated, pSignalOriginal);
+
+    char mseStr[20]; char snrStr[20]; char psnrStr[20]; char mdStr[20];
+    snprintf(mseStr, 20, "%f", mse); snprintf(snrStr, 20, "%f", snr); snprintf(psnrStr, 20, "%f", psnr); snprintf(mdStr, 20, "%f", md);
+    
+    if (signalSelector == SIGNAL_A) {
+        if (measureDestinySelector == SIMILARITY_MEASURE_DESTINY_SAMPLING) {
+            gtk_label_set_text(GTK_LABEL(widgets.labelAsmse), (const gchar*)mseStr);
+            gtk_label_set_text(GTK_LABEL(widgets.labelAssnr), (const gchar*)snrStr);
+            gtk_label_set_text(GTK_LABEL(widgets.labelAspsnr), (const gchar*)psnrStr);
+            gtk_label_set_text(GTK_LABEL(widgets.labelAsmd), (const gchar*)mdStr);
+        } else { // SIMILARITY_MEASURE_DESTINY_QUANTIZATION
+            gtk_label_set_text(GTK_LABEL(widgets.labelAqmse), (const gchar*)mseStr);
+            gtk_label_set_text(GTK_LABEL(widgets.labelAqsnr), (const gchar*)snrStr);
+            gtk_label_set_text(GTK_LABEL(widgets.labelAqpsnr), (const gchar*)psnrStr);
+            gtk_label_set_text(GTK_LABEL(widgets.labelAqmd), (const gchar*)mdStr);
+        }
+    } else { // SIGNAL_B
+        if (measureDestinySelector == SIMILARITY_MEASURE_DESTINY_SAMPLING) {
+            gtk_label_set_text(GTK_LABEL(widgets.labelBsmse), (const gchar*)mseStr);
+            gtk_label_set_text(GTK_LABEL(widgets.labelBssnr), (const gchar*)snrStr);
+            gtk_label_set_text(GTK_LABEL(widgets.labelBspsnr), (const gchar*)psnrStr);
+            gtk_label_set_text(GTK_LABEL(widgets.labelBsmd), (const gchar*)mdStr);
+        } else { // SIMILARITY_MEASURE_DESTINY_QUANTIZATION
+            gtk_label_set_text(GTK_LABEL(widgets.labelBqmse), (const gchar*)mseStr);
+            gtk_label_set_text(GTK_LABEL(widgets.labelBqsnr), (const gchar*)snrStr);
+            gtk_label_set_text(GTK_LABEL(widgets.labelBqpsnr), (const gchar*)psnrStr);
+            gtk_label_set_text(GTK_LABEL(widgets.labelBqmd), (const gchar*)mdStr);
+        }
+    }
+}
+
+void evaluate_similarity_measures(signal_selector_t originalSignalSelector, 
+                                  similiarity_measure_destiny_selector_t measureDestinySelector,
+                                  real_signal_t* pSignalImitated) {
+    real_signal_t* pSignalOriginal = originalSignalSelector == SIGNAL_A ? &signals.signalA : &signals.signalB;
+    __evaluate_similarity_measures(pSignalOriginal, pSignalImitated, measureDestinySelector, originalSignalSelector);
+    
+}
+
 void quantization_handler_A() {
     double quant_threshold = get_quantization_threshold_a();
     if (quant_threshold <= 0.0) {
@@ -281,7 +353,17 @@ void quantization_handler_A() {
         adc_caps_t adcCaps = {
             .quantization_threshold = quant_threshold
         };
+
+        real_signal_t signalACopy = {
+            .info = signals.signalA.info
+        };
+        real_signal_alloc_values(&signalACopy);
+        memcpy(signalACopy.pValues, signals.signalA.pValues, sizeof(double));
+
         adc_quantize_real_signal(&adcCaps, &signals.signalA);
+
+        //evaluate_similarity_measures(SIGNAL_A, SIMILIARITY_MEASURE_DESTINY_QUANTIZATION, )
+        __evaluate_similarity_measures(&signalACopy, &signals.signalA, SIMILIARITY_MEASURE_DESTINY_QUANTIZATION, SIGNAL_A);
     }
 }
 
@@ -294,7 +376,15 @@ void quantization_handler_B() {
         adc_caps_t adcCaps = {
             .quantization_threshold = quant_threshold
         };
+
+        real_signal_t signalBCopy = {
+            .info = signals.signalB.info
+        };
+        real_signal_alloc_values(&signalBCopy);
+        memcpy(signalBCopy.pValues, signals.signalB.pValues, sizeof(double));
         adc_quantize_real_signal(&adcCaps, &signals.signalB);
+
+        __evaluate_similarity_measures(&signalBCopy, &signals.signalB, SIMILIARITY_MEASURE_DESTINY_QUANTIZATION, SIGNAL_B);
     }
 }
 
@@ -419,6 +509,8 @@ void load_signal_B() {
     quantization_handler_B();
 }
 
+
+
 /**
  * @todo Verify
 */
@@ -442,6 +534,8 @@ void __reconstruct_signal_caps_helper(signal_selector_t signalSelector, dac_conf
     } else { //SIGNAL_B
         reconstructedSignal = dac_reconstruct_real_signal (pDacConfig, &caps, &signals.signalB);
     }
+
+    evaluate_similarity_measures(signalSelector, SIMILARITY_MEASURE_DESTINY_SAMPLING, &reconstructedSignal);
 
     __replace_real_signal (
         signalSelector == SIGNAL_A ? &signals.signalA : &signals.signalB,
@@ -662,6 +756,22 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     widgets.label_BsNeighCoeff = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "label_BsNeighCoeff"));
     widgets.entry_BsNeighCoeffVal = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_BsNeighCoeffVal"));
 
+    widgets.labelAsmse = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAsmse"));
+    widgets.labelAssnr = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAssnr"));
+    widgets.labelAspsnr = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAspsnr"));
+    widgets.labelAsmd = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAsmd"));
+    widgets.labelAqmse = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAqmse"));
+    widgets.labelAqsnr = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAqsnr"));
+    widgets.labelAqpsnr = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAqpsnr"));
+    widgets.labelAqmd = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAqmd"));
+    widgets.labelBsmse = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBsmse"));
+    widgets.labelBssnr = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBssnr"));
+    widgets.labelBspsnr = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBspsnr"));
+    widgets.labelBsmd = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBsmd"));
+    widgets.labelBqmse = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBqmse"));
+    widgets.labelBqsnr = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBqsnr"));
+    widgets.labelBqpsnr = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBqpsnr"));
+    widgets.labelBqmd = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBqmd"));
 
     set_param_names(get_signal_idx_a(), SIGNAL_A);
     set_param_names(get_signal_idx_b(), SIGNAL_B);

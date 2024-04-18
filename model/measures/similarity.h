@@ -3,9 +3,9 @@
 
 #include "../signal.h"
 
-double signal_mean_squared_error(real_signal_t* quantized, real_signal_t* original);
-double signal_to_noise(real_signal_t* quantized, real_signal_t* original);
-double peak_signal_to_noise(real_signal_t* quantized, real_signal_t* original);
-double signal_max_difference(real_signal_t* quantized, real_signal_t* original);
+double signal_mean_squared_error(real_signal_t* pSignalImitated, real_signal_t* pSignalOriginal);
+double signal_to_noise(real_signal_t* pSignalImitated, real_signal_t* pSignalOriginal);
+double peak_signal_to_noise(real_signal_t* pSignalImitated, real_signal_t* pSignalOriginal);
+double signal_max_difference(real_signal_t* pSignalImitated, real_signal_t* pSignalOriginal);
 
 #endif // SIMILARITY_H_INCLUDED
