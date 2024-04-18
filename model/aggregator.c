@@ -1,5 +1,6 @@
 #include "aggregator.h"
 #include <math.h>
+#include <assert.h>
 
 double mean_signal_value(real_signal_t* pSignal) {
     double sum = 0;
@@ -35,4 +36,17 @@ double signal_variance(real_signal_t* pSignal) {
 }
 double signal_RMS(real_signal_t* pSignal) {
     return sqrt (mean_signal_power(pSignal));
+}
+
+double signal_max_abs_value(real_signal_t* pSignal) {
+    double maxAValue = -__DBL_MAX__;
+    for (uint64_t i = 0; i < pSignal->info.num_samples; i++) {
+        double* pValue = pSignal->pValues + i;
+        double absValue = fabs(*pValue);
+        if (absValue > maxAValue) {
+            maxAValue = absValue;
+        }
+    }
+
+    return maxAValue;
 }

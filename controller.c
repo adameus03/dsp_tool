@@ -96,6 +96,9 @@ struct ApplicationControls {
     GtkWidget* labelBqpsnr;
     GtkWidget* labelBqmd;
 
+    GtkWidget* labelAenob;
+    GtkWidget* labelBenob;
+
 
 } widgets;
 
@@ -297,12 +300,14 @@ double get_param5val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entr
 uint64_t get_adjustment_val_a() { return (uint64_t)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment1)); }
 uint64_t get_adjustment_val_b() { return (uint64_t)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment2)); }
 
+
 void __evaluate_similarity_measures(real_signal_t* pSignalOriginal,
                                     real_signal_t* pSignalImitated,
                                     similiarity_measure_destiny_selector_t measureDestinySelector,
                                     signal_selector_t signalSelector) {
     double mse = signal_mean_squared_error(pSignalImitated, pSignalOriginal);
-    double snr = signal_to_noise(pSignalImitated, pSignalOriginal);
+    double enob;
+    double snr = signal_to_noise(pSignalImitated, pSignalOriginal, &enob);
     double psnr = peak_signal_to_noise(pSignalImitated, pSignalOriginal);
     double md = signal_max_difference(pSignalImitated, pSignalOriginal);
 
@@ -320,6 +325,9 @@ void __evaluate_similarity_measures(real_signal_t* pSignalOriginal,
             gtk_label_set_text(GTK_LABEL(widgets.labelAqsnr), (const gchar*)snrStr);
             gtk_label_set_text(GTK_LABEL(widgets.labelAqpsnr), (const gchar*)psnrStr);
             gtk_label_set_text(GTK_LABEL(widgets.labelAqmd), (const gchar*)mdStr);
+
+            char aenobStr[20]; snprintf(aenobStr, 20, "%f", enob);
+            gtk_label_set_text(GTK_LABEL(widgets.labelAenob), (const gchar*)aenobStr);
         }
     } else { // SIGNAL_B
         if (measureDestinySelector == SIMILARITY_MEASURE_DESTINY_SAMPLING) {
@@ -332,6 +340,9 @@ void __evaluate_similarity_measures(real_signal_t* pSignalOriginal,
             gtk_label_set_text(GTK_LABEL(widgets.labelBqsnr), (const gchar*)snrStr);
             gtk_label_set_text(GTK_LABEL(widgets.labelBqpsnr), (const gchar*)psnrStr);
             gtk_label_set_text(GTK_LABEL(widgets.labelBqmd), (const gchar*)mdStr);
+
+            char benobStr[20]; snprintf(benobStr, 20, "%f", enob);
+            gtk_label_set_text(GTK_LABEL(widgets.labelBenob), (const gchar*)benobStr);
         }
     }
 }
@@ -358,7 +369,7 @@ void quantization_handler_A() {
             .info = signals.signalA.info
         };
         real_signal_alloc_values(&signalACopy);
-        memcpy(signalACopy.pValues, signals.signalA.pValues, sizeof(double));
+        memcpy(signalACopy.pValues, signals.signalA.pValues, sizeof(double) * signals.signalA.info.num_samples);
 
         adc_quantize_real_signal(&adcCaps, &signals.signalA);
 
@@ -381,7 +392,7 @@ void quantization_handler_B() {
             .info = signals.signalB.info
         };
         real_signal_alloc_values(&signalBCopy);
-        memcpy(signalBCopy.pValues, signals.signalB.pValues, sizeof(double));
+        memcpy(signalBCopy.pValues, signals.signalB.pValues, sizeof(double) * signals.signalB.info.num_samples);
         adc_quantize_real_signal(&adcCaps, &signals.signalB);
 
         __evaluate_similarity_measures(&signalBCopy, &signals.signalB, SIMILIARITY_MEASURE_DESTINY_QUANTIZATION, SIGNAL_B);
@@ -773,9 +784,13 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     widgets.labelBqpsnr = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBqpsnr"));
     widgets.labelBqmd = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBqmd"));
 
+    widgets.labelAenob = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAenob"));
+    widgets.labelBenob = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBenob"));
+
     set_param_names(get_signal_idx_a(), SIGNAL_A);
     set_param_names(get_signal_idx_b(), SIGNAL_B);
     init_scales();
+    
     init_reconstruction_gui();
 
     /*load_signal_A();
@@ -1150,6 +1165,10 @@ void on_entry_Bsqt_changed(GtkEntry* e) {
 
 void on_checkButton_AsReconstruct_toggled(GtkToggleButton* t) { 
     if (get_reconstruction_mode_enabled_a() == 1U) {
+        if (get_signal_idx_a() == NUM_SIGNALS - 1) {
+            enable_entry (GTK_ENTRY(widgets.entry_Asf));
+        }
+
         gtk_widget_set_visible(widgets.comboBoxText_AsReconstructionMethod, TRUE);
     
         uint8_t reconstruction_method_index = get_reconstruction_method_idx_a();
@@ -1164,6 +1183,10 @@ void on_checkButton_AsReconstruct_toggled(GtkToggleButton* t) {
             g_error("Invalid reconstruction method selected for signal A!");
         }
     } else {
+        if (get_signal_idx_a() == NUM_SIGNALS - 1) {
+            disable_entry (GTK_ENTRY(widgets.entry_Asf));
+        }
+
         gtk_widget_set_visible(widgets.comboBoxText_AsReconstructionMethod, FALSE);
         gtk_widget_set_visible(widgets.label_AsNeighCoeff, FALSE);
         gtk_widget_set_visible(widgets.entry_AsNeighCoeffVal, FALSE);
@@ -1173,6 +1196,11 @@ void on_checkButton_AsReconstruct_toggled(GtkToggleButton* t) {
 
 void on_checkButton_BsReconstruct_toggled(GtkToggleButton* t) {
     if (get_reconstruction_mode_enabled_b() == 1U) {
+        if (get_signal_idx_b() == NUM_SIGNALS - 1) {
+            enable_entry (GTK_ENTRY(widgets.entry_Bsf));
+        }
+
+
         gtk_widget_set_visible(widgets.comboBoxText_BsReconstructionMethod, TRUE);
     
         uint8_t reconstruction_method_index = get_reconstruction_method_idx_b();
@@ -1187,6 +1215,10 @@ void on_checkButton_BsReconstruct_toggled(GtkToggleButton* t) {
             g_error("Invalid reconstruction method selected for signal B!");
         }
     } else {
+        if (get_signal_idx_b() == NUM_SIGNALS - 1) {
+            disable_entry (GTK_ENTRY(widgets.entry_Bsf));
+        }
+
         gtk_widget_set_visible(widgets.comboBoxText_BsReconstructionMethod, FALSE);
         gtk_widget_set_visible(widgets.label_BsNeighCoeff, FALSE);
         gtk_widget_set_visible(widgets.entry_BsNeighCoeffVal, FALSE);
