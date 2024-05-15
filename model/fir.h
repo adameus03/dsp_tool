@@ -20,7 +20,9 @@ typedef struct {
 typedef struct {
     double left_cutoff_frequency;
     double right_cutoff_frequency;
-    fir_windowing_window_type_t window_type;
+    struct {
+        fir_windowing_window_type_t window_type;
+    } windowing;
 } fir_double_sided_real_filter_config_t;
 
 typedef fir_one_sided_real_filter_config_t fir_lowpass_config_t;

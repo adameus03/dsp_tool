@@ -3,13 +3,15 @@ project('signal_plotter_combiner', 'c')
 #add_project_arguments('-g', language: 'c')
 #add_project_arguments('-O2', language: 'c')
 
-gtkdep = dependency('gtk+-3.0')
+gtk3_dep = dependency('gtk+-3.0')
 #mdep = dependency('m', method : 'build-in') #https://stackoverflow.com/questions/60927711/how-to-set-meson-link-dependency-for-buildin-lib-as-lm-lrt - seems not to be working
 cc = meson.get_compiler('c')
-mdep = cc.find_library('m', required : false)
+add_project_arguments('-g', language: 'c')
+m_dep = cc.find_library('m', required : false)
 executable('signal_plotter_combiner', [
     'main.c', 
     'controller.c', 
+    'controller_timeshift.c',
     'gui_tweaks.c',
     'model/gnuplot.c', 
     'model/generator.c',
@@ -23,4 +25,4 @@ executable('signal_plotter_combiner', [
     'model/converters/adc.c',
     'model/converters/dac.c',
     'model/measures/similarity.c'
-], dependencies : [gtkdep, mdep], export_dynamic: true) #https://stackoverflow.com/questions/49545752/error-did-you-compile-with-rdynamic-seen-only-when-application-installed-usi
+], dependencies : [gtk3_dep, m_dep], export_dynamic: true) #https://stackoverflow.com/questions/49545752/error-did-you-compile-with-rdynamic-seen-only-when-application-installed-usi

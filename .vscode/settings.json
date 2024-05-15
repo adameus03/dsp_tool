@@ -73,7 +73,9 @@
     "stdio.h": "c",
     "features.h": "c",
     "compare": "c",
-    "complex.h": "c"
+    "complex.h": "c",
+    "controller_timeshift.h": "c",
+    "semaphore.h": "c"
   },
   "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild"
 }

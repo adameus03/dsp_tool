@@ -13,6 +13,8 @@
 
 #include "model/measures/similarity.h"
 
+#include "controller_timeshift.h"
+
 #define NUM_PARAMS 10
 #define NUM_SIGNALS 12
 #define MAX_PARAMS_PER_SIGNAL 5
@@ -21,7 +23,7 @@
 #define MAX_NUM_HISTOGRAM_INTERVALS /*20*/100
 #define DEFAULT_NUM_HISTOGRAM_INTERVALS 10
 
-struct ApplicationControls {
+static struct ApplicationControls {
     GtkWidget* window;
 
     GtkWidget* comboBoxText_op;
@@ -112,7 +114,7 @@ struct ApplicationControls {
     GtkWidget* labelBcdist;
 } widgets;
 
-struct ApplicationControlHelpers {
+static struct ApplicationControlHelpers {
     GtkAdjustment* adjustment1;   ///////////////////////////
                                  // For the scale widgets //
     GtkAdjustment* adjustment2; ///////////////////////////
@@ -122,11 +124,11 @@ struct ApplicationControlHelpers {
     char* b_load_filename;
 } widget_helpers;
 
-struct ApplicationBuilders {
+static struct ApplicationBuilders {
     GtkBuilder* viewBuilder;
 } builders;
 
-struct Signals {
+static struct Signals {
     real_signal_t signalA;
     real_signal_t signalB;
 } signals;
@@ -168,7 +170,7 @@ static uint8_t param_affinity[NUM_SIGNALS][MAX_PARAMS_PER_SIGNAL + 1] = {
  * @note The `ppcParamNames` buffer should be allocated by the user and contain at least `MAX_PARAMS_PER_SIGNAL` pointers to char
  * @returns Number of signal parameters
 */
-uint8_t construct_param_names(uint8_t signal_idx, char** ppcParamNames) {
+static uint8_t construct_param_names(uint8_t signal_idx, char** ppcParamNames) {
     uint8_t* affinity = param_affinity[signal_idx];
     uint8_t k = 0;
     while (affinity[k] != 0xff) {
@@ -188,7 +190,7 @@ typedef enum {
     SIMILIARITY_MEASURE_DESTINY_QUANTIZATION
 } similiarity_measure_destiny_selector_t;
 
-void set_param_names(uint8_t signal_idx, signal_selector_t selector) {
+static void set_param_names(uint8_t signal_idx, signal_selector_t selector) {
     char* paramNames[MAX_PARAMS_PER_SIGNAL];
     uint8_t num_params = construct_param_names(signal_idx, paramNames);
 
@@ -221,48 +223,48 @@ void set_param_names(uint8_t signal_idx, signal_selector_t selector) {
     }
 }
 
-uint8_t get_signal_idx_a() {
+static uint8_t get_signal_idx_a() {
     return gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_Astype));
 }
 
-uint8_t get_signal_idx_b() {
+static uint8_t get_signal_idx_b() {
     return gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_Bstype));
 }
 
-double get_sampling_frequency_a() {
+static double get_sampling_frequency_a() {
     const gchar* asf_text = gtk_entry_get_text(GTK_ENTRY(widgets.entry_Asf));
     return atof(asf_text);
 }
 
-double get_sampling_frequency_b() {
+static double get_sampling_frequency_b() {
     const gchar* asf_text = gtk_entry_get_text(GTK_ENTRY(widgets.entry_Bsf));
     return atof(asf_text);
 }
 
-double get_quantization_threshold_a() {
+static double get_quantization_threshold_a() {
     const gchar* asqt_text = gtk_entry_get_text(GTK_ENTRY(widgets.entry_Asqt));
     return atof(asqt_text);
 }
 
-double get_quantization_threshold_b() {
+static double get_quantization_threshold_b() {
     const gchar* bsqt_text = gtk_entry_get_text(GTK_ENTRY(widgets.entry_Bsqt));
     return atof(bsqt_text);
 }
 
-uint8_t get_reconstruction_method_idx_a() {
+static uint8_t get_reconstruction_method_idx_a() {
     return gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_AsReconstructionMethod));   
 }
 
-uint8_t get_reconstruction_method_idx_b() {
+static uint8_t get_reconstruction_method_idx_b() {
     return gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_BsReconstructionMethod));
 }
 
-uint64_t get_sinc_neigh_coeff_val_a() {
+static uint64_t get_sinc_neigh_coeff_val_a() {
     const gchar* neigh_coeff_text_a = gtk_entry_get_text(GTK_ENTRY(widgets.entry_AsNeighCoeffVal));
     return (uint64_t)atoll(neigh_coeff_text_a);
 }
 
-uint64_t get_sinc_neigh_coeff_val_b() {
+static uint64_t get_sinc_neigh_coeff_val_b() {
     const gchar* neigh_coeff_text_b = gtk_entry_get_text(GTK_ENTRY(widgets.entry_BsNeighCoeffVal));
     return (uint64_t)atoll(neigh_coeff_text_b);
 }
@@ -270,7 +272,7 @@ uint64_t get_sinc_neigh_coeff_val_b() {
 /**
  * @returns 1 if reconstruction mode for signal A is enabled (checkbox checked), 0 otherwise 
 */
-uint8_t get_reconstruction_mode_enabled_a() {
+static uint8_t get_reconstruction_mode_enabled_a() {
     gboolean checkbox_a__val = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.checkButton_AsReconstruct));
     if (checkbox_a__val == TRUE) {
         return 1U;
@@ -282,7 +284,7 @@ uint8_t get_reconstruction_mode_enabled_a() {
 /**
  * @returns 1 if reconstruction mode for signal B is enabled (checkbox checked), 0 otherwise 
 */
-uint8_t get_reconstruction_mode_enabled_b() {
+static uint8_t get_reconstruction_mode_enabled_b() {
     gboolean checkbox_b__val = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.checkButton_BsReconstruct));
     if (checkbox_b__val == TRUE) {
         return 1U;
@@ -295,23 +297,23 @@ uint8_t get_reconstruction_mode_enabled_b() {
 
 
 
-double get_param1val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[0]))); }
-double get_param2val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[1]))); }
-double get_param3val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[2]))); }
-double get_param4val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[3]))); }
-double get_param5val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[4]))); }
+static double get_param1val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[0]))); }
+static double get_param2val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[1]))); }
+static double get_param3val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[2]))); }
+static double get_param4val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[3]))); }
+static double get_param5val_a() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Apval[4]))); }
 
-double get_param1val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[0]))); }
-double get_param2val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[1]))); }
-double get_param3val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[2]))); }
-double get_param4val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[3]))); }
-double get_param5val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[4]))); }
+static double get_param1val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[0]))); }
+static double get_param2val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[1]))); }
+static double get_param3val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[2]))); }
+static double get_param4val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[3]))); }
+static double get_param5val_b() { return atof(gtk_entry_get_text(GTK_ENTRY(widgets.entries_Bpval[4]))); }
 
-uint64_t get_adjustment_val_a() { return (uint64_t)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment1)); }
-uint64_t get_adjustment_val_b() { return (uint64_t)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment2)); }
+static uint64_t get_adjustment_val_a() { return (uint64_t)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment1)); }
+static uint64_t get_adjustment_val_b() { return (uint64_t)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment2)); }
 
 
-void __evaluate_similarity_measures(real_signal_t* pSignalOriginal,
+static void __evaluate_similarity_measures(real_signal_t* pSignalOriginal,
                                     real_signal_t* pSignalImitated,
                                     similiarity_measure_destiny_selector_t measureDestinySelector,
                                     signal_selector_t signalSelector) {
@@ -357,7 +359,7 @@ void __evaluate_similarity_measures(real_signal_t* pSignalOriginal,
     }
 }
 
-void evaluate_similarity_measures(signal_selector_t originalSignalSelector, 
+static void evaluate_similarity_measures(signal_selector_t originalSignalSelector, 
                                   similiarity_measure_destiny_selector_t measureDestinySelector,
                                   real_signal_t* pSignalImitated) {
     real_signal_t* pSignalOriginal = originalSignalSelector == SIGNAL_A ? &signals.signalA : &signals.signalB;
@@ -365,7 +367,7 @@ void evaluate_similarity_measures(signal_selector_t originalSignalSelector,
     
 }
 
-void quantization_handler_A() {
+static void quantization_handler_A() {
     double quant_threshold = get_quantization_threshold_a();
     if (quant_threshold <= 0.0) {
         g_message("Zero quantization threshold for signal A. Skipping quantization.");
@@ -388,7 +390,7 @@ void quantization_handler_A() {
     }
 }
 
-void quantization_handler_B() {
+static void quantization_handler_B() {
     double quant_threshold = get_quantization_threshold_b();
     if (quant_threshold <= 0.0) {
         g_message("Zero quantization threshold for signal B. Skipping quantization.");
@@ -409,7 +411,7 @@ void quantization_handler_B() {
     }
 }
 
-void load_signal_A() {
+static void load_signal_A() {
     uint8_t signal_idx = get_signal_idx_a();
 
     if ((signals.signalA.pValues != NULL) && (signal_idx != (NUM_SIGNALS - 1))) {
@@ -470,7 +472,7 @@ void load_signal_A() {
     quantization_handler_A();
 }
 
-void load_signal_B() {
+static void load_signal_B() {
     uint8_t signal_idx = get_signal_idx_b();
 
     if ((signals.signalB.pValues != NULL) && (signal_idx != (NUM_SIGNALS - 1))) {
@@ -535,13 +537,13 @@ void load_signal_B() {
 /**
  * @todo Verify
 */
-void __replace_real_signal(real_signal_t* signalAddr, real_signal_t newSignal) {
+static void __replace_real_signal(real_signal_t* signalAddr, real_signal_t newSignal) {
     real_signal_free_values (signalAddr);
     signalAddr->info = newSignal.info;
     signalAddr->pValues = newSignal.pValues;
 }
 
-void __reconstruct_signal_caps_helper(signal_selector_t signalSelector, dac_config_t* pDacConfig) {
+static void __reconstruct_signal_caps_helper(signal_selector_t signalSelector, dac_config_t* pDacConfig) {
     pseudo_dac_caps_t caps = {};
     if (signalSelector == SIGNAL_A) {
         caps.output_sampling_freq = get_sampling_frequency_a();
@@ -564,7 +566,7 @@ void __reconstruct_signal_caps_helper(signal_selector_t signalSelector, dac_conf
     );
 }
 
-void reconstruct_signal(signal_selector_t signalSelector) {
+static void reconstruct_signal(signal_selector_t signalSelector) {
     dac_config_t dacConfig = { };
     uint8_t rtype;
     if (signalSelector == SIGNAL_A) {
@@ -590,27 +592,27 @@ void reconstruct_signal(signal_selector_t signalSelector) {
     }
 }
 
-void draw_plot_A() {
+static void draw_plot_A() {
     gnuplot_prepare_real_signal_plot(&signals.signalA, GNUPLOT_SCRIPT_PATH_PLOT_A);
     gtk_image_set_from_file(GTK_IMAGE(widgets.imageA1), GNUPLOT_OUTFILE_PATH);
 }
 
-void draw_plot_B() {
+static void draw_plot_B() {
     gnuplot_prepare_real_signal_plot(&signals.signalB, GNUPLOT_SCRIPT_PATH_PLOT_B);
     gtk_image_set_from_file(GTK_IMAGE(widgets.imageB1), GNUPLOT_OUTFILE_PATH);
 }
 
-void draw_histogram_A() {
+static void draw_histogram_A() {
     gnuplot_prepare_real_signal_histogram(&signals.signalA, get_adjustment_val_a(), "Signal A histogram", GNUPLOT_SCRIPT_PATH_HISTOGRAM);
     gtk_image_set_from_file(GTK_IMAGE(widgets.imageA2), GNUPLOT_OUTFILE_PATH);
 }
 
-void draw_histogram_B() {
+static void draw_histogram_B() {
     gnuplot_prepare_real_signal_histogram(&signals.signalB, get_adjustment_val_b(), "Signal B histogram", GNUPLOT_SCRIPT_PATH_HISTOGRAM);
     gtk_image_set_from_file(GTK_IMAGE(widgets.imageB2), GNUPLOT_OUTFILE_PATH);
 }
 
-void evaluate_A_aggregates() {
+static void evaluate_A_aggregates() {
     double amsv = mean_signal_value(&signals.signalA);
     double amsav = mean_signal_absolute_value(&signals.signalA);
     double amsp = mean_signal_power(&signals.signalA);
@@ -627,7 +629,7 @@ void evaluate_A_aggregates() {
     gtk_label_set_text(GTK_LABEL(widgets.labelArms), (const gchar*)armsStr);
 }
 
-void evaluate_B_aggregates() {
+static void evaluate_B_aggregates() {
     double bmsv = mean_signal_value(&signals.signalB);
     double bmsav = mean_signal_absolute_value(&signals.signalB);
     double bmsp = mean_signal_power(&signals.signalB);
@@ -644,7 +646,7 @@ void evaluate_B_aggregates() {
     gtk_label_set_text(GTK_LABEL(widgets.labelBrms), (const gchar*)brmsStr);
 }
 
-void update_A_plots_no_sigload() {
+static void update_A_plots_no_sigload() {
     //fprintf(stdout, "Info: Drawing plot A\n");
     draw_plot_A();
     //fprintf(stdout, "Info: Drawing histogram A\n");
@@ -653,24 +655,24 @@ void update_A_plots_no_sigload() {
     evaluate_A_aggregates();
 }
 
-void update_B_plots_no_sigload() {
+static void update_B_plots_no_sigload() {
     draw_plot_B();
     draw_histogram_B();
     evaluate_B_aggregates();
 }
 
-void update_A_plots() {
+static void update_A_plots() {
     //fprintf(stdout, "Info: Loading signal A\n");
     load_signal_A();
     update_A_plots_no_sigload();
 }
 
-void update_B_plots() {
+static void update_B_plots() {
     load_signal_B();
     update_B_plots_no_sigload();   
 }
 
-void init_scales() {
+static void init_scales() {
     gtk_adjustment_set_lower (widget_helpers.adjustment1, (gdouble)MIN_NUM_HISTOGRAM_INTERVALS);
     gtk_adjustment_set_upper (widget_helpers.adjustment1, (gdouble)MAX_NUM_HISTOGRAM_INTERVALS);
     gtk_adjustment_set_lower (widget_helpers.adjustment2, (gdouble)MIN_NUM_HISTOGRAM_INTERVALS);
@@ -685,7 +687,7 @@ void init_scales() {
 /**
  * Makes the reconstruction GUI hidden by default
 */
-void init_reconstruction_gui() {
+static void init_reconstruction_gui() {
     //disable_combo_box(GTK_COMBO_BOX(widgets.comboBoxText_AsReconstructionMethod));
     gtk_widget_set_visible(widgets.comboBoxText_AsReconstructionMethod, FALSE);
     gtk_widget_set_visible(widgets.label_AsNeighCoeff, FALSE);
@@ -1316,7 +1318,9 @@ void on_button_cpy_clicked(GtkButton* b) {
 }
 
 void on_button_Atimeshift_clicked(GtkButton* b) {
-    g_error("on_button_Atimeshift_clicked not implemented!");
+    //g_error("on_button_Atimeshift_clicked not implemented!");
+    int rv = controller_timeshift_run();
+    g_message("controller_timeshift_run returned [rv=%d]", rv);
 }
 
 void on_button_Btimeshift_clicked(GtkButton* b) {
