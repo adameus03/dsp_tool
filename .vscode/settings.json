@@ -75,7 +75,8 @@
     "compare": "c",
     "complex.h": "c",
     "controller_timeshift.h": "c",
-    "semaphore.h": "c"
+    "semaphore.h": "c",
+    "wordsize.h": "c"
   },
   "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild"
 }

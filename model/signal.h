@@ -31,4 +31,6 @@ void complex_signal_free_values(complex_signal_t* pSignal);
 void real_signal_alloc_values(real_signal_t* pSignal);
 void complex_signal_alloc_values(complex_signal_t* pSignal);
 
+void real_signal_timeshift(real_signal_t* pSignal, double timeshiftValue);
+
 #endif

@@ -841,6 +841,33 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     return EXIT_SUCCESS;
 }
 
+static void shift_signal_a(double timeshiftVal) {
+    pseudo_enable_window(GTK_WINDOW(widgets.window));
+    if (timeshiftVal != 0.0) {
+        g_message("Signal A shift by %f requested.", timeshiftVal);
+        real_signal_timeshift(&signals.signalA, timeshiftVal);
+
+        // Set signal type as custom (the additional type)
+        gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Astype), (gint)(NUM_SIGNALS - 1)); 
+        set_param_names (NUM_SIGNALS - 1, SIGNAL_A);
+        update_A_plots();
+    }
+}
+
+static void shift_signal_b(double timeshiftVal) {
+    pseudo_enable_window(GTK_WINDOW(widgets.window));
+    if (timeshiftVal != 0.0) {
+        g_message("Signal B shift by %f requested.", timeshiftVal);
+        real_signal_timeshift(&signals.signalB, timeshiftVal);
+
+        // Set signal type as custom (the additional type)
+        gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Bstype), (gint)(NUM_SIGNALS - 1)); 
+        set_param_names (NUM_SIGNALS - 1, SIGNAL_B);
+        update_B_plots();
+    }
+}
+
+
 void on_comboBoxText_op_changed(GtkComboBox* c, gpointer user_data) {
     widget_helpers.op_idx = gtk_combo_box_get_active(c);
 }
@@ -1318,13 +1345,20 @@ void on_button_cpy_clicked(GtkButton* b) {
 }
 
 void on_button_Atimeshift_clicked(GtkButton* b) {
-    //g_error("on_button_Atimeshift_clicked not implemented!");
-    int rv = controller_timeshift_run();
+    pseudo_disable_window(GTK_WINDOW(widgets.window));
+    int rv = controller_timeshift_run ( shift_signal_a );
     g_message("controller_timeshift_run returned [rv=%d]", rv);
+    /*sem_t* pSem = controller_timeshift_run();
+    if (-1 == sem_wait(pSem)) {
+        g_error("sem_wait failed [errno=%d]", errno);
+    }
+    g_message("sem_wait returned into on_button_Atimeshift_clicked");*/
 }
 
 void on_button_Btimeshift_clicked(GtkButton* b) {
-    g_error("on_button_Btimeshift_clicked not implemented!");
+    pseudo_disable_window(GTK_WINDOW(widgets.window));
+    int rv = controller_timeshift_run ( shift_signal_b );
+    g_message("controller_timeshift_run returned [rv=%d]", rv);
 }
 
 void on_button_Afir_clicked(GtkButton* b) {

@@ -10,6 +10,8 @@ void enable_combo_box( GtkComboBox* c );
 
 void disable_combo_box( GtkComboBox* c );
 
+void pseudo_enable_window( GtkWindow* w );
 
+void pseudo_disable_window( GtkWindow* w );
 
 
