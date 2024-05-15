@@ -1,6 +1,7 @@
 #include "combiner.h"
 #include <stdio.h> //for logging
 #include <math.h>
+#include <stdlib.h> // for exit
 
 /**
  * @verify
@@ -242,4 +243,16 @@ void divide_signal(real_signal_t* pAccumulatorSignal, real_signal_t* pOtherSigna
     pOtherSignal->info.num_samples = otherSignalCopy.info.num_samples;
     pOtherSignal->info.sampling_frequency = otherSignalCopy.info.sampling_frequency;
     pOtherSignal->info.start_time = otherSignalCopy.info.start_time;
+}
+
+void convolve_signal(real_signal_t* pAccumulatorSignal, real_signal_t* pOtherSignal) {
+    fprintf(stderr, "Error: Not implemented"); exit(EXIT_FAILURE);
+}
+
+void cross_correlate_signal_1(real_signal_t* pAccumulatorSignal, real_signal_t* pOtherSignal) {
+    fprintf(stderr, "Error: Not implemented"); exit(EXIT_FAILURE);
+}
+
+void cross_correlate_signal_2(real_signal_t* pAccumulatorSignal, real_signal_t* pOtherSignal) {
+    fprintf(stderr, "Error: Not implemented"); exit(EXIT_FAILURE);
 }

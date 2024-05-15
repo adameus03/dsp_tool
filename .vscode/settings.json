@@ -72,7 +72,8 @@
     "math.h": "c",
     "stdio.h": "c",
     "features.h": "c",
-    "compare": "c"
+    "compare": "c",
+    "complex.h": "c"
   },
   "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild"
 }

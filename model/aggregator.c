@@ -1,6 +1,7 @@
 #include "aggregator.h"
 #include <math.h>
-#include <assert.h>
+#include <stdio.h> //error logs
+#include <stdlib.h> // exit
 
 double mean_signal_value(real_signal_t* pSignal) {
     double sum = 0;
@@ -49,4 +50,12 @@ double signal_max_abs_value(real_signal_t* pSignal) {
     }
 
     return maxAValue;
+}
+
+double signal_rightmost_argmax(real_signal_t* pSignal) {
+    fprintf(stderr, "Error: Not implemented."); exit(EXIT_FAILURE);
+}
+
+double signal_radar_object_cdist(real_signal_t* pSignal) {
+    fprintf(stderr, "Error: Not implemented."); exit(EXIT_FAILURE);
 }

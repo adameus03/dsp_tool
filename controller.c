@@ -99,7 +99,17 @@ struct ApplicationControls {
     GtkWidget* labelAenob;
     GtkWidget* labelBenob;
 
+    GtkWidget* button_cpy;
 
+    GtkWidget* button_Atimeshift;
+    GtkWidget* button_Afir;
+    GtkWidget* button_Btimeshift;
+    GtkWidget* button_Bfir;
+
+    GtkWidget* labelAargmax;
+    GtkWidget* labelAcdist;
+    GtkWidget* labelBargmax;
+    GtkWidget* labelBcdist;
 } widgets;
 
 struct ApplicationControlHelpers {
@@ -787,6 +797,19 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     widgets.labelAenob = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAenob"));
     widgets.labelBenob = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBenob"));
 
+    widgets.button_cpy = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_cpy"));
+
+    widgets.button_Atimeshift = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_Atimeshift"));
+    widgets.button_Afir = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_Afir"));
+    widgets.button_Btimeshift = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_Btimeshift"));
+    widgets.button_Bfir = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_Bfir"));
+
+    widgets.labelAargmax = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAargmax"));
+    widgets.labelAcdist = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAcdist"));
+    widgets.labelBargmax = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBargmax"));
+    widgets.labelBcdist = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBcdist"));
+
+
     set_param_names(get_signal_idx_a(), SIGNAL_A);
     set_param_names(get_signal_idx_b(), SIGNAL_B);
     init_scales();
@@ -834,6 +857,15 @@ void on_button_perform_clicked(GtkButton* b) {
             break;
         case 3U:
             divide_signal (&signals.signalA, &signals.signalB);
+            break;
+        case 4U:
+            convolve_signal (&signals.signalA, &signals.signalB);
+            break;
+        case 5U:
+            cross_correlate_signal_1 (&signals.signalA, &signals.signalB);
+            break;
+        case 6U:
+            cross_correlate_signal_2 (&signals.signalA, &signals.signalB);
             break;
         default:
             g_error ("Unknown signal combination requested");
@@ -1278,3 +1310,24 @@ void on_entry_BsNeighCoeffVal_changed(GtkEntry* e) {
     
     //g_error("Not implemented");
 }
+
+void on_button_cpy_clicked(GtkButton* b) {
+    g_error("on_button_cpy_clicked not implemented!");
+}
+
+void on_button_Atimeshift_clicked(GtkButton* b) {
+    g_error("on_button_Atimeshift_clicked not implemented!");
+}
+
+void on_button_Btimeshift_clicked(GtkButton* b) {
+    g_error("on_button_Btimeshift_clicked not implemented!");
+}
+
+void on_button_Afir_clicked(GtkButton* b) {
+    g_error("on_button_Afir_clicked not implemented!");
+}
+
+void on_button_Bfir_clicked(GtkButton* b) {
+    g_error("on_button_Bfir_clicked not implemented!");
+}
+

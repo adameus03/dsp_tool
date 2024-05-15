@@ -17,6 +17,7 @@ executable('signal_plotter_combiner', [
     'model/transform.c',
     'model/combiner.c',
     'model/aggregator.c',
+    'model/fir.c',
     'model/__gcall.h',
     'model/signal_fio.c',
     'model/converters/adc.c',
