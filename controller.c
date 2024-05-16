@@ -224,6 +224,54 @@ static void set_param_names(uint8_t signal_idx, signal_selector_t selector) {
     }
 }
 
+static void set_sReconstruct(gboolean b, signal_selector_t sel) {
+    if (sel == SIGNAL_A) {
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widgets.checkButton_AsReconstruct), b);
+    } else {//SIGNAL_B
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widgets.checkButton_BsReconstruct), b);
+    }
+}
+
+static void set_sReconstructionMethod(uint8_t u, signal_selector_t sel) {
+    if (sel == SIGNAL_A) {
+        gtk_combo_box_set_active(GTK_COMBO_BOX(widgets.comboBoxText_AsReconstructionMethod), (gint)u);
+    } else {//SIGNAL_B
+        gtk_combo_box_set_active(GTK_COMBO_BOX(widgets.comboBoxText_BsReconstructionMethod), (gint)u);
+    }
+}
+
+static void set_sNeighCoeffVal(gchar* value, signal_selector_t sel) {
+    if (sel == SIGNAL_A) {
+        gtk_entry_set_text(GTK_ENTRY(widgets.entry_AsNeighCoeffVal), value);
+    } else {//SIGNAL_B
+        gtk_entry_set_text(GTK_ENTRY(widgets.entry_BsNeighCoeffVal), value);
+    }
+}
+
+static gboolean get_sReconstruct(signal_selector_t sel) {
+    if (sel == SIGNAL_A) {
+        return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.checkButton_AsReconstruct));
+    } else {//SIGNAL_B
+        return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.checkButton_BsReconstruct));
+    }
+}
+
+static gint get_sReconstructionMethod(signal_selector_t sel) {
+    if (sel == SIGNAL_A) {
+        return gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_AsReconstructionMethod));
+    } else {//SIGNAL_B
+        return gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_BsReconstructionMethod));
+    }
+}
+
+static const gchar* get_sNeighCoeffVal(signal_selector_t sel) {
+    if (sel == SIGNAL_A) {
+        return gtk_entry_get_text(GTK_ENTRY(widgets.entry_AsNeighCoeffVal)); 
+    } else {//SIGNAL_B
+        return gtk_entry_get_text(GTK_ENTRY(widgets.entry_BsNeighCoeffVal));
+    }
+}
+
 static uint8_t get_signal_idx_a() {
     return gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_Astype));
 }
@@ -1039,6 +1087,119 @@ void on_button_swap_clicked(GtkButton* b) {
     gtk_adjustment_set_value (GTK_ADJUSTMENT(widget_helpers.adjustment1), (gdouble)adjB);
     gtk_adjustment_set_value (GTK_ADJUSTMENT(widget_helpers.adjustment2), (gdouble)adjA);
     
+
+
+    char* _amsvStr = (char*)gtk_label_get_text (GTK_LABEL(widgets.labelAmsv));
+    char* _amsavStr = (char*)gtk_label_get_text (GTK_LABEL(widgets.labelAmsav));
+    char* _amspStr = (char*)gtk_label_get_text (GTK_LABEL(widgets.labelAmsp));
+    char* _asvStr = (char*)gtk_label_get_text (GTK_LABEL(widgets.labelAsv));
+    char* _armsStr = (char*)gtk_label_get_text (GTK_LABEL(widgets.labelArms));
+    char* _asmseStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAsmse));
+    char* _assnrStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAssnr));
+    char* _aspsnrStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAspsnr));
+    char* _asmdStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAsmd));
+    char* _aqmseStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAqmse));
+    char* _aqsnrStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAqsnr));
+    char* _aqpsnrStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAqpsnr));
+    char* _aqmdStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAqmd));
+    char* _aenobStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAenob));
+    char* _aargmaxStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAargmax));
+    char* _acdistStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAcdist));
+    char* _bmsvStr = (char*)gtk_label_get_text (GTK_LABEL(widgets.labelBmsv));
+    char* _bmsavStr = (char*)gtk_label_get_text (GTK_LABEL(widgets.labelBmsav));
+    char* _bmspStr = (char*)gtk_label_get_text (GTK_LABEL(widgets.labelBmsp));
+    char* _bsvStr = (char*)gtk_label_get_text (GTK_LABEL(widgets.labelBsv));
+    char* _brmsStr = (char*)gtk_label_get_text (GTK_LABEL(widgets.labelBrms));
+    char* _bsmseStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelBsmse));
+    char* _bssnrStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelBssnr));
+    char* _bspsnrStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelBspsnr));
+    char* _bsmdStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelBsmd));
+    char* _bqmseStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelBqmse));
+    char* _bqsnrStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelBqsnr));
+    char* _bqpsnrStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelBqpsnr));
+    char* _bqmdStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelBqmd));
+    char* _benobStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelBenob));
+    char* _bargmaxStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelBargmax));
+    char* _bcdistStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelBcdist));
+
+    char amsvStr[20]; char amsavStr[20]; char amspStr[20]; char asvStr[20]; char armsStr[20]; char bmsvStr[20]; char bmsavStr[20]; char bmspStr[20]; char bsvStr[20]; char brmsStr[20];
+    char asmseStr[20]; char assnrStr[20]; char aspsnrStr[20]; char asmdStr[20]; char bsmseStr[20]; char bssnrStr[20]; char bspsnrStr[20]; char bsmdStr[20];
+    char aqmseStr[20]; char aqsnrStr[20]; char aqpsnrStr[20]; char aqmdStr[20]; char bqmseStr[20]; char bqsnrStr[20]; char bqpsnrStr[20]; char bqmdStr[20];
+    char aenobStr[20]; char benobStr[20];
+    char aargmaxStr[20]; char acdistStr[20]; char bargmaxStr[20]; char bcdistStr[20];
+    strcpy(amsvStr, _amsvStr);strcpy(amsavStr, _amsavStr);strcpy(amspStr, _amspStr);strcpy(asvStr, _asvStr);strcpy(armsStr, _armsStr); strcpy(bmsvStr, _bmsvStr);strcpy(bmsavStr, _bmsavStr);strcpy(bmspStr, _bmspStr);strcpy(bsvStr, _bsvStr);strcpy(brmsStr, _brmsStr);
+    strcpy(asmseStr, _asmseStr);strcpy(assnrStr, _assnrStr);strcpy(aspsnrStr, _aspsnrStr);strcpy(asmdStr, _asmdStr); strcpy(bsmseStr, _bsmseStr);strcpy(bssnrStr, _bssnrStr);strcpy(bspsnrStr, _bspsnrStr);strcpy(bsmdStr, _bsmdStr);
+    strcpy(aqmseStr, _aqmseStr);strcpy(aqsnrStr, _aqsnrStr);strcpy(aqpsnrStr, _aqpsnrStr);strcpy(aqmdStr, _aqmdStr); strcpy(bqmseStr, _bqmseStr);strcpy(bqsnrStr, _bqsnrStr);strcpy(bqpsnrStr, _bqpsnrStr);strcpy(bqmdStr, _bqmdStr);
+    strcpy(aenobStr, _aenobStr); strcpy(benobStr, _benobStr);
+    strcpy(aargmaxStr, _aargmaxStr);strcpy(acdistStr, _acdistStr); strcpy(bargmaxStr, _bargmaxStr);strcpy(bcdistStr, _bcdistStr);
+
+    gtk_label_set_text(GTK_LABEL(widgets.labelBmsv), (const gchar*)amsvStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBmsav), (const gchar*)amsavStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBmsp), (const gchar*)amspStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBsv), (const gchar*)asvStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBrms), (const gchar*)armsStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAmsv), (const gchar*)bmsvStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAmsav), (const gchar*)bmsavStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAmsp), (const gchar*)bmspStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAsv), (const gchar*)bsvStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelArms), (const gchar*)brmsStr);
+
+    gtk_label_set_text(GTK_LABEL(widgets.labelBsmse), (const gchar*)asmseStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBssnr), (const gchar*)assnrStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBspsnr), (const gchar*)aspsnrStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBsmd), (const gchar*)asmdStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAsmse), (const gchar*)bsmseStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAssnr), (const gchar*)bssnrStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAspsnr), (const gchar*)bspsnrStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAsmd), (const gchar*)bsmdStr);
+
+    gtk_label_set_text(GTK_LABEL(widgets.labelBqmse), (const gchar*)aqmseStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBqsnr), (const gchar*)aqsnrStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBqpsnr), (const gchar*)aqpsnrStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBqmd), (const gchar*)aqmdStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAqmse), (const gchar*)bqmseStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAqsnr), (const gchar*)bqsnrStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAqpsnr), (const gchar*)bqpsnrStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAqmd), (const gchar*)bqmdStr);
+
+    gtk_label_set_text(GTK_LABEL(widgets.labelBenob), (const gchar*)aenobStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAenob), (const gchar*)benobStr);
+
+    gtk_label_set_text(GTK_LABEL(widgets.labelBargmax), (const gchar*)aargmaxStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBcdist), (const gchar*)acdistStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAargmax), (const gchar*)bargmaxStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAcdist), (const gchar*)bcdistStr);
+
+    gtk_label_set_text(GTK_LABEL(widgets.labelBargmax), (const gchar*)aargmaxStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBcdist), (const gchar*)acdistStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAargmax), (const gchar*)bargmaxStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelAcdist), (const gchar*)bcdistStr);
+
+
+    char* _asqtStr = (char*)gtk_entry_get_text(GTK_ENTRY(widgets.entry_Asqt));
+    char* _bsqtStr = (char*)gtk_entry_get_text(GTK_ENTRY(widgets.entry_Bsqt));
+    char asqtStr[20]; char bsqtStr[20];
+    strcpy(asqtStr, _asqtStr); strcpy(bsqtStr, _bsqtStr);
+    
+    gtk_entry_set_text(GTK_ENTRY(widgets.entry_Bsqt), (const gchar*)asqtStr);
+    gtk_entry_set_text(GTK_ENTRY(widgets.entry_Asqt), (const gchar*)bsqtStr);
+
+    gboolean asReconstruct = get_sReconstruct(SIGNAL_A);
+    gboolean bsReconstruct = get_sReconstruct(SIGNAL_B);
+    set_sReconstruct(bsReconstruct, SIGNAL_A);
+    set_sReconstruct(asReconstruct, SIGNAL_B);
+    gint asReconstructionMethod = get_sReconstructionMethod(SIGNAL_A);
+    gint bsReconstructionMethod = get_sReconstructionMethod(SIGNAL_B);
+    set_sReconstructionMethod(bsReconstructionMethod, SIGNAL_A);
+    set_sReconstructionMethod(asReconstructionMethod, SIGNAL_B);
+    
+    const gchar* _asNeighCoeffValStr = get_sNeighCoeffVal(SIGNAL_A);
+    const gchar* _bsNeighCoeffValStr = get_sNeighCoeffVal(SIGNAL_B);
+    gchar asNeighCoeffValStr[20]; gchar bsNeighCoeffValStr[20];
+    strcpy(asNeighCoeffValStr, _asNeighCoeffValStr); strcpy(bsNeighCoeffValStr, _bsNeighCoeffValStr);
+    set_sNeighCoeffVal(bsNeighCoeffValStr, SIGNAL_A);
+    set_sNeighCoeffVal(asNeighCoeffValStr, SIGNAL_B);
+    
     update_A_plots();
     update_B_plots();
 }
@@ -1405,7 +1566,111 @@ void on_entry_BsNeighCoeffVal_changed(GtkEntry* e) {
 }
 
 void on_button_cpy_clicked(GtkButton* b) {
-    g_error("on_button_cpy_clicked not implemented!");
+    real_signal_free_values(&signals.signalB);
+    signals.signalB.info.num_samples = signals.signalA.info.num_samples;
+    signals.signalB.info.sampling_frequency = signals.signalA.info.sampling_frequency;
+    signals.signalB.info.start_time = signals.signalA.info.start_time;
+    real_signal_alloc_values(&signals.signalB);
+    memcpy(signals.signalB.pValues, signals.signalA.pValues, sizeof(double) * signals.signalA.info.num_samples);
+
+    uint32_t signalA_idx = gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_Astype));
+    gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Bstype), signalA_idx);
+    set_param_names(signalA_idx, SIGNAL_B);
+
+    char* _p1vaStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Apval[0]));
+    char* _p2vaStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Apval[1]));
+    char* _p3vaStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Apval[2]));
+    char* _p4vaStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Apval[3]));
+    char* _p5vaStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entries_Apval[4]));
+    char* _asfStr = (char*)gtk_entry_get_text (GTK_ENTRY(widgets.entry_Asf));
+
+    char p1vaStr[20]; char p2vaStr[20]; char p3vaStr[20]; char p4vaStr[20]; char p5vaStr[20];
+    char asfStr[20];
+    strcpy(p1vaStr, _p1vaStr);strcpy(p2vaStr, _p2vaStr);strcpy(p3vaStr, _p3vaStr);strcpy(p4vaStr, _p4vaStr);strcpy(p5vaStr, _p5vaStr);
+    strcpy(asfStr, _asfStr);
+
+    gtk_entry_set_text (GTK_ENTRY(widgets.entries_Bpval[0]), (const gchar*)p1vaStr);
+    gtk_entry_set_text (GTK_ENTRY(widgets.entries_Bpval[1]), (const gchar*)p2vaStr);
+    gtk_entry_set_text (GTK_ENTRY(widgets.entries_Bpval[2]), (const gchar*)p3vaStr);
+    gtk_entry_set_text (GTK_ENTRY(widgets.entries_Bpval[3]), (const gchar*)p4vaStr);
+    gtk_entry_set_text (GTK_ENTRY(widgets.entries_Bpval[4]), (const gchar*)p5vaStr);
+    gtk_entry_set_text (GTK_ENTRY(widgets.entry_Bsf), (const gchar*)asfStr);
+
+    double adjA = (double)gtk_adjustment_get_value(GTK_ADJUSTMENT(widget_helpers.adjustment1));
+
+    gtk_adjustment_set_value (GTK_ADJUSTMENT(widget_helpers.adjustment2), (gdouble)adjA);
+
+
+    char* _amsvStr = (char*)gtk_label_get_text (GTK_LABEL(widgets.labelAmsv));
+    char* _amsavStr = (char*)gtk_label_get_text (GTK_LABEL(widgets.labelAmsav));
+    char* _amspStr = (char*)gtk_label_get_text (GTK_LABEL(widgets.labelAmsp));
+    char* _asvStr = (char*)gtk_label_get_text (GTK_LABEL(widgets.labelAsv));
+    char* _armsStr = (char*)gtk_label_get_text (GTK_LABEL(widgets.labelArms));
+    char* _asmseStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAsmse));
+    char* _assnrStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAssnr));
+    char* _aspsnrStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAspsnr));
+    char* _asmdStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAsmd));
+    char* _aqmseStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAqmse));
+    char* _aqsnrStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAqsnr));
+    char* _aqpsnrStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAqpsnr));
+    char* _aqmdStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAqmd));
+    char* _aenobStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAenob));
+    char* _aargmaxStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAargmax));
+    char* _acdistStr = (char*)gtk_label_get_text(GTK_LABEL(widgets.labelAcdist));
+
+    char amsvStr[20]; char amsavStr[20]; char amspStr[20]; char asvStr[20]; char armsStr[20];
+    char asmseStr[20]; char assnrStr[20]; char aspsnrStr[20]; char asmdStr[20];
+    char aqmseStr[20]; char aqsnrStr[20]; char aqpsnrStr[20]; char aqmdStr[20];
+    char aenobStr[20];
+    char aargmaxStr[20]; char acdistStr[20];
+    strcpy(amsvStr, _amsvStr);strcpy(amsavStr, _amsavStr);strcpy(amspStr, _amspStr);strcpy(asvStr, _asvStr);strcpy(armsStr, _armsStr);
+    strcpy(asmseStr, _asmseStr);strcpy(assnrStr, _assnrStr);strcpy(aspsnrStr, _aspsnrStr);strcpy(asmdStr, _asmdStr);
+    strcpy(aqmseStr, _aqmseStr);strcpy(aqsnrStr, _aqsnrStr);strcpy(aqpsnrStr, _aqpsnrStr);strcpy(aqmdStr, _aqmdStr);
+    strcpy(aenobStr, _aenobStr);
+    strcpy(aargmaxStr, _aargmaxStr);strcpy(acdistStr, _acdistStr);
+
+    gtk_label_set_text(GTK_LABEL(widgets.labelBmsv), (const gchar*)amsvStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBmsav), (const gchar*)amsavStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBmsp), (const gchar*)amspStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBsv), (const gchar*)asvStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBrms), (const gchar*)armsStr);
+
+    gtk_label_set_text(GTK_LABEL(widgets.labelBsmse), (const gchar*)asmseStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBssnr), (const gchar*)assnrStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBspsnr), (const gchar*)aspsnrStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBsmd), (const gchar*)asmdStr);
+
+    gtk_label_set_text(GTK_LABEL(widgets.labelBqmse), (const gchar*)aqmseStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBqsnr), (const gchar*)aqsnrStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBqpsnr), (const gchar*)aqpsnrStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBqmd), (const gchar*)aqmdStr);
+
+    gtk_label_set_text(GTK_LABEL(widgets.labelBenob), (const gchar*)aenobStr);
+
+    gtk_label_set_text(GTK_LABEL(widgets.labelBargmax), (const gchar*)aargmaxStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBcdist), (const gchar*)acdistStr);
+
+    gtk_label_set_text(GTK_LABEL(widgets.labelBargmax), (const gchar*)aargmaxStr);
+    gtk_label_set_text(GTK_LABEL(widgets.labelBcdist), (const gchar*)acdistStr);
+
+
+    char* _asqtStr = (char*)gtk_entry_get_text(GTK_ENTRY(widgets.entry_Asqt));
+    char asqtStr[20];
+    strcpy(asqtStr, _asqtStr);
+    
+    gtk_entry_set_text(GTK_ENTRY(widgets.entry_Bsqt), (const gchar*)asqtStr);
+
+    gboolean asReconstruct = get_sReconstruct(SIGNAL_A);
+    set_sReconstruct(asReconstruct, SIGNAL_B);
+    gint asReconstructionMethod = get_sReconstructionMethod(SIGNAL_A);
+    set_sReconstructionMethod(asReconstructionMethod, SIGNAL_B);
+    
+    const gchar* _asNeighCoeffValStr = get_sNeighCoeffVal(SIGNAL_A);
+    gchar asNeighCoeffValStr[20];
+    strcpy(asNeighCoeffValStr, _asNeighCoeffValStr);;
+    set_sNeighCoeffVal(asNeighCoeffValStr, SIGNAL_B);
+    
+    update_B_plots();
 }
 
 void on_button_Atimeshift_clicked(GtkButton* b) {
