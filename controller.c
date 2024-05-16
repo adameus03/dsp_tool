@@ -873,6 +873,30 @@ static void filter_signal_a(fir_common_config_t config) {
     if (config.filterType != -1) {
         g_message("Signal A: FIR filter requested.");
         fir_common_config_print(&config);
+        real_signal_t s = { 
+            .info = {
+                .num_samples = signals.signalA.info.num_samples,
+                .sampling_frequency = signals.signalA.info.sampling_frequency,
+                .start_time = signals.signalA.info.start_time
+            }
+        };
+        real_signal_alloc_values(&s);
+        switch (config.filterType) {
+            case FIR_FILTER_TYPE_LOWPASS:
+                fir_filter_real_signal_lowpass(&signals.signalA, &s, &config.oneSidedConfig);
+                break;
+            case FIR_FILTER_TYPE_HIGHPASS:
+                fir_filter_real_signal_highpass(&signals.signalA, &s, &config.oneSidedConfig);
+                break;
+            case FIR_FILTER_TYPE_BANDPASS:
+                fir_filter_real_signal_bandpass(&signals.signalA, &s, &config.doubleSidedConfig);
+                break;
+            default:
+                g_error("Invalid config.filterType");
+                break;
+        }
+        real_signal_free_values(&signals.signalA);
+        signals.signalA.pValues = s.pValues;
     }
 }
 
@@ -881,6 +905,30 @@ static void filter_signal_b(fir_common_config_t config) {
     if (config.filterType != -1) {
         g_message("Signal B: FIR filter requested.");
         fir_common_config_print(&config);
+        real_signal_t s = { 
+            .info = {
+                .num_samples = signals.signalB.info.num_samples,
+                .sampling_frequency = signals.signalB.info.sampling_frequency,
+                .start_time = signals.signalB.info.start_time
+            }
+        };
+        real_signal_alloc_values(&s);
+        switch (config.filterType) {
+            case FIR_FILTER_TYPE_LOWPASS:
+                fir_filter_real_signal_lowpass(&signals.signalB, &s, &config.oneSidedConfig);
+                break;
+            case FIR_FILTER_TYPE_HIGHPASS:
+                fir_filter_real_signal_highpass(&signals.signalB, &s, &config.oneSidedConfig);
+                break;
+            case FIR_FILTER_TYPE_BANDPASS:
+                fir_filter_real_signal_bandpass(&signals.signalB, &s, &config.doubleSidedConfig);
+                break;
+            default:
+                g_error("Invalid config.filterType");
+                break;
+        }
+        real_signal_free_values(&signals.signalB);
+        signals.signalB.pValues = s.pValues;
     }
 }
 
