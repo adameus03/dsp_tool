@@ -6,11 +6,11 @@
 //sem_t* controller_timeshift_run();
 
 
-typedef void (*timeshift_callback_fn)(double timeshiftValue);
+typedef void (*controller_timeshift_callback_fn)(double timeshiftValue);
 
 /**
  * @returns 0 on success, 1 on failure
 */
-int controller_timeshift_run(timeshift_callback_fn windowDestroyCallback);
+int controller_timeshift_run(controller_timeshift_callback_fn windowDestroyCallback);
 
 //void controller_timeshift_cleanup();

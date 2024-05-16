@@ -12,6 +12,7 @@ executable('signal_plotter_combiner', [
     'main.c', 
     'controller.c', 
     'controller_timeshift.c',
+    'controller_fir.c',
     'gui_tweaks.c',
     'model/gnuplot.c', 
     'model/generator.c',

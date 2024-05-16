@@ -1,7 +1,7 @@
 #include "controller_timeshift.h"
 #include <gtk/gtk.h>
-#include <semaphore.h>
-#include <errno.h>
+//#include <semaphore.h>
+//#include <errno.h>
 
 static struct ApplicationControls {
     GtkWidget* window;
@@ -13,7 +13,7 @@ static struct ApplicationControls {
 
 static struct ApplicationControlHelpers {
     //sem_t window_destroy_semph;
-    timeshift_callback_fn windowDestroyCb;
+    controller_timeshift_callback_fn windowDestroyCb;
     gboolean isTimeshiftSubmitted;
 } widget_helpers;
 
@@ -37,7 +37,7 @@ static void on_window_destroyed() {
     }
 }
 
-int controller_timeshift_run(timeshift_callback_fn windowDestroyCallback) {
+int controller_timeshift_run(controller_timeshift_callback_fn windowDestroyCallback) {
     builders.viewTimeshiftBuilder = gtk_builder_new_from_file("view_timeshift.xml");
     widgets.window = GTK_WIDGET(gtk_builder_get_object(builders.viewTimeshiftBuilder, "window"));
     

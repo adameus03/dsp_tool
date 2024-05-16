@@ -14,6 +14,7 @@
 #include "model/measures/similarity.h"
 
 #include "controller_timeshift.h"
+#include "controller_fir.h"
 
 #define NUM_PARAMS 10
 #define NUM_SIGNALS 12
@@ -867,6 +868,21 @@ static void shift_signal_b(double timeshiftVal) {
     }
 }
 
+static void filter_signal_a(fir_common_config_t config) {
+    pseudo_enable_window(GTK_WINDOW(widgets.window));
+    if (config.filterType != -1) {
+        g_message("Signal A: FIR filter requested.");
+        fir_common_config_print(&config);
+    }
+}
+
+static void filter_signal_b(fir_common_config_t config) {
+    pseudo_enable_window(GTK_WINDOW(widgets.window));
+    if (config.filterType != -1) {
+        g_message("Signal B: FIR filter requested.");
+        fir_common_config_print(&config);
+    }
+}
 
 void on_comboBoxText_op_changed(GtkComboBox* c, gpointer user_data) {
     widget_helpers.op_idx = gtk_combo_box_get_active(c);
@@ -1362,10 +1378,14 @@ void on_button_Btimeshift_clicked(GtkButton* b) {
 }
 
 void on_button_Afir_clicked(GtkButton* b) {
-    g_error("on_button_Afir_clicked not implemented!");
+    pseudo_disable_window(GTK_WINDOW(widgets.window));
+    int rv = controller_fir_run ( filter_signal_a );
+    g_message("controller_fir_run returned [rv=%d]", rv);
 }
 
 void on_button_Bfir_clicked(GtkButton* b) {
-    g_error("on_button_Bfir_clicked not implemented!");
+    pseudo_disable_window(GTK_WINDOW(widgets.window));
+    int rv = controller_fir_run ( filter_signal_b );
+    g_message("controller_fir_run returned [rv=%d]", rv);
 }
 

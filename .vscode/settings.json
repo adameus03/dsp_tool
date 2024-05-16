@@ -78,5 +78,19 @@
     "semaphore.h": "c",
     "wordsize.h": "c"
   },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "/bin": true,
+    "/boot": true,
+    "/dev": true,
+    "/proc": true,
+    "/etc": true
+  },
+  "C_Cpp.workspaceParsingPriority": "medium",
   "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild"
 }
