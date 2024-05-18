@@ -103,6 +103,7 @@ static struct ApplicationControls {
     GtkWidget* labelBenob;
 
     GtkWidget* button_cpy;
+    GtkWidget* button_collapseTDomains;
 
     GtkWidget* button_Atimeshift;
     GtkWidget* button_Afir;
@@ -849,6 +850,7 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     widgets.labelBenob = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBenob"));
 
     widgets.button_cpy = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_cpy"));
+    widgets.button_collapseTDomains = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_collapseTDomains"));
 
     widgets.button_Atimeshift = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_Atimeshift"));
     widgets.button_Afir = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_Afir"));
@@ -1702,3 +1704,16 @@ void on_button_Bfir_clicked(GtkButton* b) {
     g_message("controller_fir_run returned [rv=%d]", rv);
 }
 
+void on_button_collapseTDomains_clicked(GtkButton* b) {
+    real_signal_collapse_signals_tdomains(&signals.signalA, &signals.signalB);
+
+    // Set signal types as custom (the additional type)
+    gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Astype), (gint)(NUM_SIGNALS - 1));
+    gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Bstype), (gint)(NUM_SIGNALS - 1));
+
+    set_param_names (NUM_SIGNALS - 1, SIGNAL_A);
+    set_param_names (NUM_SIGNALS - 1, SIGNAL_B);
+    update_A_plots();
+    update_B_plots();
+    g_message("on_button_collapseTDomains_clicked end");
+}

@@ -3,60 +3,7 @@
 #include <math.h>
 #include <stdlib.h> // for exit
 
-/**
- * @verify
-*/
-void __signal_domain_adjust_start_time(real_signal_t* pSignal, double newStartTime) {
-    double t1Diff = pSignal->info.start_time - newStartTime;
-    if (t1Diff > 0) {
-        uint64_t num_samples_to_prepend = (uint64_t)(t1Diff * pSignal->info.sampling_frequency);
-        real_signal_t tempSignal = { 
-            .info = {
-                .num_samples = pSignal->info.num_samples + num_samples_to_prepend,
-                .sampling_frequency = pSignal->info.sampling_frequency,
-                .start_time = newStartTime
-            },
-            .pValues = 0
-        };
-        real_signal_alloc_values (&tempSignal);
-        for (uint64_t i = 0; i < num_samples_to_prepend; i++) {
-            tempSignal.pValues[i] = 0;
-        }
-        for (uint64_t i = 0; i < pSignal->info.num_samples; i++) {
-            tempSignal.pValues[i + num_samples_to_prepend] = pSignal->pValues[i];
-        }
-        real_signal_free_values (pSignal);
-        pSignal->pValues = tempSignal.pValues;
-        pSignal->info.num_samples = tempSignal.info.num_samples;
-        pSignal->info.start_time = tempSignal.info.start_time;
-    }
-}
 
-/** @verify */
-void __signal_domain_adjust_end_time(real_signal_t* pSignal, double oldEndTime, double newEndTime) {
-    double t2Diff = newEndTime - oldEndTime;
-    if (t2Diff > 0) {
-        uint64_t num_samples_to_append = (uint64_t)(t2Diff * pSignal->info.sampling_frequency);
-        real_signal_t tempSignal = {
-            .info = {
-                .num_samples = pSignal->info.num_samples + num_samples_to_append,
-                .sampling_frequency = pSignal->info.sampling_frequency,
-                .start_time = pSignal->info.start_time
-            },
-            .pValues = 0
-        };
-        real_signal_alloc_values (&tempSignal);
-        for (uint64_t i = 0; i < pSignal->info.num_samples; i++) {
-            tempSignal.pValues[i] = pSignal->pValues[i];
-        }
-        for (uint64_t i = 0; i < num_samples_to_append; i++) {
-            tempSignal.pValues[i + pSignal->info.num_samples] = 0;
-        }
-        real_signal_free_values (pSignal);
-        pSignal->pValues = tempSignal.pValues;
-        pSignal->info.num_samples = tempSignal.info.num_samples;
-    }
-}
 
 /**
  * @returns 0 on success, 1 on failure
@@ -85,10 +32,10 @@ int __prepare_real_signals_for_combination(real_signal_t* pAccumulatorSignal, re
     double newStartTime = accumulatorStartTime < otherStartTime ? accumulatorStartTime : otherStartTime;
     double newEndTime = accumulatorEndTime > otherEndTime ? accumulatorEndTime : otherEndTime;
 
-    __signal_domain_adjust_start_time (pAccumulatorSignal, newStartTime);
-    __signal_domain_adjust_start_time (pOtherSignal, newStartTime);
-    __signal_domain_adjust_end_time (pAccumulatorSignal, accumulatorEndTime, newEndTime);
-    __signal_domain_adjust_end_time (pOtherSignal, otherEndTime, newEndTime);
+    signal_domain_adjust_start_time (pAccumulatorSignal, newStartTime);
+    signal_domain_adjust_start_time (pOtherSignal, newStartTime);
+    signal_domain_adjust_end_time (pAccumulatorSignal, accumulatorEndTime, newEndTime);
+    signal_domain_adjust_end_time (pOtherSignal, otherEndTime, newEndTime);
     return 0;
 }
 
