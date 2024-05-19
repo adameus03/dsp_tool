@@ -85,6 +85,19 @@ void signal_domain_adjust_end_time(real_signal_t* pSignal, double oldEndTime, do
     }
 }
 
+void signal_reverse(real_signal_t* pSignal) {
+    uint64_t iMaxInclusive = pSignal->info.num_samples >> 1;
+    double* pValueFirst = pSignal->pValues;
+    double* pValueLast = pSignal->pValues + pSignal->info.num_samples - 1;
+    for (uint64_t i = 0; i <= iMaxInclusive; i++) {
+        double* pValueLeft = pValueFirst + i;
+        double* pValueRight = pValueLast - i; 
+        double temp = *pValueLeft;
+        *pValueLeft = *pValueRight;
+        *pValueRight = temp;
+    }
+}
+
 void real_signal_timeshift(real_signal_t* pSignal, double timeshiftValue) {
     pSignal->info.start_time += timeshiftValue;
 }

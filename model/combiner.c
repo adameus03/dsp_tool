@@ -306,5 +306,30 @@ void cross_correlate_signal_1(real_signal_t* pAccumulatorSignal, real_signal_t* 
 }
 
 void cross_correlate_signal_2(real_signal_t* pAccumulatorSignal, real_signal_t* pOtherSignal) {
-    fprintf(stderr, "Error: Not implemented"); exit(EXIT_FAILURE);
+    fprintf(stdout, "Info: divide_signal called\n");
+    //Backup
+    real_signal_t otherSignalCopy = {
+        .info = {
+            .num_samples = pOtherSignal->info.num_samples,
+            .sampling_frequency = pOtherSignal->info.sampling_frequency,
+            .start_time = pOtherSignal->info.start_time
+        },
+        .pValues = 0
+    };
+    real_signal_alloc_values (&otherSignalCopy);
+    for (uint64_t i = 0; i < otherSignalCopy.info.num_samples; i++) {
+        otherSignalCopy.pValues[i] = pOtherSignal->pValues[i];
+    }
+
+    //Combine
+    signal_reverse(pOtherSignal);
+    convolve_signal(pAccumulatorSignal, pOtherSignal);
+
+    //Restore
+    real_signal_free_values (pOtherSignal);
+    pOtherSignal->pValues = otherSignalCopy.pValues;
+    pOtherSignal->info.num_samples = otherSignalCopy.info.num_samples;
+    pOtherSignal->info.sampling_frequency = otherSignalCopy.info.sampling_frequency;
+    pOtherSignal->info.start_time = otherSignalCopy.info.start_time;
+    
 }
