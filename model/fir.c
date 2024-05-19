@@ -37,18 +37,55 @@ static real_signal_t fir_filter_get_lpf_impulse_response_win_rectangular(double 
 }
 
 static real_signal_t fir_filter_get_lpf_impulse_response_win_hamming(double samplingFrequency, double cutoffFrequency, uint64_t filterOrder) {
-    fprintf(stderr, "Not implemented");
-    exit(EXIT_FAILURE);
+    real_signal_t response = {
+        .info = {
+            .num_samples = filterOrder,
+            .sampling_frequency = samplingFrequency,
+            .start_time = 0.0
+        }
+    }; real_signal_alloc_values(&response);
+
+    for (uint64_t i = 0; i < filterOrder; i++) {
+        double* pValue = response.pValues + i;
+        *pValue = 0.53836 - 0.46164 * cos(2 * M_PI * ((double)i) / (double)filterOrder);
+    }
+
+    return response;
 }
 
 static real_signal_t fir_filter_get_lpf_impulse_response_win_hanning(double samplingFrequency, double cutoffFrequency, uint64_t filterOrder) {
-    fprintf(stderr, "Not implemented");
-    exit(EXIT_FAILURE);
+    real_signal_t response = {
+        .info = {
+            .num_samples = filterOrder,
+            .sampling_frequency = samplingFrequency,
+            .start_time = 0.0
+        }
+    }; real_signal_alloc_values(&response);
+
+    for (uint64_t i = 0; i < filterOrder; i++) {
+        double* pValue = response.pValues + i;
+        *pValue = 0.5 - 0.5 * cos(2 * M_PI * ((double)i) / (double)filterOrder);
+    }
+
+    return response;
 }
 
 static real_signal_t fir_filter_get_lpf_impulse_response_win_blackman(double samplingFrequency, double cutoffFrequency, uint64_t filterOrder) {
-    fprintf(stderr, "Not implemented");
-    exit(EXIT_FAILURE);
+    real_signal_t response = {
+        .info = {
+            .num_samples = filterOrder,
+            .sampling_frequency = samplingFrequency,
+            .start_time = 0.0
+        }
+    }; real_signal_alloc_values(&response);
+
+    for (uint64_t i = 0; i < filterOrder; i++) {
+        double* pValue = response.pValues + i;
+        *pValue = 0.42 - 0.5 * cos(2 * M_PI * ((double)i) / (double)filterOrder);
+        *pValue += 0.08 * cos(4 * M_PI * ((double)i) / (double)filterOrder);
+    }
+
+    return response;
 }
 
 static real_signal_t fir_filter_get_lpf_impulse_response(double samplingFrequency, double cutoffFrequency, uint64_t filterOrder, fir_windowing_window_type_t winType) {
@@ -56,11 +93,11 @@ static real_signal_t fir_filter_get_lpf_impulse_response(double samplingFrequenc
         case FIR_WINDOWING_WINDOW_TYPE_RECTANGULAR:
             return fir_filter_get_lpf_impulse_response_win_rectangular(samplingFrequency, cutoffFrequency, filterOrder);
         case FIR_WINDOWING_WINDOW_TYPE_HAMMING:
-            fprintf(stderr, "Not implemented"); exit(EXIT_FAILURE); break;
+            return fir_filter_get_lpf_impulse_response_win_hamming(samplingFrequency, cutoffFrequency, filterOrder);
         case FIR_WINDOWING_WINDOW_TYPE_HANNING:
-            fprintf(stderr, "Not implemented"); exit(EXIT_FAILURE); break;
+            return fir_filter_get_lpf_impulse_response_win_hanning(samplingFrequency, cutoffFrequency, filterOrder);
         case FIR_WINDOWING_WINDOW_TYPE_BLACKMAN:
-            fprintf(stderr, "Not implemented"); exit(EXIT_FAILURE); break;
+            return fir_filter_get_lpf_impulse_response_win_blackman(samplingFrequency, cutoffFrequency, filterOrder);
         default:
             fprintf(stderr, "Unknown window type detected!");
             exit(EXIT_FAILURE);
