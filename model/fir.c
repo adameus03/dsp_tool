@@ -71,12 +71,12 @@ static real_signal_t fir_filter_get_lpf_impulse_response(double samplingFrequenc
 static real_signal_t fir_filter_get_hpf_impulse_response(double samplingFrequency, double cutoffFrequency, uint64_t filterOrder, fir_windowing_window_type_t winType) {
     double lpfCutoffFrequency = 0.5 * samplingFrequency - cutoffFrequency;
     real_signal_t impulseResponse = fir_filter_get_lpf_impulse_response(samplingFrequency, lpfCutoffFrequency, filterOrder, winType);
-    /*real_signal_t sinewave = generate_sine((generator_info_t){
+    real_signal_t sinewave = generate_cosine((generator_info_t){
         .sampling_frequency = impulseResponse.info.sampling_frequency
     }, 1, 2.0 / samplingFrequency, impulseResponse.info.start_time, ((double)impulseResponse.info.num_samples) / impulseResponse.info.sampling_frequency);
-    multiply_signal(&impulseResponse, &sinewave);*/
+    multiply_signal(&impulseResponse, &sinewave);
 
-    real_signal_t modulationWave = {
+    /*real_signal_t modulationWave = {
         .info = {
             .num_samples = filterOrder, 
             .sampling_frequency = impulseResponse.info.sampling_frequency,
@@ -91,13 +91,30 @@ static real_signal_t fir_filter_get_hpf_impulse_response(double samplingFrequenc
         modulationWave.pValues[i] = -1.0;
     }
 
-    multiply_signal(&impulseResponse, &modulationWave);
+    multiply_signal(&impulseResponse, &modulationWave);*/
     
     return impulseResponse;
 }
 
 static real_signal_t fir_filter_get_bpf_impulse_response(double samplingFrequency, double leftCutoffFrequency, double rightCutoffFrequency, uint64_t filterOrder, fir_windowing_window_type_t winType) {
-    fprintf(stderr, "Not implemented"); exit(EXIT_FAILURE);
+    /*
+        f_d = f_c - f_o
+        f_g = f_c + f_o
+
+        f_o = (f_g - f_d) / 2
+        f_c = (f_g + f_d) / 2;
+    */
+    
+    double relayFreqency = 0.5 * (rightCutoffFrequency + leftCutoffFrequency); //f_c (generalized from f_p / 4)
+    double lpfCutoffFrequency = 0.5 * (rightCutoffFrequency - leftCutoffFrequency);
+   
+    real_signal_t impulseResponse = fir_filter_get_lpf_impulse_response(samplingFrequency, lpfCutoffFrequency, filterOrder, winType);
+    real_signal_t sinewave = generate_cosine((generator_info_t){
+        .sampling_frequency = impulseResponse.info.sampling_frequency
+    }, 1, 1.0 / relayFreqency, impulseResponse.info.start_time, ((double)impulseResponse.info.num_samples) / impulseResponse.info.sampling_frequency);
+    multiply_signal(&impulseResponse, &sinewave);
+
+    return impulseResponse;
 }
 
 void fir_filter_real_signal_lowpass(real_signal_t* pSignal, fir_lowpass_config_t* pConfig) {
@@ -169,7 +186,19 @@ void fir_filter_real_signal_highpass(real_signal_t* pSignal, fir_highpass_config
 }
 
 void fir_filter_real_signal_bandpass(real_signal_t* pSignal, fir_bandpass_config_t* pConfig) {
-    fprintf(stderr, "Error: Not implemented."); exit(EXIT_FAILURE);
+    real_signal_t impulseResponse = fir_filter_get_bpf_impulse_response(
+                                        pSignal->info.sampling_frequency, 
+                                        pConfig->left_cutoff_frequency,
+                                        pConfig->right_cutoff_frequency,
+                                        pConfig->windowing.num_fir_coeffs,
+                                        pConfig->windowing.window_type
+                                    );
+    real_signal_t* pFiltrationWorkspaceSignal = &impulseResponse;
+    convolve_signal(pFiltrationWorkspaceSignal, pSignal);
+    pFiltrationWorkspaceSignal->info.start_time = pSignal->info.start_time;
+    pSignal->info = pFiltrationWorkspaceSignal->info;
+    real_signal_free_values(pSignal);
+    pSignal->pValues = pFiltrationWorkspaceSignal->pValues;
 }
 
 void fir_common_config_print(fir_common_config_t* pCommonConfig) {

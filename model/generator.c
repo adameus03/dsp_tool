@@ -80,6 +80,27 @@ real_signal_t generate_sine(generator_info_t info, double A, double T, double t1
     return signal;
 }
 
+real_signal_t generate_cosine(generator_info_t info, double A, double T, double t1, double d) {
+    if (info.sampling_frequency == 0.0) { return_blank_signal; }
+    
+    real_signal_t signal = {
+        .info = {
+            .num_samples = d * info.sampling_frequency,
+            .start_time = t1,
+            .sampling_frequency = info.sampling_frequency
+        },
+        .pValues = 0
+    };
+    real_signal_alloc_values(&signal);
+
+    double omega = 2 * M_PI / T;
+    double dt = 1.0 / info.sampling_frequency;
+    for (uint64_t i = 0; i < signal.info.num_samples; i++) {
+        signal.pValues[i] = A * cos(omega * ( i * dt )); // t1 + i * dt - t1 = i * dt
+    }
+    return signal;
+}
+
 real_signal_t generate_half_wave_rectified_sine(generator_info_t info, double A, double T, double t1, double d) {
     if (info.sampling_frequency == 0.0) { return_blank_signal; }
 
