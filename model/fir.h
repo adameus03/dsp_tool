@@ -46,8 +46,8 @@ typedef fir_one_sided_real_filter_config_t fir_lowpass_config_t;
 typedef fir_one_sided_real_filter_config_t fir_highpass_config_t;
 typedef fir_double_sided_real_filter_config_t fir_bandpass_config_t;
 
-void fir_filter_real_signal_lowpass(real_signal_t* pInputSignal, real_signal_t* pOutputSignal, fir_lowpass_config_t* pConfig);
-void fir_filter_real_signal_highpass(real_signal_t* pInputSignal, real_signal_t* pOutputSignal, fir_highpass_config_t* pConfig);
-void fir_filter_real_signal_bandpass(real_signal_t* pInputSignal, real_signal_t* pOutputSignal, fir_bandpass_config_t* pConfig);
+void fir_filter_real_signal_lowpass(real_signal_t* pSignal, fir_lowpass_config_t* pConfig);
+void fir_filter_real_signal_highpass(real_signal_t* pSignal, fir_highpass_config_t* pConfig);
+void fir_filter_real_signal_bandpass(real_signal_t* pSignal, fir_bandpass_config_t* pConfig);
 
 void fir_common_config_print(fir_common_config_t* pCommonConfig);

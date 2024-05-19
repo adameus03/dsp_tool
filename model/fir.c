@@ -2,16 +2,124 @@
 
 #include <stdio.h> //error logs
 #include <stdlib.h> // exit
+#include <memory.h>
+#define __USE_MISC
+#include <math.h>
+#include "combiner.h"
 
-void fir_filter_real_signal_lowpass(real_signal_t* pInputSignal, real_signal_t* pOutputSignal, fir_lowpass_config_t* pConfig) {
+static real_signal_t fir_filter_get_lpf_impulse_response_win_rectagnular(double samplingFrequency, double cutoffFrequency, uint64_t filterOrder) {
+    real_signal_t response = {
+        .info = {
+            .num_samples = filterOrder,
+            .sampling_frequency = samplingFrequency,
+            .start_time = 0.0
+        }
+    }; real_signal_alloc_values(&response);
+
+    double frequencyScaler = samplingFrequency / cutoffFrequency; //K
+    uint64_t sincCenterSampleIndex = filterOrder >> 1;
+    for (uint64_t i = 0; i < sincCenterSampleIndex; i++) {
+        double* pValue = response.pValues + i;
+        long indexDiff = ((long)i) - (long)sincCenterSampleIndex;
+        *pValue = sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler);
+        *pValue /= M_PI * indexDiff;
+    }
+    response.pValues[sincCenterSampleIndex] = 2.0 / frequencyScaler;
+    for (uint64_t i = sincCenterSampleIndex + 1; i < response.info.num_samples; i++) {
+        double* pValue = response.pValues + i;
+        long indexDiff = ((long)i) - (long)sincCenterSampleIndex;
+        *pValue = sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler);
+        *pValue /= M_PI * indexDiff;
+    }
+
+    return response;
+}
+
+static real_signal_t fir_filter_get_lpf_impulse_response_win_hamming(double samplingFrequency, double cutoffFrequency, uint64_t filterOrder) {
+    fprintf(stderr, "Not implemented");
+    exit(EXIT_FAILURE);
+}
+
+static real_signal_t fir_filter_get_lpf_impulse_response_win_hanning(double samplingFrequency, double cutoffFrequency, uint64_t filterOrder) {
+    fprintf(stderr, "Not implemented");
+    exit(EXIT_FAILURE);
+}
+
+static real_signal_t fir_filter_get_lpf_impulse_response_win_blackman(double samplingFrequency, double cutoffFrequency, uint64_t filterOrder) {
+    fprintf(stderr, "Not implemented");
+    exit(EXIT_FAILURE);
+}
+
+static real_signal_t fir_filter_get_lpf_impulse_response(double samplingFrequency, double cutoffFrequency, uint64_t filterOrder, fir_windowing_window_type_t winType) {
+    switch (winType) {
+        case FIR_WINDOWING_WINDOW_TYPE_RECTANGULAR:
+            return fir_filter_get_lpf_impulse_response_win_rectagnular(samplingFrequency, cutoffFrequency, filterOrder);
+        case FIR_WINDOWING_WINDOW_TYPE_HAMMING:
+            return fir_filter_get_lpf_impulse_response_win_rectagnular(samplingFrequency, cutoffFrequency, filterOrder);
+        case FIR_WINDOWING_WINDOW_TYPE_HANNING:
+            return fir_filter_get_lpf_impulse_response_win_rectagnular(samplingFrequency, cutoffFrequency, filterOrder);
+        case FIR_WINDOWING_WINDOW_TYPE_BLACKMAN:
+            return fir_filter_get_lpf_impulse_response_win_rectagnular(samplingFrequency, cutoffFrequency, filterOrder);
+        default:
+            fprintf(stderr, "Unknown window type detected!");
+            exit(EXIT_FAILURE);
+            break;
+    }
+}
+
+void fir_filter_real_signal_lowpass(real_signal_t* pSignal, fir_lowpass_config_t* pConfig) {
+    //fprintf(stderr, "Error: Not implemented."); exit(EXIT_FAILURE);
+    /*real_signal_t filteredSignal = {
+        .info = {
+            .num_samples = pInputSignal->info.num_samples,
+            .start_time = pInputSignal->info.start_time,
+            .sampling_frequency = pInputSignal->info.sampling_frequency
+        },
+        .pValues = 0
+    };
+    real_signal_alloc_values(&filteredSignal);*/
+
+    if (pConfig->cutoff_frequency != 0.0) {
+        real_signal_t impulseResponse = fir_filter_get_lpf_impulse_response(
+                                            pSignal->info.sampling_frequency, 
+                                            pConfig->cutoff_frequency,
+                                            pConfig->windowing.num_fir_coeffs,
+                                            pConfig->windowing.window_type
+                                        );
+        
+        /*real_signal_t filtrationWorkspaceSignal = {
+            .info = {
+                .num_samples = impulseResponse.info.num_samples,
+                .start_time = impulseResponse.info.start_time,
+                .sampling_frequency = impulseResponse.info.sampling_frequency
+            },
+            .pValues = 0
+        };*/
+
+        real_signal_t* pFiltrationWorkspaceSignal = &impulseResponse;
+
+        //real_signal_alloc_values(&filtrationWorkspaceSignal);
+
+        convolve_signal(pFiltrationWorkspaceSignal, pSignal);
+        pSignal->info = pFiltrationWorkspaceSignal->info;
+        real_signal_free_values(pSignal);
+        pSignal->pValues = pFiltrationWorkspaceSignal->pValues;
+    } else {
+        fprintf(stdout, "Warning: Zero sampling frequency input signal detected in LPF FIR filter");
+        for (uint64_t i = 0; i < pSignal->info.num_samples; i++) {
+            pSignal->pValues[i] = 0;
+        }
+    }
+    
+    /*pOutputSignal->info = filteredSignal.info;
+    pOutputSignal->pValues = (double*) realloc(pOutputSignal->pValues)*/
+}
+
+void fir_filter_real_signal_highpass(real_signal_t* pSignal, fir_highpass_config_t* pConfig) {
     fprintf(stderr, "Error: Not implemented."); exit(EXIT_FAILURE);
 }
 
-void fir_filter_real_signal_highpass(real_signal_t* pInputSignal, real_signal_t* pOutputSignal, fir_highpass_config_t* pConfig) {
-    fprintf(stderr, "Error: Not implemented."); exit(EXIT_FAILURE);
-}
-
-void fir_filter_real_signal_bandpass(real_signal_t* pInputSignal, real_signal_t* pOutputSignal, fir_bandpass_config_t* pConfig) {
+void fir_filter_real_signal_bandpass(real_signal_t* pSignal, fir_bandpass_config_t* pConfig) {
     fprintf(stderr, "Error: Not implemented."); exit(EXIT_FAILURE);
 }
 
