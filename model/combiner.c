@@ -193,7 +193,55 @@ void divide_signal(real_signal_t* pAccumulatorSignal, real_signal_t* pOtherSigna
 }
 
 void convolve_signal(real_signal_t* pAccumulatorSignal, real_signal_t* pOtherSignal) {
-    fprintf(stderr, "Error: Not implemented"); exit(EXIT_FAILURE);
+    //fprintf(stderr, "Error: Not implemented"); exit(EXIT_FAILURE);
+    fprintf(stdout, "Info: convolve_signal called\n");
+
+    if (pAccumulatorSignal->info.sampling_frequency != pOtherSignal->info.sampling_frequency) {
+        fprintf(stdout, "Warning: Refusing to combine signals sampled differently\n");
+        return;
+    } else if (pAccumulatorSignal->info.num_samples == 0U && pOtherSignal->info.num_samples == 0U) {
+        fprintf(stdout, "Warning: Two signals without any samples\n");
+        return;
+    }
+
+    uint64_t kernelNumSamples = pOtherSignal->info.num_samples;
+    uint64_t oldAccumulatorNumSamples = pAccumulatorSignal->info.num_samples;
+    uint64_t newAccumulatorNumSamples = oldAccumulatorNumSamples + kernelNumSamples - 1;
+    
+    real_signal_t accumulatorSignalCopy = {
+        .info = {
+            .num_samples = oldAccumulatorNumSamples,
+            .sampling_frequency = pAccumulatorSignal->info.sampling_frequency,
+            .start_time = pAccumulatorSignal->info.start_time
+        },
+        .pValues = 0
+    };
+    real_signal_alloc_values (&accumulatorSignalCopy);
+    for (uint64_t i = 0; i < accumulatorSignalCopy.info.num_samples; i++) {
+        accumulatorSignalCopy.pValues[i] = pAccumulatorSignal->pValues[i];
+    }
+
+    pAccumulatorSignal->info.num_samples = newAccumulatorNumSamples;
+    pAccumulatorSignal->pValues = (double*) realloc(pAccumulatorSignal->pValues, sizeof(double) * newAccumulatorNumSamples);
+
+    for (uint64_t i = 0; i < pAccumulatorSignal->info.num_samples; i++) {
+        double* pConvolutionValue = pAccumulatorSignal->pValues + i;
+        *pConvolutionValue = 0;
+        // i - j >=0
+        // i - j < oldAccumulatorNumSamples
+        uint64_t jStartIndexInclusive = i >= oldAccumulatorNumSamples ? (i - oldAccumulatorNumSamples + 1) : 0;
+        uint64_t jEndIndexInclusive = i >= kernelNumSamples - 1 ? kernelNumSamples - 1 : i;
+
+        for (uint64_t j = jStartIndexInclusive; j <= jEndIndexInclusive; j++) {
+            // printf("h(%lu)x(%lu - %lu) +", j, i, j);
+            double* pInputValue = accumulatorSignalCopy.pValues + i - j;
+            double* pKernelValue = pOtherSignal->pValues + j;
+            *pConvolutionValue += (*pInputValue) * (*pKernelValue);
+        }
+        // printf("\n");
+    }
+
+    real_signal_free_values (&accumulatorSignalCopy);
 }
 
 void cross_correlate_signal_1(real_signal_t* pAccumulatorSignal, real_signal_t* pOtherSignal) {
