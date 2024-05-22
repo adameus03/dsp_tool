@@ -54,7 +54,7 @@ double signal_max_abs_value(real_signal_t* pSignal) {
 
 double signal_rightmost_argmax(real_signal_t* pSignal) {
     double maxValue = -__DBL_MAX__;
-    double epsilon = 1e-5;
+    double epsilon = 1e-2;
     uint64_t maxIndex = 0;
     for (uint64_t i = 0; i < pSignal->info.num_samples; i++) {
         double* pValue = pSignal->pValues + i;
