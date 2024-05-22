@@ -114,6 +114,11 @@ static struct ApplicationControls {
     GtkWidget* labelAcdist;
     GtkWidget* labelBargmax;
     GtkWidget* labelBcdist;
+
+    GtkWidget* button_computeAargmax;
+    GtkWidget* button_computeAcdist;
+    GtkWidget* button_computeBargmax;
+    GtkWidget* button_computeBcdist;
 } widgets;
 
 static struct ApplicationControlHelpers {
@@ -861,6 +866,11 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     widgets.labelAcdist = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAcdist"));
     widgets.labelBargmax = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBargmax"));
     widgets.labelBcdist = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelBcdist"));
+
+    widgets.button_computeAargmax = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_computeAargmax"));
+    widgets.button_computeAcdist = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_computeAcdist"));
+    widgets.button_computeBargmax = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_computeBargmax"));
+    widgets.button_computeBcdist = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_computeBcdist"));
 
 
     set_param_names(get_signal_idx_a(), SIGNAL_A);
@@ -1726,4 +1736,36 @@ void on_button_collapseTDomains_clicked(GtkButton* b) {
     update_A_plots();
     update_B_plots();
     g_message("on_button_collapseTDomains_clicked end");
+}
+
+void on_button_computeAargmax_clicked(GtkButton* b) {
+    double aargmax = signal_rightmost_argmax(&signals.signalA);
+    char aargmaxStr[20];
+    snprintf(aargmaxStr, 20, "%f", aargmax);
+    
+    gtk_label_set_text(GTK_LABEL(widgets.labelAargmax), (const gchar*)aargmaxStr);
+}
+
+void on_button_computeAcdist_clicked(GtkButton* b) {
+    double acdist = signal_radar_object_cdist(&signals.signalA);
+    char acdistStr[20];
+    snprintf(acdistStr, 20, "%f", acdist);
+    
+    gtk_label_set_text(GTK_LABEL(widgets.labelAcdist), (const gchar*)acdistStr);
+}
+
+void on_button_computeBargmax_clicked(GtkButton* b) {
+    double bargmax = signal_rightmost_argmax(&signals.signalB);
+    char bargmaxStr[20];
+    snprintf(bargmaxStr, 20, "%f", bargmax);
+    
+    gtk_label_set_text(GTK_LABEL(widgets.labelBargmax), (const gchar*)bargmaxStr);
+}
+
+void on_button_computeBcdist_clicked(GtkButton* b) {
+    double bcdist = signal_radar_object_cdist(&signals.signalB);
+    char bcdistStr[20];
+    snprintf(bcdistStr, 20, "%f", bcdist);
+    
+    gtk_label_set_text(GTK_LABEL(widgets.labelBcdist), (const gchar*)bcdistStr);
 }
