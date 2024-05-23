@@ -51,6 +51,52 @@ static real_signal_t fir_filter_get_lpf_impulse_response_win_hamming(double samp
     }
 
     return response;
+    /*real_signal_t response = {
+        .info = {
+            .num_samples = filterOrder,
+            .sampling_frequency = samplingFrequency,
+            .start_time = 0.0
+        }
+    }; real_signal_alloc_values(&response);
+
+    double frequencyScaler = samplingFrequency / cutoffFrequency; //K
+    uint64_t sincCenterSampleIndex = filterOrder >> 1;
+    //
+    //    alpha = 0.53836
+    //    beta = -0.46164
+    //
+    double alpha = 0.53836;
+    double beta = -0.46164;
+
+    long indexDiff;
+    for (uint64_t i = 0; i < sincCenterSampleIndex; i++) {
+        double* pValue = response.pValues + i;
+        indexDiff = ((long)i) - (long)sincCenterSampleIndex;
+        *pValue = alpha * sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (double)indexDiff;
+        *pValue += ((double)indexDiff)*beta*sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (((double)indexDiff) * ((double)indexDiff) - 0.25 * frequencyScaler * frequencyScaler);
+    }
+    indexDiff = ((long)sincCenterSampleIndex) - (long)sincCenterSampleIndex;
+    response.pValues[sincCenterSampleIndex] = alpha * 2.0 / frequencyScaler;
+    response.pValues[sincCenterSampleIndex] += ((double)indexDiff)*beta*sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (((double)indexDiff) * ((double)indexDiff) - 0.25 * frequencyScaler * frequencyScaler);
+    for (uint64_t i = sincCenterSampleIndex + 1; i < response.info.num_samples; i++) {
+        double* pValue = response.pValues + i;
+        indexDiff = ((long)i) - (long)sincCenterSampleIndex;
+        *pValue = alpha * sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (double)indexDiff;
+        *pValue += ((double)indexDiff)*beta*sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (((double)indexDiff) * ((double)indexDiff) - 0.25 * frequencyScaler * frequencyScaler);
+    }
+
+    return response;*/
+    /*real_signal_t response = fir_filter_get_lpf_impulse_response_win_rectangular(samplingFrequency, cutoffFrequency, filterOrder);
+
+    //double frequencyScaler = samplingFrequency / cutoffFrequency; //K
+    uint64_t sincCenterSampleIndex = filterOrder >> 1;
+    for (uint64_t i = 0; i < response.info.num_samples; i++) {
+        double* pValue = response.pValues + i;
+        long indexDiff = ((long)i) - (long)sincCenterSampleIndex;
+        *pValue *= 0.53836 - 0.46164 * cos(2.0 * M_PI * ((double)indexDiff) / filterOrder);
+    }
+
+    return response;*/
 }
 
 static real_signal_t fir_filter_get_lpf_impulse_response_win_hanning(double samplingFrequency, double cutoffFrequency, uint64_t filterOrder) {
@@ -68,9 +114,59 @@ static real_signal_t fir_filter_get_lpf_impulse_response_win_hanning(double samp
     }
 
     return response;
+
+    /*real_signal_t response = {
+        .info = {
+            .num_samples = filterOrder,
+            .sampling_frequency = samplingFrequency,
+            .start_time = 0.0
+        }
+    }; real_signal_alloc_values(&response);
+
+    double frequencyScaler = samplingFrequency / cutoffFrequency; //K
+    uint64_t sincCenterSampleIndex = filterOrder >> 1;
+    //
+    //    alpha = 0.53836
+    //    beta = -0.46164
+    //
+    double alpha = 0.5;
+    double beta = -0.5;
+
+    long indexDiff;
+    for (uint64_t i = 0; i < sincCenterSampleIndex; i++) {
+        double* pValue = response.pValues + i;
+        indexDiff = ((long)i) - (long)sincCenterSampleIndex;
+        *pValue = alpha * sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (double)indexDiff;
+        *pValue += ((double)indexDiff)*beta*sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (((double)indexDiff) * ((double)indexDiff) - 0.25 * frequencyScaler * frequencyScaler);
+    }
+    indexDiff = ((long)sincCenterSampleIndex) - (long)sincCenterSampleIndex;
+    response.pValues[sincCenterSampleIndex] = alpha * 2.0 / frequencyScaler;
+    response.pValues[sincCenterSampleIndex] += ((double)indexDiff)*beta*sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (((double)indexDiff) * ((double)indexDiff) - 0.25 * frequencyScaler * frequencyScaler);
+    for (uint64_t i = sincCenterSampleIndex + 1; i < response.info.num_samples; i++) {
+        double* pValue = response.pValues + i;
+        indexDiff = ((long)i) - (long)sincCenterSampleIndex;
+        *pValue = alpha * sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (double)indexDiff;
+        *pValue += ((double)indexDiff)*beta*sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (((double)indexDiff) * ((double)indexDiff) - 0.25 * frequencyScaler * frequencyScaler);
+    }
+
+    return response;*/
+
+    /*real_signal_t response = fir_filter_get_lpf_impulse_response_win_rectangular(samplingFrequency, cutoffFrequency, filterOrder);
+
+    //double frequencyScaler = samplingFrequency / cutoffFrequency; //K
+    uint64_t sincCenterSampleIndex = filterOrder >> 1;
+    for (uint64_t i = 0; i < response.info.num_samples; i++) {
+        double* pValue = response.pValues + i;
+        long indexDiff = ((long)i) - (long)sincCenterSampleIndex;
+        *pValue *= 0.5 - 0.5 * cos(2.0 * M_PI * ((double)indexDiff) / filterOrder);
+    }
+
+    return response;*/
+    
 }
 
 static real_signal_t fir_filter_get_lpf_impulse_response_win_blackman(double samplingFrequency, double cutoffFrequency, uint64_t filterOrder) {
+
     real_signal_t response = {
         .info = {
             .num_samples = filterOrder,
@@ -86,6 +182,59 @@ static real_signal_t fir_filter_get_lpf_impulse_response_win_blackman(double sam
     }
 
     return response;
+
+    /*real_signal_t response = {
+        .info = {
+            .num_samples = filterOrder,
+            .sampling_frequency = samplingFrequency,
+            .start_time = 0.0
+        }
+    }; real_signal_alloc_values(&response);
+
+    double frequencyScaler = samplingFrequency / cutoffFrequency; //K
+    uint64_t sincCenterSampleIndex = filterOrder >> 1;
+    //
+    //    alpha = 0.53836
+    //    beta = -0.46164
+    //
+    double alpha = 0.42;
+    double beta = -0.5;
+    double gamma = 0.08;
+
+    long indexDiff;
+    for (uint64_t i = 0; i < sincCenterSampleIndex; i++) {
+        double* pValue = response.pValues + i;
+        indexDiff = ((long)i) - (long)sincCenterSampleIndex;
+        *pValue = alpha * sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (double)indexDiff;
+        *pValue += ((double)indexDiff)*beta*sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (((double)indexDiff) * ((double)indexDiff) - 0.25 * frequencyScaler * frequencyScaler);
+        *pValue += ((double)indexDiff)*gamma*sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (((double)indexDiff) * ((double)indexDiff) - frequencyScaler * frequencyScaler);
+    }
+    indexDiff = ((long)sincCenterSampleIndex) - (long)sincCenterSampleIndex;
+    response.pValues[sincCenterSampleIndex] = alpha * 2.0 / frequencyScaler;
+    response.pValues[sincCenterSampleIndex] += ((double)indexDiff)*beta*sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (((double)indexDiff) * ((double)indexDiff) - 0.25 * frequencyScaler * frequencyScaler);
+    response.pValues[sincCenterSampleIndex] += ((double)indexDiff)*gamma*sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (((double)indexDiff) * ((double)indexDiff) - frequencyScaler * frequencyScaler);
+    for (uint64_t i = sincCenterSampleIndex + 1; i < response.info.num_samples; i++) {
+        double* pValue = response.pValues + i;
+        indexDiff = ((long)i) - (long)sincCenterSampleIndex;
+        *pValue = alpha * sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (double)indexDiff;
+        *pValue += ((double)indexDiff)*beta*sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (((double)indexDiff) * ((double)indexDiff) - 0.25 * frequencyScaler * frequencyScaler);
+        *pValue += ((double)indexDiff)*gamma*sin(2.0 * M_PI * ((double)indexDiff) / frequencyScaler) / M_PI / (((double)indexDiff) * ((double)indexDiff) - frequencyScaler * frequencyScaler);
+    }
+
+    return response;*/
+
+    /*real_signal_t response = fir_filter_get_lpf_impulse_response_win_rectangular(samplingFrequency, cutoffFrequency, filterOrder);
+
+    //double frequencyScaler = samplingFrequency / cutoffFrequency; //K
+    uint64_t sincCenterSampleIndex = filterOrder >> 1;
+    for (uint64_t i = 0; i < response.info.num_samples; i++) {
+        double* pValue = response.pValues + i;
+        long indexDiff = ((long)i) - (long)sincCenterSampleIndex;
+        *pValue *= 0.42 - 0.5 * cos(2.0 * M_PI * ((double)indexDiff) / filterOrder) + 0.08 * cos(4.0 * M_PI * ((double)indexDiff) / filterOrder);
+
+    }
+
+    return response;*/
 }
 
 static real_signal_t fir_filter_get_lpf_impulse_response(double samplingFrequency, double cutoffFrequency, uint64_t filterOrder, fir_windowing_window_type_t winType) {
@@ -133,6 +282,9 @@ static real_signal_t fir_filter_get_hpf_impulse_response(double samplingFrequenc
     return impulseResponse;
 }
 
+/**
+ * Generate impulse response for a bandpass FIR filter
+*/
 static real_signal_t fir_filter_get_bpf_impulse_response(double samplingFrequency, double leftCutoffFrequency, double rightCutoffFrequency, uint64_t filterOrder, fir_windowing_window_type_t winType) {
     /*
         f_d = f_c - f_o
