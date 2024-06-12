@@ -1,6 +1,8 @@
 #include "transform.h"
 #include <stdlib.h>
 #include <stdio.h> // for error logging
+#define __USE_MISC
+#include <math.h>
 void histogram_data_aloc_codomain (pHistogram_data_t pHistogramData) { pHistogramData->codomain_values = (uint64_t*) malloc(pHistogramData->num_intervals * sizeof(uint64_t)); }
 void histogram_data_free_codomain (pHistogram_data_t pHistogramData) { free(pHistogramData->codomain_values); }
 
@@ -86,4 +88,38 @@ histogram_data_t rsignal_to_histogram_transform(real_signal_t* pRealSignal, uint
     }
 
     return histogramData;
+}
+
+//double complex __w_dftKernel
+
+complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal) {
+    if (pRealSignal->info.num_samples == 0) {
+        fprintf(stderr, "Error: Won't transform a null signal\n");
+        return (complex_signal_t) {
+            .info = pRealSignal->info,
+            .pValues = 0
+        };
+    }
+
+    complex_signal_t dftSignal = {
+        .info = pRealSignal->info,
+    };
+
+    complex_signal_alloc_values(&dftSignal);
+
+    if (dftSignal.pValues == 0) {
+        fprintf(stderr, "Error: Failed to allocate memory for DFT signal\n");
+        return dftSignal;
+    }
+
+    for (uint64_t i = 0; i < dftSignal.info.num_samples; i++) {
+        double complex* pDftValue = dftSignal.pValues + i;
+        *pDftValue = 0.0;
+        for (uint64_t j = 0; j < pRealSignal->info.num_samples; j++) {
+            *pDftValue += pRealSignal->pValues[j] * cexp(-2.0 * M_PI * I * (double)i * (double)j / (double)pRealSignal->info.num_samples);
+        }
+        *pDftValue /= (double)pRealSignal->info.num_samples;
+    }
+
+    return dftSignal;
 }

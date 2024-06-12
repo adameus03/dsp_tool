@@ -31,3 +31,4 @@ void histogram_data_free_codomain (pHistogram_data_t pHistogramData);
 */
 histogram_data_t rsignal_to_histogram_transform(real_signal_t* pRealSignal, uint64_t numIntervals);
 
+complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal);
