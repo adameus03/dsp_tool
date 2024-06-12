@@ -32,10 +32,10 @@ int __prepare_real_signals_for_combination(real_signal_t* pAccumulatorSignal, re
     double newStartTime = accumulatorStartTime < otherStartTime ? accumulatorStartTime : otherStartTime;
     double newEndTime = accumulatorEndTime > otherEndTime ? accumulatorEndTime : otherEndTime;
 
-    signal_domain_adjust_start_time (pAccumulatorSignal, newStartTime);
-    signal_domain_adjust_start_time (pOtherSignal, newStartTime);
-    signal_domain_adjust_end_time (pAccumulatorSignal, accumulatorEndTime, newEndTime);
-    signal_domain_adjust_end_time (pOtherSignal, otherEndTime, newEndTime);
+    real_signal_domain_adjust_start_time (pAccumulatorSignal, newStartTime);
+    real_signal_domain_adjust_start_time (pOtherSignal, newStartTime);
+    real_signal_domain_adjust_end_time (pAccumulatorSignal, accumulatorEndTime, newEndTime);
+    real_signal_domain_adjust_end_time (pOtherSignal, otherEndTime, newEndTime);
     return 0;
 }
 
@@ -322,7 +322,7 @@ void cross_correlate_signal_2(real_signal_t* pAccumulatorSignal, real_signal_t* 
     }
 
     //Combine
-    signal_reverse(pOtherSignal);
+    real_signal_reverse(pOtherSignal);
     convolve_signal(pAccumulatorSignal, pOtherSignal);
 
     //Restore

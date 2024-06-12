@@ -7,7 +7,7 @@
 */
 
 #include <stdint.h>
-#include "signal.h"
+qq#include "signal.h"
 
 #define HISTOGRAM_TRANSFORM_USE_LINEAR_SEARCH
 //#define HISTOGRAM_TRANSFORM_USE_BINARY_SEARCH
