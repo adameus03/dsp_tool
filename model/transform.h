@@ -20,6 +20,11 @@ typedef struct {
     uint64_t* codomain_values;
 } histogram_data_t;
 
+typedef struct {
+    // Determines the number of steps when constructing the Walsh-Hadamard matrix
+    uint64_t m; 
+} walsh_hadamard_config_t;
+
 typedef histogram_data_t* pHistogram_data_t;
 
 void histogram_data_aloc_codomain (pHistogram_data_t pHistogramData);
@@ -32,3 +37,5 @@ void histogram_data_free_codomain (pHistogram_data_t pHistogramData);
 histogram_data_t rsignal_to_histogram_transform(real_signal_t* pRealSignal, uint64_t numIntervals);
 
 complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal);
+
+real_signal_t transform_walsh_hadamard_real_naive(real_signal_t* pRealSignal, walsh_hadamard_config_t* pConfig);

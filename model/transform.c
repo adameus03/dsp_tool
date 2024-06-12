@@ -123,3 +123,108 @@ complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal) {
 
     return dftSignal;
 }
+
+static double* __transform_generate_matrix_walsh_hadamard_recursive_no_divider(uint64_t m) {
+    uint64_t matrixSize = 1U << m;
+    double* pMatrix = (double*) malloc(matrixSize * matrixSize * sizeof(double));
+
+    if (pMatrix == 0) {
+        fprintf(stderr, "Error: Failed to allocate memory for Walsh-Hadamard matrix\n");
+        return 0;
+    }
+
+    if (m == 0) {
+        pMatrix[0] = 1.0;
+        return pMatrix;
+    }
+
+    double* pSubMatrix = __transform_generate_matrix_walsh_hadamard_recursive_no_divider(m - 1);
+
+    if (pSubMatrix == 0) {
+        free(pMatrix);
+        fprintf(stderr, "Error: Failed to allocate memory for one of the Walsh-Hadamard submatrices\n");
+        return 0;
+    }
+
+    for (uint64_t i = 0; i < matrixSize; i++) { // iterate over rows
+        for (uint64_t j = 0; j < matrixSize; j++) { // iterate over columns
+            if (i < matrixSize / 2) {
+                if (j < matrixSize / 2) { // A (upper left)
+                    pMatrix[i * matrixSize + j] = pSubMatrix[i * (matrixSize / 2) + j];
+                } else { // B (upper right)
+                    pMatrix[i * matrixSize + j] = pSubMatrix[i * (matrixSize / 2) + j - matrixSize / 2];
+                }
+            } else {
+                if (j < matrixSize / 2) { // C (lower left)
+                    pMatrix[i * matrixSize + j] = pSubMatrix[(i - matrixSize / 2) * (matrixSize / 2) + j];
+                } else { // D (lower right)
+                    pMatrix[i * matrixSize + j] = -pSubMatrix[(i - matrixSize / 2) * (matrixSize / 2) + j - matrixSize / 2];
+                }
+            }
+        }
+    }
+
+    free(pSubMatrix);
+
+    return pMatrix;
+}
+
+static double* __transform_generate_matrix_walsh_hadamard_recursive(uint64_t m) {
+    double* pMatrix = __transform_generate_matrix_walsh_hadamard_recursive_no_divider(m);
+
+    if (pMatrix == 0) {
+        return 0;
+    }
+
+    double divider = sqrt((double)(1U << m));
+
+    for (uint64_t i = 0; i < (1U << m); i++) {
+        for (uint64_t j = 0; j < (1U << m); j++) {
+            pMatrix[i * (1U << m) + j] /= divider;
+        }
+    }
+
+    return pMatrix;
+}
+
+real_signal_t transform_walsh_hadamard_real_naive(real_signal_t* pRealSignal, walsh_hadamard_config_t* pConfig) {
+    if (pRealSignal->info.num_samples == 0) {
+        fprintf(stderr, "Error: Won't transform a null signal\n");
+        return (real_signal_t) {
+            .info = pRealSignal->info,
+            .pValues = 0
+        };
+    }
+
+    real_signal_t whSignal = {
+        .info = pRealSignal->info
+    };
+
+    whSignal.info.num_samples = 1U << pConfig->m;
+
+    real_signal_alloc_values(&whSignal);
+
+    if (whSignal.pValues == 0) {
+        fprintf(stderr, "Error: Failed to allocate memory for Walsh-Hadamard signal\n");
+        return whSignal;
+    }
+
+    double* pMatrix = __transform_generate_matrix_walsh_hadamard_recursive(pConfig->m);
+
+    if (pMatrix == 0) {
+        fprintf(stderr, "Error: Failed to generate Walsh-Hadamard matrix with m = %lu\n", pConfig->m);
+        return whSignal;
+    }
+
+    for (uint64_t i = 0; i < whSignal.info.num_samples; i++) {
+        double* pWhValue = whSignal.pValues + i;
+        *pWhValue = 0.0;
+        // Iterate over input signal samples and at the same time over WH matrix rows
+        for (uint64_t j = 0; j < pRealSignal->info.num_samples; j++) {
+            *pWhValue += pRealSignal->pValues[j] * pMatrix[i * whSignal.info.num_samples + j];
+        }
+    }
+
+    return whSignal;
+}
+
