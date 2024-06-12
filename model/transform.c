@@ -125,9 +125,102 @@ complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal) {
     return dftSignal;
 }
 
-complex_signal_t transform_dft_real_fast(real_signal_t* pRealSignal) {
-    fprintf(stderr, "transform_dft_real_fast not implemented");
-    exit(EXIT_FAILURE);
+static uint64_t transform_bits_reverse(uint64_t x, uint64_t m) {
+    uint64_t y = 0;
+    for (uint64_t i = 0; i < m; i++) {
+        y <<= 1;
+        y |= x & 1;
+        x >>= 1;
+    }
+    return y;
+}
+
+complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal) {
+    fprintf(stdout, "transform_dft_real_fast_p2 called\n");
+    
+    // Set m as the smallest power of 2 that is greater than or equal to the original number of samples
+    uint64_t m = 0;
+    uint64_t n = pRealSignal->info.num_samples;
+    while (n > 0) {
+        n >>= 1;
+        m++;
+    }
+
+    uint64_t lenDiff = (1U << m) - pRealSignal->info.num_samples;
+    if (lenDiff > 0) {
+        fprintf(stdout, "Warning: Zero-padding the input signal copy to the nearest power of 2 for performing FFT\n");
+    }
+
+    complex_signal_t s1 = { .info = pRealSignal->info };
+    complex_signal_t s2 = { .info = pRealSignal->info };
+
+    s1.info.num_samples = 1U << m;
+    s2.info.num_samples = s1.info.num_samples;
+
+    complex_signal_alloc_values(&s1);
+    complex_signal_alloc_values(&s2);
+
+    for (uint64_t i = 0; i < pRealSignal->info.num_samples; i++) {
+        s2.pValues[i] = (double complex) pRealSignal->pValues[i];
+    }
+
+    for (uint64_t i = pRealSignal->info.num_samples; i < s2.info.num_samples; i++) {
+        s2.pValues[i] = 0.0;
+    }
+
+    for (uint64_t i = 0; i < s1.info.num_samples; i++) {
+        s1.pValues[i] = s2.pValues[transform_bits_reverse(i, m)];
+    }
+
+    complex_signal_t* pS1 = &s1;
+    complex_signal_t* pS2 = &s2;
+
+    uint64_t blk_size = 1;
+    uint64_t num_blks = s1.info.num_samples;
+
+    while (num_blks > 1) {
+        blk_size <<= 1;
+        num_blks >>= 1;
+         
+        for (uint64_t i = 0; i < num_blks << 1; i++) {
+            double complex* pSourceSublkCpy = pS1->pValues + (blk_size * i);
+            double complex* pSourceSublkAgg = pSourceSublkCpy + (blk_size >> 1);
+            double complex* pTargetSublkAdd = pS2->pValues + (blk_size * i);
+            double complex* pTargetSublkSub = pTargetSublkAdd + (blk_size >> 1);
+
+            for (uint64_t j = 0; j < blk_size >> 1; j++) {
+                double complex* pSourceSublkCpyValue = pSourceSublkCpy + j;
+                double complex* pSourceSublkAggValue = pSourceSublkAgg + j;
+                double complex* pTargetSublkAddValue = pTargetSublkAdd + j;
+                double complex* pTargetSublkSubValue = pTargetSublkSub + j;
+
+                double complex scaler = cexp(-2.0 * M_PI * I / (double)blk_size * (double)j);
+                *pTargetSublkAddValue = *pSourceSublkCpyValue;
+                *pTargetSublkAddValue += (*pSourceSublkAggValue) * scaler;
+                *pTargetSublkSubValue = *pSourceSublkCpyValue;
+                *pTargetSublkSubValue -= (*pSourceSublkAggValue) * scaler;
+            }
+
+            complex_signal_t* pS = pS1;
+            pS1 = pS2;
+            pS2 = pS;
+        }
+    }
+
+    complex_signal_t* pOutputSignal = 0;
+    complex_signal_t* pDisposeSignal = 0;
+
+    if (m % 2) {
+        pOutputSignal = pS1;
+        pDisposeSignal = pS2;
+    } else {
+        pOutputSignal = pS2;
+        pDisposeSignal = pS1;
+    }
+
+    complex_signal_free_values(pDisposeSignal);
+    return *pOutputSignal;    
+    
 }
 
 double* transform_generate_matrix_walsh_hadamard_recursive(uint64_t m) {
@@ -276,11 +369,18 @@ real_signal_t transform_walsh_hadamard_unnormalized_real_fast(real_signal_t* pRe
             double* pTargetBlkSub = pTargetBlkAdd + blk_size;
             double* pSourceBlkCpy = pS1->pValues + ((blk_size * i) << 1);
             double* pSourceBlkAgg = pSourceBlkCpy + blk_size;
-            
-            *pTargetBlkAdd = *pSourceBlkCpy;
-            *pTargetBlkAdd += *pSourceBlkAgg;
-            *pTargetBlkSub = *pSourceBlkCpy;
-            *pTargetBlkSub -= *pSourceBlkAgg;
+
+            for (uint64_t j = 0; j < blk_size; j++) {
+                double* pTargetBlkAddValue = pTargetBlkAdd + j;
+                double* pTargetBlkSubValue = pTargetBlkSub + j;
+                double* pSourceBlkCpyValue = pSourceBlkCpy + j;
+                double* pSourceBlkAggValue = pSourceBlkAgg + j;
+
+                *pTargetBlkAddValue = *pSourceBlkCpyValue;
+                *pTargetBlkAddValue += *pSourceBlkAggValue;
+                *pTargetBlkSubValue = *pSourceBlkCpyValue;
+                *pTargetBlkSubValue -= *pSourceBlkAggValue;
+            }
 
             real_signal_t* pS = pS1;
             pS1 = pS2;
