@@ -76,7 +76,10 @@
     "complex.h": "c",
     "controller_timeshift.h": "c",
     "semaphore.h": "c",
-    "wordsize.h": "c"
+    "wordsize.h": "c",
+    "check.h": "c",
+    "combiner.h": "c",
+    "transform.h": "c"
   },
   "files.exclude": {
     "**/.git": true,

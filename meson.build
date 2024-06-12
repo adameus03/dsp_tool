@@ -1,7 +1,7 @@
 project('signal_plotter_combiner', 'c')
 
 project_test_files = [
-  'tests/src/transform_tests.cpp',
+  'tests/transform_tests.c',
 ]
 
 
@@ -14,7 +14,7 @@ gtk3_dep = dependency('gtk+-3.0')
 cc = meson.get_compiler('c')
 add_project_arguments('-g', language: 'c')
 m_dep = cc.find_library('m', required : false)
-executable('signal_plotter_combiner', [
+src = [
     'main.c', 
     'controller.c', 
     'controller_timeshift.c',
@@ -32,16 +32,35 @@ executable('signal_plotter_combiner', [
     'model/converters/adc.c',
     'model/converters/dac.c',
     'model/measures/similarity.c'
-], dependencies : [gtk3_dep, m_dep], export_dynamic: true) #https://stackoverflow.com/questions/49545752/error-did-you-compile-with-rdynamic-seen-only-when-application-installed-usi
 
-add_languages('cpp')
+]
+executable('signal_plotter_combiner', src, 
+    dependencies : [gtk3_dep, m_dep], export_dynamic: true) #https://stackoverflow.com/questions/49545752/error-did-you-compile-with-rdynamic-seen-only-when-application-installed-usi
+
+lib_src = [
+    'model/gnuplot.c', 
+    'model/generator.c',
+    'model/signal.c',
+    'model/transform.c',
+    'model/combiner.c',
+    'model/aggregator.c',
+    'model/fir.c',
+    'model/__gcall.h',
+    'model/signal_fio.c',
+    'model/converters/adc.c',
+    'model/converters/dac.c',
+    'model/measures/similarity.c'
+]
+
+lib = static_library('signal_plotter_combiner_lib', lib_src, dependencies : [m_dep])
+
 subdir('tests')
 
-test('all_tests',
-    executable(
-        'run_tests',
-        files(project_test_files),
-        dependencies : [test_dep],
-        install : false
-    )
-)
+# test('all_tests',
+#     executable(
+#         'run_tests',
+#         files(project_test_files),
+#         dependencies : [test_dep],
+#         install : false
+#     )
+# )
