@@ -55,7 +55,6 @@ START_TEST(test_transform_generate_matrix_walsh_hadamard_recursive)
     free(pMatrix);
 
 }
-
 END_TEST
 
 START_TEST(test_transform_walsh_hadamard_real_naive)
@@ -100,6 +99,49 @@ START_TEST(test_transform_walsh_hadamard_real_naive)
     real_signal_free_values(&whSignal);
 
 }
+END_TEST
+
+START_TEST(test_transform_walsh_hadamard_real_fast)
+{
+    real_signal_t inputSignal = {
+        .info = {
+            .start_time = 0.0,
+            .sampling_frequency = 256.0,
+            .num_samples = 2
+        }
+    };
+    real_signal_alloc_values(&inputSignal);
+    inputSignal.pValues[0] = 1.0;
+    inputSignal.pValues[1] = 2.0;
+
+    walsh_hadamard_config_t config = {
+        .m = 1
+    };
+
+    real_signal_t whSignal = transform_walsh_hadamard_real_fast(&inputSignal, &config);
+
+    /*
+        The normalized Walsh-Hadamard matrix of order 1 is:
+        1/sqrt(2)  1/sqrt(2)
+        1/sqrt(2)  -1/sqrt(2)
+
+        The input signal is:
+        1
+        2
+
+        The output signal is:
+        3 / sqrt(2)
+        -1 / sqrt(2)
+    */
+
+    ck_assert_uint_eq(whSignal.info.num_samples, 2);
+    ck_assert_double_eq(whSignal.pValues[0], 3.0 / sqrt(2));
+    ck_assert_double_eq(whSignal.pValues[1], -1.0 / sqrt(2));
+
+    real_signal_free_values(&inputSignal);
+    real_signal_free_values(&whSignal);
+}
+END_TEST
 
 Suite *my_suite(void)
 {
@@ -114,6 +156,7 @@ Suite *my_suite(void)
     tcase_add_test(tc_core, test_transform_dft_real_naive);
     tcase_add_test(tc_core, test_transform_generate_matrix_walsh_hadamard_recursive);
     tcase_add_test(tc_core, test_transform_walsh_hadamard_real_naive);
+    tcase_add_test(tc_core, test_transform_walsh_hadamard_real_fast);
     suite_add_tcase(s, tc_core);
 
     return s;

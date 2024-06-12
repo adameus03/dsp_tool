@@ -1,6 +1,7 @@
 #include "transform.h"
 #include <stdlib.h>
 #include <stdio.h> // for error logging
+#include <memory.h>
 #define __USE_MISC
 #include <math.h>
 void histogram_data_aloc_codomain (pHistogram_data_t pHistogramData) { pHistogramData->codomain_values = (uint64_t*) malloc(pHistogramData->num_intervals * sizeof(uint64_t)); }
@@ -124,6 +125,11 @@ complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal) {
     return dftSignal;
 }
 
+complex_signal_t transform_dft_real_fast(real_signal_t* pRealSignal) {
+    fprintf(stderr, "transform_dft_real_fast not implemented");
+    exit(EXIT_FAILURE);
+}
+
 double* transform_generate_matrix_walsh_hadamard_recursive(uint64_t m) {
     fprintf(stdout, "transform_generate_matrix_walsh_hadamard_recursive called\n");
     uint64_t matrixSize = 1U << m;
@@ -233,3 +239,87 @@ real_signal_t transform_walsh_hadamard_real_naive(real_signal_t* pRealSignal, wa
     return whSignal;
 }
 
+real_signal_t transform_walsh_hadamard_unnormalized_real_fast(real_signal_t* pRealSignal, walsh_hadamard_config_t* pConfig) {
+    fprintf(stdout, "transform_walsh_hadamard_unnormalized_real_fast called\n");
+    
+    real_signal_t s1 = { .info = pRealSignal->info };
+    real_signal_t s2 = { .info = pRealSignal->info };
+    s1.info.num_samples = 1U << pConfig->m;
+    s2.info.num_samples = s1.info.num_samples;
+
+    if (pRealSignal->info.num_samples < s1.info.num_samples) {
+        fprintf(stderr, "Error: Input signal length is less than the side length of the Walsh-Hadamard matrix\n");
+        exit(EXIT_FAILURE);
+        return (real_signal_t) {
+            .info = pRealSignal->info,
+            .pValues = 0
+        };
+    }
+
+    real_signal_alloc_values(&s1);
+    real_signal_alloc_values(&s2);
+
+    memcpy(s1.pValues, pRealSignal->pValues, s1.info.num_samples * sizeof(double));
+
+    real_signal_t* pS1 = &s1;
+    real_signal_t* pS2 = &s2;
+
+    uint64_t blk_size = s1.info.num_samples;
+    uint64_t num_blks = 1U;
+
+    while (blk_size > 1) {
+        blk_size >>= 1;
+        num_blks <<= 1;
+
+        for (uint64_t i = 0; i < num_blks >> 1; i++) {
+            double* pTargetBlkAdd = pS2->pValues + ((blk_size * i) << 1);
+            double* pTargetBlkSub = pTargetBlkAdd + blk_size;
+            double* pSourceBlkCpy = pS1->pValues + ((blk_size * i) << 1);
+            double* pSourceBlkAgg = pSourceBlkCpy + blk_size;
+            
+            *pTargetBlkAdd = *pSourceBlkCpy;
+            *pTargetBlkAdd += *pSourceBlkAgg;
+            *pTargetBlkSub = *pSourceBlkCpy;
+            *pTargetBlkSub -= *pSourceBlkAgg;
+
+            real_signal_t* pS = pS1;
+            pS1 = pS2;
+            pS2 = pS;
+        }
+    }
+
+    real_signal_t* pOutputSignal = 0;
+    real_signal_t* pDisposeSignal = 0;
+    
+    if (pConfig->m % 2) {
+        pOutputSignal = pS1;
+        pDisposeSignal = pS2;
+    } else {
+        pOutputSignal = pS2;
+        pDisposeSignal = pS1;
+    }
+
+    real_signal_free_values(pDisposeSignal);
+
+    return *pOutputSignal;    
+}
+
+real_signal_t transform_walsh_hadamard_real_fast(real_signal_t* pRealSignal, walsh_hadamard_config_t* pConfig) {
+    fprintf(stdout, "transform_walsh_hadamard_real_fast called\n");
+    
+    real_signal_t s = transform_walsh_hadamard_unnormalized_real_fast(pRealSignal, pConfig);
+    
+    if (s.pValues && s.info.num_samples) {
+        double divider = sqrt((double)(1U << pConfig->m));
+        for (uint64_t i = 0; i < s.info.num_samples; i++) {
+            double* pValue = s.pValues + i;
+            *pValue /= divider;
+        }
+    } else {
+        fprintf(stderr, "Error: blank transformed signal.");
+        exit(EXIT_FAILURE);
+    }
+
+    return s;
+    
+}
