@@ -36,6 +36,9 @@ void histogram_data_free_codomain (pHistogram_data_t pHistogramData);
 */
 histogram_data_t rsignal_to_histogram_transform(real_signal_t* pRealSignal, uint64_t numIntervals);
 
-complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal);
 
+double* transform_generate_matrix_walsh_hadamard_recursive(uint64_t m);
+double* transform_generate_matrix_walsh_hadamard_normalized_recursive(uint64_t m);
+
+complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal);
 real_signal_t transform_walsh_hadamard_real_naive(real_signal_t* pRealSignal, walsh_hadamard_config_t* pConfig);

@@ -124,7 +124,8 @@ complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal) {
     return dftSignal;
 }
 
-static double* __transform_generate_matrix_walsh_hadamard_recursive_no_divider(uint64_t m) {
+double* transform_generate_matrix_walsh_hadamard_recursive(uint64_t m) {
+    fprintf(stdout, "transform_generate_matrix_walsh_hadamard_recursive called\n");
     uint64_t matrixSize = 1U << m;
     double* pMatrix = (double*) malloc(matrixSize * matrixSize * sizeof(double));
 
@@ -138,7 +139,7 @@ static double* __transform_generate_matrix_walsh_hadamard_recursive_no_divider(u
         return pMatrix;
     }
 
-    double* pSubMatrix = __transform_generate_matrix_walsh_hadamard_recursive_no_divider(m - 1);
+    double* pSubMatrix = transform_generate_matrix_walsh_hadamard_recursive(m - 1);
 
     if (pSubMatrix == 0) {
         free(pMatrix);
@@ -169,8 +170,9 @@ static double* __transform_generate_matrix_walsh_hadamard_recursive_no_divider(u
     return pMatrix;
 }
 
-static double* __transform_generate_matrix_walsh_hadamard_recursive(uint64_t m) {
-    double* pMatrix = __transform_generate_matrix_walsh_hadamard_recursive_no_divider(m);
+double* transform_generate_matrix_walsh_hadamard_normalized_recursive(uint64_t m) {
+    fprintf(stdout, "transform_generate_matrix_walsh_hadamard_normalized_recursive called\n");
+    double* pMatrix = transform_generate_matrix_walsh_hadamard_recursive(m);
 
     if (pMatrix == 0) {
         return 0;
@@ -188,6 +190,7 @@ static double* __transform_generate_matrix_walsh_hadamard_recursive(uint64_t m) 
 }
 
 real_signal_t transform_walsh_hadamard_real_naive(real_signal_t* pRealSignal, walsh_hadamard_config_t* pConfig) {
+    fprintf(stdout, "transform_walsh_hadamard_real_naive called\n");
     if (pRealSignal->info.num_samples == 0) {
         fprintf(stderr, "Error: Won't transform a null signal\n");
         return (real_signal_t) {
@@ -209,7 +212,7 @@ real_signal_t transform_walsh_hadamard_real_naive(real_signal_t* pRealSignal, wa
         return whSignal;
     }
 
-    double* pMatrix = __transform_generate_matrix_walsh_hadamard_recursive(pConfig->m);
+    double* pMatrix = transform_generate_matrix_walsh_hadamard_normalized_recursive(pConfig->m);
 
     if (pMatrix == 0) {
         fprintf(stderr, "Error: Failed to generate Walsh-Hadamard matrix with m = %lu\n", pConfig->m);
@@ -224,6 +227,8 @@ real_signal_t transform_walsh_hadamard_real_naive(real_signal_t* pRealSignal, wa
             *pWhValue += pRealSignal->pValues[j] * pMatrix[i * whSignal.info.num_samples + j];
         }
     }
+
+    free(pMatrix);
 
     return whSignal;
 }
