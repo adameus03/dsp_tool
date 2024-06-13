@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h> // for error logging
 #include <memory.h>
+#include <assert.h>
 #define __USE_MISC
 #include <math.h>
 void histogram_data_aloc_codomain (pHistogram_data_t pHistogramData) { pHistogramData->codomain_values = (uint64_t*) malloc(pHistogramData->num_intervals * sizeof(uint64_t)); }
@@ -141,7 +142,7 @@ complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal) {
     // Set m as the smallest power of 2 that is greater than or equal to the original number of samples
     uint64_t m = 0;
     uint64_t n = pRealSignal->info.num_samples;
-    while (n > 0) {
+    while (n > 1) {
         n >>= 1;
         m++;
     }
@@ -169,7 +170,9 @@ complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal) {
     }
 
     for (uint64_t i = 0; i < s1.info.num_samples; i++) {
-        s1.pValues[i] = s2.pValues[transform_bits_reverse(i, m)];
+        uint64_t jRev = transform_bits_reverse(i, m);
+        assert(jRev < s1.info.num_samples);
+        s1.pValues[i] = s2.pValues[jRev];
     }
 
     complex_signal_t* pS1 = &s1;
@@ -182,7 +185,7 @@ complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal) {
         blk_size <<= 1;
         num_blks >>= 1;
          
-        for (uint64_t i = 0; i < num_blks << 1; i++) {
+        for (uint64_t i = 0; i < num_blks; i++) {
             double complex* pSourceSublkCpy = pS1->pValues + (blk_size * i);
             double complex* pSourceSublkAgg = pSourceSublkCpy + (blk_size >> 1);
             double complex* pTargetSublkAdd = pS2->pValues + (blk_size * i);
@@ -193,6 +196,12 @@ complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal) {
                 double complex* pSourceSublkAggValue = pSourceSublkAgg + j;
                 double complex* pTargetSublkAddValue = pTargetSublkAdd + j;
                 double complex* pTargetSublkSubValue = pTargetSublkSub + j;
+
+                //fprintf(stdout, "[dbg] blk_size = %lu, num_blks = %lu, i = %lu, j = %lu\n", blk_size, num_blks, i, j);
+                assert(pSourceSublkCpyValue < pS1->pValues + s1.info.num_samples);
+                assert(pSourceSublkAggValue < pS1->pValues + s1.info.num_samples);
+                assert(pTargetSublkAddValue < pS2->pValues + s2.info.num_samples);
+                assert(pTargetSublkSubValue < pS2->pValues + s2.info.num_samples);
 
                 double complex scaler = cexp(-2.0 * M_PI * I / (double)blk_size * (double)j);
                 *pTargetSublkAddValue = *pSourceSublkCpyValue;
@@ -217,6 +226,8 @@ complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal) {
         pOutputSignal = pS2;
         pDisposeSignal = pS1;
     }
+
+    assert (pS1->pValues != pS2->pValues);
 
     complex_signal_free_values(pDisposeSignal);
     return *pOutputSignal;    
