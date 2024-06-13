@@ -126,7 +126,7 @@ complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal) {
     return dftSignal;
 }
 
-static uint64_t transform_bits_reverse(uint64_t x, uint64_t m) {
+uint64_t transform_bits_reverse(uint64_t x, uint64_t m) {
     uint64_t y = 0;
     for (uint64_t i = 0; i < m; i++) {
         y <<= 1;
@@ -197,17 +197,29 @@ complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal) {
                 double complex* pTargetSublkAddValue = pTargetSublkAdd + j;
                 double complex* pTargetSublkSubValue = pTargetSublkSub + j;
 
-                //fprintf(stdout, "[dbg] blk_size = %lu, num_blks = %lu, i = %lu, j = %lu\n", blk_size, num_blks, i, j);
+                fprintf(stdout, "[dbg] blk_size = %lu, num_blks = %lu, i = %lu, j = %lu\n", blk_size, num_blks, i, j);
+                fprintf(stdout, "[dbg] Before (source):  pSourceSublkCpyValue = %lf%+lfi, pSourceSublkAggValue = %lf%+lfi\n", creal(*pSourceSublkCpyValue), cimag(*pSourceSublkCpyValue), creal(*pSourceSublkAggValue), cimag(*pSourceSublkAggValue));
                 assert(pSourceSublkCpyValue < pS1->pValues + s1.info.num_samples);
                 assert(pSourceSublkAggValue < pS1->pValues + s1.info.num_samples);
                 assert(pTargetSublkAddValue < pS2->pValues + s2.info.num_samples);
                 assert(pTargetSublkSubValue < pS2->pValues + s2.info.num_samples);
 
+                // Displacements for debugging the butterfly diagram implementation of FFT
+                int sourceSublkCpyValueDisplacement = (int)(pSourceSublkCpyValue - pS1->pValues);
+                int sourceSublkAggValueDisplacement = (int)(pSourceSublkAggValue - pS1->pValues);
+                int targetSublkAddValueDisplacement = (int)(pTargetSublkAddValue - pS2->pValues);
+                int targetSublkSubValueDisplacement = (int)(pTargetSublkSubValue - pS2->pValues);
+                
                 double complex scaler = cexp(-2.0 * M_PI * I / (double)blk_size * (double)j);
+                fprintf(stdout, "[dbg] Scaler: %lf%+lfi\n", creal(scaler), cimag(scaler));
+
                 *pTargetSublkAddValue = *pSourceSublkCpyValue;
                 *pTargetSublkAddValue += (*pSourceSublkAggValue) * scaler;
                 *pTargetSublkSubValue = *pSourceSublkCpyValue;
                 *pTargetSublkSubValue -= (*pSourceSublkAggValue) * scaler;
+
+                fprintf(stdout, "[dbg] After (target): pTargetSublkAddValue = %lf%+lfi, pTargetSublkSubValue = %lf%+lfi\n", creal(*pTargetSublkAddValue), cimag(*pTargetSublkAddValue), creal(*pTargetSublkSubValue), cimag(*pTargetSublkSubValue));
+                fprintf(stdout, "[dbg] Displacements: sourceSublkCpyValue = %d, sourceSublkAggValue = %d, targetSublkAddValue = %d, targetSublkSubValue = %d\n", sourceSublkCpyValueDisplacement, sourceSublkAggValueDisplacement, targetSublkAddValueDisplacement, targetSublkSubValueDisplacement);
             }
         }
         complex_signal_t* pS = pS1;
@@ -221,6 +233,13 @@ complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal) {
     assert (pS1->pValues != pS2->pValues);
 
     complex_signal_free_values(pDisposeSignal);
+
+    // Normalize the output signal
+    for (uint64_t i = 0; i < pOutputSignal->info.num_samples; i++) {
+        double complex* pValue = pOutputSignal->pValues + i;
+        *pValue /= pOutputSignal->info.num_samples;
+    }
+
     return *pOutputSignal;    
     
 }
@@ -381,7 +400,7 @@ real_signal_t transform_walsh_hadamard_unnormalized_real_fast(real_signal_t* pRe
                 fprintf(stdout, "[dbg] blk_size = %lu, num_blks = %lu, i = %lu, j = %lu\n", blk_size, num_blks, i, j);
                 fprintf(stdout, "[dbg] Before (source):  pSourceBlkCpyValue = %lf, pSourceBlkAggValue = %lf\n", *pSourceBlkCpyValue, *pSourceBlkAggValue);
 
-                // Displacements for debugging the butterfly diagram implementation
+                // Displacements for debugging the butterfly diagram implementation of WHT
                 int targetBlkAddValueDisplacement = (int)(pTargetBlkAddValue - pS2->pValues);
                 int targetBlkSubValueDisplacement = (int)(pTargetBlkSubValue - pS2->pValues);
                 int sourceBlkCpyValueDisplacement = (int)(pSourceBlkCpyValue - pS1->pValues);

@@ -9,6 +9,25 @@
 #include "../model/combiner.h"
 
 
+START_TEST(test_transform_bits_reverse)
+{
+    ck_assert_uint_eq(transform_bits_reverse(0, 1), 0);
+    ck_assert_uint_eq(transform_bits_reverse(1, 1), 1);
+    ck_assert_uint_eq(transform_bits_reverse(0, 2), 0);
+    ck_assert_uint_eq(transform_bits_reverse(1, 2), 2);
+    ck_assert_uint_eq(transform_bits_reverse(2, 2), 1);
+    ck_assert_uint_eq(transform_bits_reverse(3, 2), 3);
+    ck_assert_uint_eq(transform_bits_reverse(0, 3), 0);
+    ck_assert_uint_eq(transform_bits_reverse(1, 3), 4);
+    ck_assert_uint_eq(transform_bits_reverse(2, 3), 2);
+    ck_assert_uint_eq(transform_bits_reverse(3, 3), 6);
+    ck_assert_uint_eq(transform_bits_reverse(4, 3), 1);
+    ck_assert_uint_eq(transform_bits_reverse(5, 3), 5);
+    ck_assert_uint_eq(transform_bits_reverse(6, 3), 3);
+    ck_assert_uint_eq(transform_bits_reverse(7, 3), 7);
+
+}
+
 START_TEST(test_basic_transform_dft_real_naive)
 {
     generator_info_t info = { 
@@ -141,7 +160,7 @@ void debug_test() {
         .info = {
             .start_time = 0.0,
             .sampling_frequency = 256.0,
-            .num_samples = 8
+            .num_samples = 4
         }
     };
     real_signal_alloc_values(&inputSignal);
@@ -149,69 +168,36 @@ void debug_test() {
     inputSignal.pValues[1] = 2.0;
     inputSignal.pValues[2] = 3.0;
     inputSignal.pValues[3] = 4.0;
-    inputSignal.pValues[4] = 6.0;
-    inputSignal.pValues[5] = 5.0;
-    inputSignal.pValues[6] = 9.0;
-    inputSignal.pValues[7] = 8.5;
 
-    walsh_hadamard_config_t config = {
-        .m = 3
-    };
+    complex_signal_t dftSignal = transform_dft_real_fast_p2(&inputSignal);
 
-    real_signal_t whSignalNaive = transform_walsh_hadamard_real_naive(&inputSignal, &config);
-    real_signal_t whSignalFast = transform_walsh_hadamard_real_fast(&inputSignal, &config);
+    // Check if the DFT signal has the same number of samples as the input signal
+    assert(dftSignal.info.num_samples == inputSignal.info.num_samples);
 
-    assert(whSignalNaive.info.num_samples == whSignalFast.info.num_samples);
+    // Check sample values
+    // ck_assert_double_eq_tol(creal(dftSignal.pValues[0]), 2.5, 1e-10);
+    // ck_assert_double_eq_tol(cimag(dftSignal.pValues[0]), 0.0, 1e-10);
+    // ck_assert_double_eq_tol(creal(dftSignal.pValues[1]), -0.5, 1e-10);
+    // ck_assert_double_eq_tol(cimag(dftSignal.pValues[1]), 0.5, 1e-10);
+    // ck_assert_double_eq_tol(creal(dftSignal.pValues[2]), -0.5, 1e-10);
+    // ck_assert_double_eq_tol(cimag(dftSignal.pValues[2]), 0.0, 1e-10);
+    // ck_assert_double_eq_tol(creal(dftSignal.pValues[3]), -0.5, 1e-10);
+    // ck_assert_double_eq_tol(cimag(dftSignal.pValues[3]), -0.5, 1e-10);
 
-    for (uint64_t i = 0; i < whSignalNaive.info.num_samples; i++) {
-        double naiveValue = whSignalNaive.pValues[i];
-        double fastValue = whSignalFast.pValues[i];
+    double expectedRe[4] = {2.5, -0.5, -0.5, -0.5};
+    double expectedIm[4] = {0.0, 0.5, 0.0, -0.5};
+    
+    for (uint64_t i = 0; i < 4; i++) {
+        fprintf(stdout, "[dbg] i = %lu, actual = %lf%+lfi, expected = %lf%+lfi\n", i, creal(dftSignal.pValues[i]), cimag(dftSignal.pValues[i]), expectedRe[i], expectedIm[i]);
+        // ck_assert_double_eq_tol(creal(dftSignal.pValues[i]), expectedRe[i], 1e-10);
+        // ck_assert_double_eq_tol(cimag(dftSignal.pValues[i]), expectedIm[i], 1e-10);
 
-        fprintf(stdout, "[dbg] i = %lu, naiveValue = %lf, fastValue = %lf\n", i, naiveValue, fastValue);
-
-        assert(fabs(whSignalNaive.pValues[i] - whSignalFast.pValues[i]) < 1e-10);
+        //assert(fabs(creal(dftSignal.pValues[i]) - expectedRe[i]) < 1e-10);
+        //assert(fabs(cimag(dftSignal.pValues[i]) - expectedIm[i]) < 1e-10);
     }
 
     real_signal_free_values(&inputSignal);
-    real_signal_free_values(&whSignalNaive);
-    real_signal_free_values(&whSignalFast);
-}
-
-void debug_test_ccc() {
-    generator_info_t info = { 
-        .sampling_frequency = 8.0
-    };
-
-    double freq1 = 2.0;
-    double freq2 = 3.0;
-    real_signal_t signal = generate_sine(info, 1.0, 1.0 / freq1, 0.0, 8.0);
-    real_signal_t sine2 = generate_sine(info, 1.0, 1.0 / freq2, 0.0, 8.0);
-
-    add_signal(&signal, &sine2);
-    real_signal_free_values(&sine2);
-
-    complex_signal_t dftNaive = transform_dft_real_naive(&signal);
-    complex_signal_t dftFast = transform_dft_real_fast_p2(&signal);
-
-    assert(dftNaive.info.num_samples == dftFast.info.num_samples);
-    assert(fabs(dftNaive.info.sampling_frequency - dftFast.info.sampling_frequency) < 1e-10);
-
-    for (uint64_t i = 0; i < dftNaive.info.num_samples; i++) {
-
-        double naiveRe = creal(dftNaive.pValues[i]);
-        double naiveIm = cimag(dftNaive.pValues[i]);
-        double fastRe = creal(dftFast.pValues[i]);
-        double fastIm = cimag(dftFast.pValues[i]);
-
-        fprintf(stdout, "[dbg] i = %lu, naiveRe = %lf, fastRe = %lf, naiveIm = %lf, fastIm = %lf\n", i, naiveRe, fastRe, naiveIm, fastIm);
-
-        // assert(fabs(naiveRe - fastRe) < 1e-5);
-        // assert(fabs(naiveIm - fastIm) < 1e-5);
-    }
-
-    real_signal_free_values(&signal);
-    complex_signal_free_values(&dftNaive);
-    complex_signal_free_values(&dftFast);
+    complex_signal_free_values(&dftSignal);
 }
 
 START_TEST(test_check_dft_methods_equivalence) {
@@ -574,20 +560,21 @@ Suite *my_suite(void)
     /* Core test case */
     tc_core = tcase_create("Core");
 
-    //tcase_add_test(tc_core, test_basic_transform_dft_real_naive);
-    //tcase_add_test(tc_core, test_basic_transform_dft_real_fast_p2);
+    tcase_add_test(tc_core, test_basic_transform_dft_real_naive);
+    tcase_add_test(tc_core, test_basic_transform_dft_real_fast_p2);
     tcase_add_test(tc_core, test_transform_dft_real_naive);
-    //tcase_add_test(tc_core, test_transform_dft_real_fast_p2);
-    //tcase_add_test(tc_core, test_check_dft_methods_equivalence);
+    tcase_add_test(tc_core, test_transform_bits_reverse);
+    tcase_add_test(tc_core, test_transform_dft_real_fast_p2);
+    tcase_add_test(tc_core, test_check_dft_methods_equivalence);
 
-    // tcase_add_test(tc_core, test_transform_generate_matrix_walsh_hadamard_recursive_1);
-    // tcase_add_test(tc_core, test_transform_generate_matrix_walsh_hadamard_recursive_2);
-    // tcase_add_test(tc_core, test_transform_generate_matrix_walsh_hadamard_recursive_3);
-    // tcase_add_test(tc_core, test_transform_walsh_hadamard_real_naive);
-    // tcase_add_test(tc_core, test_transform_walsh_hadamard_real_fast);
-    // tcase_add_test(tc_core, test_transform_walsh_hadamard_real_naive_1);
-    // tcase_add_test(tc_core, test_transform_walsh_hadamard_real_fast_1);
-    // tcase_add_test(tc_core, test_check_walsh_hadamard_methods_equivalence);
+    tcase_add_test(tc_core, test_transform_generate_matrix_walsh_hadamard_recursive_1);
+    tcase_add_test(tc_core, test_transform_generate_matrix_walsh_hadamard_recursive_2);
+    tcase_add_test(tc_core, test_transform_generate_matrix_walsh_hadamard_recursive_3);
+    tcase_add_test(tc_core, test_transform_walsh_hadamard_real_naive);
+    tcase_add_test(tc_core, test_transform_walsh_hadamard_real_fast);
+    tcase_add_test(tc_core, test_transform_walsh_hadamard_real_naive_1);
+    tcase_add_test(tc_core, test_transform_walsh_hadamard_real_fast_1);
+    tcase_add_test(tc_core, test_check_walsh_hadamard_methods_equivalence);
     
     
     suite_add_tcase(s, tc_core);

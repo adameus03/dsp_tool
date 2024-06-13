@@ -1,8 +1,6 @@
 /**
  * @file transform.h
- * @attention As gnuplot can handle signal data conversion to prepare histogram,
- * transform.h/transform.c has become redundant as for ZAD1
- * @attention As gnuplot can handle signal data conversion to prepare histogram, the following functions became redundant:
+ * @attention As gnuplot can handle signal data conversion to prepare histogram, the following functions became redundant as for ZAD1:
  * rsignal_to_histogram_transform(), histogram_data_aloc_codomain(), histogram_data_free_codomain()
 */
 
@@ -39,6 +37,8 @@ histogram_data_t rsignal_to_histogram_transform(real_signal_t* pRealSignal, uint
 
 double* transform_generate_matrix_walsh_hadamard_recursive(uint64_t m);
 double* transform_generate_matrix_walsh_hadamard_normalized_recursive(uint64_t m);
+
+uint64_t transform_bits_reverse(uint64_t x, uint64_t m);
 
 complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal);
 complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal);
