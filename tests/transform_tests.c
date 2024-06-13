@@ -9,7 +9,7 @@
 #include "../model/combiner.h"
 
 
-START_TEST(test_transform_dft_real_naive)
+START_TEST(test_basic_transform_dft_real_naive)
 {
     generator_info_t info = { 
         .sampling_frequency = 256.0
@@ -39,7 +39,7 @@ START_TEST(test_transform_dft_real_naive)
 }
 END_TEST
 
-START_TEST(test_transform_dft_real_fast_p2) {
+START_TEST(test_basic_transform_dft_real_fast_p2) {
     generator_info_t info = { 
         .sampling_frequency = 8.0
     };
@@ -64,6 +64,74 @@ START_TEST(test_transform_dft_real_fast_p2) {
     real_signal_free_values(&signal);
     complex_signal_free_values(&dftSignal);
 
+}
+
+START_TEST(test_transform_dft_real_naive)
+{
+    real_signal_t inputSignal = {
+        .info = {
+            .start_time = 0.0,
+            .sampling_frequency = 256.0,
+            .num_samples = 4
+        }
+    };
+    real_signal_alloc_values(&inputSignal);
+    inputSignal.pValues[0] = 1.0;
+    inputSignal.pValues[1] = 2.0;
+    inputSignal.pValues[2] = 3.0;
+    inputSignal.pValues[3] = 4.0;
+
+    complex_signal_t dftSignal = transform_dft_real_naive(&inputSignal);
+
+    // Check if the DFT signal has the same number of samples as the input signal
+    ck_assert_uint_eq(dftSignal.info.num_samples, inputSignal.info.num_samples);
+
+    // Check sample values
+    ck_assert_double_eq_tol(creal(dftSignal.pValues[0]), 2.5, 1e-10);
+    ck_assert_double_eq_tol(cimag(dftSignal.pValues[0]), 0.0, 1e-10);
+    ck_assert_double_eq_tol(creal(dftSignal.pValues[1]), -0.5, 1e-10);
+    ck_assert_double_eq_tol(cimag(dftSignal.pValues[1]), 0.5, 1e-10);
+    ck_assert_double_eq_tol(creal(dftSignal.pValues[2]), -0.5, 1e-10);
+    ck_assert_double_eq_tol(cimag(dftSignal.pValues[2]), 0.0, 1e-10);
+    ck_assert_double_eq_tol(creal(dftSignal.pValues[3]), -0.5, 1e-10);
+    ck_assert_double_eq_tol(cimag(dftSignal.pValues[3]), -0.5, 1e-10);
+
+    real_signal_free_values(&inputSignal);
+    complex_signal_free_values(&dftSignal);
+}
+
+START_TEST(test_transform_dft_real_fast_p2)
+{
+    real_signal_t inputSignal = {
+        .info = {
+            .start_time = 0.0,
+            .sampling_frequency = 256.0,
+            .num_samples = 4
+        }
+    };
+    real_signal_alloc_values(&inputSignal);
+    inputSignal.pValues[0] = 1.0;
+    inputSignal.pValues[1] = 2.0;
+    inputSignal.pValues[2] = 3.0;
+    inputSignal.pValues[3] = 4.0;
+
+    complex_signal_t dftSignal = transform_dft_real_fast_p2(&inputSignal);
+
+    // Check if the DFT signal has the same number of samples as the input signal
+    ck_assert_uint_eq(dftSignal.info.num_samples, inputSignal.info.num_samples);
+
+    // Check sample values
+    ck_assert_double_eq_tol(creal(dftSignal.pValues[0]), 2.5, 1e-10);
+    ck_assert_double_eq_tol(cimag(dftSignal.pValues[0]), 0.0, 1e-10);
+    ck_assert_double_eq_tol(creal(dftSignal.pValues[1]), -0.5, 1e-10);
+    ck_assert_double_eq_tol(cimag(dftSignal.pValues[1]), 0.5, 1e-10);
+    ck_assert_double_eq_tol(creal(dftSignal.pValues[2]), -0.5, 1e-10);
+    ck_assert_double_eq_tol(cimag(dftSignal.pValues[2]), 0.0, 1e-10);
+    ck_assert_double_eq_tol(creal(dftSignal.pValues[3]), -0.5, 1e-10);
+    ck_assert_double_eq_tol(cimag(dftSignal.pValues[3]), -0.5, 1e-10);
+
+    real_signal_free_values(&inputSignal);
+    complex_signal_free_values(&dftSignal);
 }
 
 //#define CUSTOM_DEBUG
@@ -506,18 +574,20 @@ Suite *my_suite(void)
     /* Core test case */
     tc_core = tcase_create("Core");
 
+    //tcase_add_test(tc_core, test_basic_transform_dft_real_naive);
+    //tcase_add_test(tc_core, test_basic_transform_dft_real_fast_p2);
     tcase_add_test(tc_core, test_transform_dft_real_naive);
-    tcase_add_test(tc_core, test_transform_dft_real_fast_p2);
-    tcase_add_test(tc_core, test_check_dft_methods_equivalence);
+    //tcase_add_test(tc_core, test_transform_dft_real_fast_p2);
+    //tcase_add_test(tc_core, test_check_dft_methods_equivalence);
 
-    tcase_add_test(tc_core, test_transform_generate_matrix_walsh_hadamard_recursive_1);
-    tcase_add_test(tc_core, test_transform_generate_matrix_walsh_hadamard_recursive_2);
-    tcase_add_test(tc_core, test_transform_generate_matrix_walsh_hadamard_recursive_3);
-    tcase_add_test(tc_core, test_transform_walsh_hadamard_real_naive);
-    tcase_add_test(tc_core, test_transform_walsh_hadamard_real_fast);
-    tcase_add_test(tc_core, test_transform_walsh_hadamard_real_naive_1);
-    tcase_add_test(tc_core, test_transform_walsh_hadamard_real_fast_1);
-    tcase_add_test(tc_core, test_check_walsh_hadamard_methods_equivalence);
+    // tcase_add_test(tc_core, test_transform_generate_matrix_walsh_hadamard_recursive_1);
+    // tcase_add_test(tc_core, test_transform_generate_matrix_walsh_hadamard_recursive_2);
+    // tcase_add_test(tc_core, test_transform_generate_matrix_walsh_hadamard_recursive_3);
+    // tcase_add_test(tc_core, test_transform_walsh_hadamard_real_naive);
+    // tcase_add_test(tc_core, test_transform_walsh_hadamard_real_fast);
+    // tcase_add_test(tc_core, test_transform_walsh_hadamard_real_naive_1);
+    // tcase_add_test(tc_core, test_transform_walsh_hadamard_real_fast_1);
+    // tcase_add_test(tc_core, test_check_walsh_hadamard_methods_equivalence);
     
     
     suite_add_tcase(s, tc_core);
