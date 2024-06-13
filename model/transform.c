@@ -209,23 +209,14 @@ complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal) {
                 *pTargetSublkSubValue = *pSourceSublkCpyValue;
                 *pTargetSublkSubValue -= (*pSourceSublkAggValue) * scaler;
             }
-
-            complex_signal_t* pS = pS1;
-            pS1 = pS2;
-            pS2 = pS;
         }
+        complex_signal_t* pS = pS1;
+        pS1 = pS2;
+        pS2 = pS;
     }
 
-    complex_signal_t* pOutputSignal = 0;
-    complex_signal_t* pDisposeSignal = 0;
-
-    if (m % 2) {
-        pOutputSignal = pS1;
-        pDisposeSignal = pS2;
-    } else {
-        pOutputSignal = pS2;
-        pDisposeSignal = pS1;
-    }
+    complex_signal_t* pOutputSignal = pS1;
+    complex_signal_t* pDisposeSignal = pS2;
 
     assert (pS1->pValues != pS2->pValues);
 
@@ -362,7 +353,7 @@ real_signal_t transform_walsh_hadamard_unnormalized_real_fast(real_signal_t* pRe
 
     real_signal_alloc_values(&s1);
     real_signal_alloc_values(&s2);
-
+    
     memcpy(s1.pValues, pRealSignal->pValues, s1.info.num_samples * sizeof(double));
 
     real_signal_t* pS1 = &s1;
@@ -387,32 +378,35 @@ real_signal_t transform_walsh_hadamard_unnormalized_real_fast(real_signal_t* pRe
                 double* pSourceBlkCpyValue = pSourceBlkCpy + j;
                 double* pSourceBlkAggValue = pSourceBlkAgg + j;
 
+                fprintf(stdout, "[dbg] blk_size = %lu, num_blks = %lu, i = %lu, j = %lu\n", blk_size, num_blks, i, j);
+                fprintf(stdout, "[dbg] Before (source):  pSourceBlkCpyValue = %lf, pSourceBlkAggValue = %lf\n", *pSourceBlkCpyValue, *pSourceBlkAggValue);
+
+                // Displacements for debugging the butterfly diagram implementation
+                int targetBlkAddValueDisplacement = (int)(pTargetBlkAddValue - pS2->pValues);
+                int targetBlkSubValueDisplacement = (int)(pTargetBlkSubValue - pS2->pValues);
+                int sourceBlkCpyValueDisplacement = (int)(pSourceBlkCpyValue - pS1->pValues);
+                int sourceBlkAggValueDisplacement = (int)(pSourceBlkAggValue - pS1->pValues);
+
                 *pTargetBlkAddValue = *pSourceBlkCpyValue;
                 *pTargetBlkAddValue += *pSourceBlkAggValue;
                 *pTargetBlkSubValue = *pSourceBlkCpyValue;
                 *pTargetBlkSubValue -= *pSourceBlkAggValue;
+
+                fprintf(stdout, "[dbg] After (target): pTargetBlkAddValue = %lf, pTargetBlkSubValue = %lf\n", *pTargetBlkAddValue, *pTargetBlkSubValue);
+                fprintf(stdout, "[dbg] Displacements: targetBlkAddValue = %d, targetBlkSubValue = %d, sourceBlkCpyValue = %d, sourceBlkAggValue = %d\n", targetBlkAddValueDisplacement, targetBlkSubValueDisplacement, sourceBlkCpyValueDisplacement, sourceBlkAggValueDisplacement);
             }
-
-            real_signal_t* pS = pS1;
-            pS1 = pS2;
-            pS2 = pS;
         }
+        real_signal_t* pS = pS1;
+        pS1 = pS2;
+        pS2 = pS;
     }
 
-    real_signal_t* pOutputSignal = 0;
-    real_signal_t* pDisposeSignal = 0;
+    real_signal_t* pOutputSignal = pS1;
+    real_signal_t* pDisposeSignal = pS2;
     
-    if (pConfig->m % 2) {
-        pOutputSignal = pS1;
-        pDisposeSignal = pS2;
-    } else {
-        pOutputSignal = pS2;
-        pDisposeSignal = pS1;
-    }
-
     real_signal_free_values(pDisposeSignal);
 
-    return *pOutputSignal;    
+    return *pOutputSignal;
 }
 
 real_signal_t transform_walsh_hadamard_real_fast(real_signal_t* pRealSignal, walsh_hadamard_config_t* pConfig) {
