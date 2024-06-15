@@ -50,7 +50,7 @@ static void set_param_names(uint8_t filterTypeIdx) {
             break;
         case 2U:
             gtk_label_set_text(GTK_LABEL(widgets.label_param1), "BPF left cutoff frequency");
-            gtk_label_set_text(GTK_LABEL(widgets.label_param2), "BPF left cutoff frequency");
+            gtk_label_set_text(GTK_LABEL(widgets.label_param2), "BPF right cutoff frequency");
             gtk_widget_set_visible(widgets.label_param1, TRUE);
             gtk_widget_set_visible(widgets.label_param2, TRUE);
             gtk_widget_set_visible(widgets.entry_param1val, TRUE);

@@ -23,6 +23,29 @@ typedef struct {
     uint64_t m; 
 } walsh_hadamard_config_t;
 
+typedef struct {
+
+} dft_config_t;
+
+typedef enum {
+    TRANSFORM_TYPE_DFT,
+    TRANSFORM_TYPE_WALSH_HADAMARD
+} transform_type;
+
+typedef enum {
+    TRANSFORM_COMPUTATION_MODE_NAIVE,
+    TRANSFORM_COMPUTATION_MOVE_FAST
+} transform_computation_mode;
+
+typedef struct {
+    transform_type transformType;
+    transform_computation_mode computationMode;
+    union {
+        dft_config_t dftConfig;
+        walsh_hadamard_config_t whConfig;
+    };
+} transform_common_config_t;
+
 typedef histogram_data_t* pHistogram_data_t;
 
 void histogram_data_aloc_codomain (pHistogram_data_t pHistogramData);
@@ -30,7 +53,7 @@ void histogram_data_free_codomain (pHistogram_data_t pHistogramData);
 
 /**
  * Transforms real signal to histogram data by switching from the time domain to the amplitude domain
- * @attention You need to call `histogram_data_free_codomain()` after the output struct is no longer used
+ * @note You need to call `histogram_data_free_codomain()` after the output struct is no longer used
 */
 histogram_data_t rsignal_to_histogram_transform(real_signal_t* pRealSignal, uint64_t numIntervals);
 

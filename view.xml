@@ -524,6 +524,53 @@
                     <property name="y">1</property>
                   </packing>
                 </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="width-request">63</property>
+                    <property name="height-request">20</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="label" translatable="yes">View type:</property>
+                  </object>
+                  <packing>
+                    <property name="x">419</property>
+                    <property name="y">9</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkComboBoxText" id="comboBoxText_BviewType">
+                    <property name="width-request">151</property>
+                    <property name="height-request">34</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="active">0</property>
+                    <items>
+                      <item translatable="yes">Real values only</item>
+                      <item translatable="yes">Complex cartesian</item>
+                      <item translatable="yes">Complex polar</item>
+                    </items>
+                    <signal name="changed" handler="on_comboBoxText_BviewType_changed" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="x">493</property>
+                    <property name="y">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="button_Btransform">
+                    <property name="label" translatable="yes">Transform</property>
+                    <property name="width-request">94</property>
+                    <property name="height-request">34</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <signal name="clicked" handler="on_button_Btransform_clicked" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="x">318</property>
+                    <property name="y">1</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="left-attach">1</property>
@@ -987,6 +1034,53 @@
                     <property name="y">1</property>
                   </packing>
                 </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="width-request">63</property>
+                    <property name="height-request">30</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="label" translatable="yes">View type:</property>
+                  </object>
+                  <packing>
+                    <property name="x">418</property>
+                    <property name="y">4</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkComboBoxText" id="comboBoxText_AviewType">
+                    <property name="width-request">151</property>
+                    <property name="height-request">34</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="active">0</property>
+                    <items>
+                      <item translatable="yes">Real values only</item>
+                      <item translatable="yes">Complex cartesian</item>
+                      <item translatable="yes">Complex polar</item>
+                    </items>
+                    <signal name="changed" handler="on_comboBoxText_AviewType_changed" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="x">502</property>
+                    <property name="y">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="button_Atransform">
+                    <property name="label" translatable="yes">Transform</property>
+                    <property name="width-request">94</property>
+                    <property name="height-request">34</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <signal name="clicked" handler="on_button_Atransform_clicked" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="x">310</property>
+                    <property name="y">1</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="left-attach">0</property>
@@ -1019,7 +1113,27 @@
                           </packing>
                         </child>
                         <child>
+                          <object class="GtkImage" id="imageB1x">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                          </object>
+                          <packing>
+                            <property name="left-attach">0</property>
+                            <property name="top-attach">0</property>
+                          </packing>
+                        </child>
+                        <child>
                           <object class="GtkImage" id="imageB2">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                          </object>
+                          <packing>
+                            <property name="left-attach">0</property>
+                            <property name="top-attach">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkImage" id="imageB2x">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
                           </object>
@@ -1587,7 +1701,27 @@
                           </packing>
                         </child>
                         <child>
+                          <object class="GtkImage" id="imageA1x">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                          </object>
+                          <packing>
+                            <property name="left-attach">0</property>
+                            <property name="top-attach">0</property>
+                          </packing>
+                        </child>
+                        <child>
                           <object class="GtkImage" id="imageA2">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                          </object>
+                          <packing>
+                            <property name="left-attach">0</property>
+                            <property name="top-attach">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkImage" id="imageA2x">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
                           </object>
