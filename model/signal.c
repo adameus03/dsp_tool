@@ -462,3 +462,25 @@ void complex_signal_extract_polar(complex_signal_t* pSignal_in, real_signal_t* p
         pSignalCarg_out->pValues[i] = carg(pSignal_in->pValues[i]);
     }
 }
+
+void real_signal_to_complex(real_signal_t* pSignal_in, complex_signal_t* pSignal_out) {
+    *pSignal_out = (complex_signal_t) {
+        .info = pSignal_in->info
+    };
+    complex_signal_alloc_values(pSignal_out);
+    for (uint64_t i = 0; i < pSignal_in->info.num_samples; i++) {
+        pSignal_out->pValues[i] = (double complex)pSignal_in->pValues[i];
+    }
+}
+
+void signal_complexize(signal_t* pSignal) {
+    if (pSignal->treat_as_complex) {
+        fprintf(stdout, "Warning: signal_complexize called on a signal already treated as complex\n");
+        return;
+    }
+    complex_signal_t complex_signal;
+    real_signal_to_complex(&pSignal->real_signal, &complex_signal);
+    signal_free_values(pSignal);
+    pSignal->treat_as_complex = true;
+    pSignal->complex_signal = complex_signal;
+}

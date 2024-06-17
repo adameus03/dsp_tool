@@ -1,0 +1,1 @@
+- Q: Is it possible to store double and double complex values (8B and 16B respectively) in a single buffer and use this buffer both for accessing the buffer as double* and as double complex* (without wasting memory for additional buffers)? A: Just rely on the union used in signal_t :P [TOFIX]. But still, is there another way, e.g. using memory alignment?

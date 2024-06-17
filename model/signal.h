@@ -28,6 +28,7 @@ typedef struct {
         complex_signal_t complex_signal;
     };
     bool treat_as_complex;
+    bool is_inherently_complex;
 } signal_t;
 
 void signal_free_values(signal_t* pSignal);
@@ -81,4 +82,17 @@ void complex_signal_extract_cartesian(complex_signal_t* pSignal_in, real_signal_
  * @param pSignalCarg_out Address where to store the complex argument signal obtained from the input signal     
  */
 void complex_signal_extract_polar(complex_signal_t* pSignal_in, real_signal_t* pSignalCmag_out, real_signal_t* pSignalCarg_out);
+
+/**
+ * @brief Converts a real signal to a complex signal using a target signal pointer as destination
+ * @details The imaginary part of the complex signal is set to zero while the real part of the signal is preserved from the input signal
+ * @param pSignal_in Input signal
+ * @param pSignal_out Address where to store the complex signal obtained from the input signal
+ */
+void real_signal_to_complex(real_signal_t* pSignal_in, complex_signal_t* pSignal_out);
+
+/**
+ * @brief Turn a provided signal into a complex signal
+ */
+void signal_complexize(signal_t* pSignal);
 #endif // __GUARD_SIGNAL_H

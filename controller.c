@@ -742,8 +742,7 @@ static void draw_plot_B() {
 
 static void draw_histogram_A() {
     if (signals.signalA.treat_as_complex) {
-        g_error("Complex signals are not yet supported for histogram plotting");
-        exit(EXIT_FAILURE);
+        g_warning("Complex signals are not yet supported for histogram plotting");
     } else {
         gnuplot_prepare_real_signal_histogram(&signals.signalA.real_signal, get_adjustment_val_a(), "Signal A histogram", GNUPLOT_SCRIPT_PATH_HISTOGRAM);
         gtk_image_set_from_file(GTK_IMAGE(widgets.imageA2), GNUPLOT_OUTFILE_PATH);
@@ -762,8 +761,7 @@ static void draw_histogram_B() {
 
 static void evaluate_A_aggregates() {
     if (signals.signalA.treat_as_complex) {
-        g_error("Aggregating complex signals not implemneted");
-        exit(EXIT_FAILURE);
+        g_warning("Aggregating complex signals not implemneted");
     }
 
     double amsv = mean_signal_value(&signals.signalA.real_signal);
@@ -1968,7 +1966,7 @@ void on_button_Btransform_clicked(GtkButton* b) {
     exit(EXIT_FAILURE);
 }
 
-void on_comboBoxText_AviewType_changed(GtkComboBox* c, gpointer user_data) {
+void on_comboBoxText_AviewType_changed(GtkComboBox* c, gpointer user_data) { //[HERE] seek bugs in signal.complex_signal.pValues with gdb
     gint activeIndex = gtk_combo_box_get_active(c);
     switch (activeIndex) {
         case 0: // real values only
@@ -1991,6 +1989,9 @@ void on_comboBoxText_AviewType_changed(GtkComboBox* c, gpointer user_data) {
             g_error("Unexpected activeIndex detected");
             exit(EXIT_FAILURE);
             break;
+    }
+    if (signals.signalA.treat_as_complex && !signals.signalA.is_inherently_complex) { //[BREAK] set a breakpoint here
+        signal_complexize(&signals.signalA);
     }
     update_A_plots_no_sigload();
 }
