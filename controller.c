@@ -136,8 +136,8 @@ static struct ApplicationBuilders {
 } builders;
 
 static struct Signals {
-    real_signal_t signalA;
-    real_signal_t signalB;
+    signal_t signalA;
+    signal_t signalB;
 } signals;
 
 // #define EXTRACT_WIDGET(applicationControlsVarName, applicationBuildersVarName, widgetName, builderName) applicationControlsVarName.widgetName = GTK_WIDGET(gtk_builder_get_object(applicationBuildersVarName.builderName, #widgetName))
@@ -417,12 +417,21 @@ static void __evaluate_similarity_measures(real_signal_t* pSignalOriginal,
 static void evaluate_similarity_measures(signal_selector_t originalSignalSelector, 
                                   similiarity_measure_destiny_selector_t measureDestinySelector,
                                   real_signal_t* pSignalImitated) {
-    real_signal_t* pSignalOriginal = originalSignalSelector == SIGNAL_A ? &signals.signalA : &signals.signalB;
-    __evaluate_similarity_measures(pSignalOriginal, pSignalImitated, measureDestinySelector, originalSignalSelector);
+    signal_t* pSignalOriginal = originalSignalSelector == SIGNAL_A ? &signals.signalA : &signals.signalB;
+    if (pSignalOriginal->treat_as_complex) {
+        g_error("Complex signals are not yet supported for similarity measures");
+        exit(EXIT_FAILURE);
+    }
+    __evaluate_similarity_measures(&pSignalOriginal->real_signal, pSignalImitated, measureDestinySelector, originalSignalSelector);
     
 }
 
 static void quantization_handler_A() {
+    if (signals.signalA.treat_as_complex) {
+        g_error("Complex signals are not yet supported for quantization");
+        exit(EXIT_FAILURE);
+    }
+
     double quant_threshold = get_quantization_threshold_a();
     if (quant_threshold <= 0.0) {
         g_message("Zero quantization threshold for signal A. Skipping quantization.");
@@ -432,20 +441,27 @@ static void quantization_handler_A() {
             .quantization_threshold = quant_threshold
         };
 
-        real_signal_t signalACopy = {
-            .info = signals.signalA.info
+        signal_t signalACopy = {
+            .treat_as_complex = false,
+            .real_signal = {
+                .info = signals.signalA.real_signal.info
+            }
         };
-        real_signal_alloc_values(&signalACopy);
-        memcpy(signalACopy.pValues, signals.signalA.pValues, sizeof(double) * signals.signalA.info.num_samples);
+        signal_alloc_values(&signalACopy);
+        signal_copy_values(&signalACopy, &signals.signalA);
 
-        adc_quantize_real_signal(&adcCaps, &signals.signalA);
+        adc_quantize_real_signal(&adcCaps, &signals.signalA.real_signal);
 
         //evaluate_similarity_measures(SIGNAL_A, SIMILIARITY_MEASURE_DESTINY_QUANTIZATION, )
-        __evaluate_similarity_measures(&signalACopy, &signals.signalA, SIMILIARITY_MEASURE_DESTINY_QUANTIZATION, SIGNAL_A);
+        __evaluate_similarity_measures(&signalACopy.real_signal, &signals.signalA.real_signal, SIMILIARITY_MEASURE_DESTINY_QUANTIZATION, SIGNAL_A);
     }
 }
 
 static void quantization_handler_B() {
+    if (signals.signalB.treat_as_complex) {
+        g_error("Complex signals are not yet supported for quantization");
+        exit(EXIT_FAILURE);
+    }
     double quant_threshold = get_quantization_threshold_b();
     if (quant_threshold <= 0.0) {
         g_message("Zero quantization threshold for signal B. Skipping quantization.");
@@ -455,63 +471,74 @@ static void quantization_handler_B() {
             .quantization_threshold = quant_threshold
         };
 
-        real_signal_t signalBCopy = {
-            .info = signals.signalB.info
+        signal_t signalBCopy = {
+            .treat_as_complex = false,
+            .real_signal = {
+                .info = signals.signalB.real_signal.info
+            }
         };
-        real_signal_alloc_values(&signalBCopy);
-        memcpy(signalBCopy.pValues, signals.signalB.pValues, sizeof(double) * signals.signalB.info.num_samples);
-        adc_quantize_real_signal(&adcCaps, &signals.signalB);
 
-        __evaluate_similarity_measures(&signalBCopy, &signals.signalB, SIMILIARITY_MEASURE_DESTINY_QUANTIZATION, SIGNAL_B);
+        signal_alloc_values(&signalBCopy);
+        signal_copy_values(&signalBCopy, &signals.signalB);
+
+        adc_quantize_real_signal(&adcCaps, &signals.signalB.real_signal);
+
+        // __evaluate_similarity_measures(&signalBCopy, &signals.signalB, SIMILIARITY_MEASURE_DESTINY_QUANTIZATION, SIGNAL_B);
+        __evaluate_similarity_measures(&signalBCopy.real_signal, &signals.signalB.real_signal, SIMILIARITY_MEASURE_DESTINY_QUANTIZATION, SIGNAL_B);
     }
 }
 
 static void load_signal_A() {
+    if (signals.signalA.treat_as_complex) {
+        g_error("Complex signals are not supported for generating in this mode");
+        exit(EXIT_FAILURE);
+    }
+
     uint8_t signal_idx = get_signal_idx_a();
 
-    if ((signals.signalA.pValues != NULL) && (signal_idx != (NUM_SIGNALS - 1))) {
-        real_signal_free_values(&signals.signalA);
+    if ((signal_get_values(&signals.signalA) != NULL) && (signal_idx != (NUM_SIGNALS - 1))) {
+        signal_free_values(&signals.signalA);
     }
     
     
     generator_info_t info = { .sampling_frequency = get_sampling_frequency_a() };
     switch (signal_idx) {
         case 0:
-            signals.signalA = generate_uniform_noise(info, get_param1val_a(), get_param2val_a(), get_param3val_a());
+            signals.signalA.real_signal = generate_uniform_noise(info, get_param1val_a(), get_param2val_a(), get_param3val_a());
             break;
         case 1:
-            signals.signalA = generate_gaussian_noise(info, get_param1val_a(), get_param2val_a(), get_param3val_a());
+            signals.signalA.real_signal = generate_gaussian_noise(info, get_param1val_a(), get_param2val_a(), get_param3val_a());
             break;
         case 2:
-            signals.signalA = generate_sine(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
+            signals.signalA.real_signal = generate_sine(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
             break;
         case 3:
-            signals.signalA = generate_half_wave_rectified_sine(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
+            signals.signalA.real_signal = generate_half_wave_rectified_sine(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
             break;
         case 4:
-            signals.signalA = generate_full_wave_rectified_sine(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
+            signals.signalA.real_signal = generate_full_wave_rectified_sine(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
             break;
         case 5:
-            signals.signalA = generate_rectangular(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a(), get_param5val_a());
+            signals.signalA.real_signal = generate_rectangular(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a(), get_param5val_a());
             break;
         case 6:
-            signals.signalA = generate_symmetric_rectangular(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a(), get_param5val_a());
+            signals.signalA.real_signal = generate_symmetric_rectangular(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a(), get_param5val_a());
             break;
         case 7:
-            signals.signalA = generate_triangle(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a(), get_param5val_a());
+            signals.signalA.real_signal = generate_triangle(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a(), get_param5val_a());
             break;
         case 8:
-            signals.signalA = generate_heaviside(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
+            signals.signalA.real_signal = generate_heaviside(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
             break;
         case 9:
-            signals.signalA = generate_kronecker_delta(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
+            signals.signalA.real_signal = generate_kronecker_delta(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
             break;
         case 10:
-            signals.signalA = generate_impulse_noise(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
+            signals.signalA.real_signal = generate_impulse_noise(info, get_param1val_a(), get_param2val_a(), get_param3val_a(), get_param4val_a());
             break;
         case 11:
             // Keep the custom signal
-            signals.signalA.info.sampling_frequency = info.sampling_frequency;
+            signal_set_sampling_frequency(&signals.signalA, info.sampling_frequency);
             break;
     }
 
@@ -528,50 +555,55 @@ static void load_signal_A() {
 }
 
 static void load_signal_B() {
+    if (signals.signalB.treat_as_complex) {
+        g_error("Complex signals are not supported for generating in this mode");
+        exit(EXIT_FAILURE);
+    }
+
     uint8_t signal_idx = get_signal_idx_b();
 
-    if ((signals.signalB.pValues != NULL) && (signal_idx != (NUM_SIGNALS - 1))) {
-        real_signal_free_values(&signals.signalB);
+    if ((signal_get_values(&signals.signalB) != NULL) && (signal_idx != (NUM_SIGNALS - 1))) {
+        signal_free_values(&signals.signalB);
     }
     
     generator_info_t info = { .sampling_frequency = get_sampling_frequency_b() };
     switch (signal_idx) {
         case 0:
-            signals.signalB = generate_uniform_noise(info, get_param1val_b(), get_param2val_b(), get_param3val_b());
+            signals.signalB.real_signal = generate_uniform_noise(info, get_param1val_b(), get_param2val_b(), get_param3val_b());
             break;
         case 1:
-            signals.signalB = generate_gaussian_noise(info, get_param1val_b(), get_param2val_b(), get_param3val_b());
+            signals.signalB.real_signal = generate_gaussian_noise(info, get_param1val_b(), get_param2val_b(), get_param3val_b());
             break;
         case 2:
-            signals.signalB = generate_sine(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
+            signals.signalB.real_signal = generate_sine(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
             break;
         case 3:
-            signals.signalB = generate_half_wave_rectified_sine(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
+            signals.signalB.real_signal = generate_half_wave_rectified_sine(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
             break;
         case 4:
-            signals.signalB = generate_full_wave_rectified_sine(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
+            signals.signalB.real_signal = generate_full_wave_rectified_sine(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
             break;
         case 5:
-            signals.signalB = generate_rectangular(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b(), get_param5val_b());
+            signals.signalB.real_signal = generate_rectangular(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b(), get_param5val_b());
             break;
         case 6:
-            signals.signalB = generate_symmetric_rectangular(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b(), get_param5val_b());
+            signals.signalB.real_signal = generate_symmetric_rectangular(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b(), get_param5val_b());
             break;
         case 7:
-            signals.signalB = generate_triangle(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b(), get_param5val_b());
+            signals.signalB.real_signal = generate_triangle(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b(), get_param5val_b());
             break;
         case 8:
-            signals.signalB = generate_heaviside(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
+            signals.signalB.real_signal = generate_heaviside(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
             break;
         case 9:
-            signals.signalB = generate_kronecker_delta(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
+            signals.signalB.real_signal = generate_kronecker_delta(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
             break;
         case 10:
-            signals.signalB = generate_impulse_noise(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
+            signals.signalB.real_signal = generate_impulse_noise(info, get_param1val_b(), get_param2val_b(), get_param3val_b(), get_param4val_b());
             break;
         case 11:
             // Keep the custom signal
-            signals.signalB.info.sampling_frequency = info.sampling_frequency;
+            signal_set_sampling_frequency(&signals.signalB, info.sampling_frequency);
             break;
     }
 
@@ -599,6 +631,12 @@ static void __replace_real_signal(real_signal_t* signalAddr, real_signal_t newSi
 }
 
 static void __reconstruct_signal_caps_helper(signal_selector_t signalSelector, dac_config_t* pDacConfig) {
+    signal_t* pSignal = signalSelector == SIGNAL_A ? &signals.signalA : &signals.signalB;
+    if (pSignal->treat_as_complex) {
+        g_error("Complex signals are not yet supported for reconstruction");
+        exit(EXIT_FAILURE);
+    }
+    
     pseudo_dac_caps_t caps = {};
     if (signalSelector == SIGNAL_A) {
         caps.output_sampling_freq = get_sampling_frequency_a();
@@ -608,15 +646,15 @@ static void __reconstruct_signal_caps_helper(signal_selector_t signalSelector, d
 
     real_signal_t reconstructedSignal = {};
     if (signalSelector == SIGNAL_A) {
-        reconstructedSignal = dac_reconstruct_real_signal (pDacConfig, &caps, &signals.signalA);
+        reconstructedSignal = dac_reconstruct_real_signal (pDacConfig, &caps, &signals.signalA.real_signal);
     } else { //SIGNAL_B
-        reconstructedSignal = dac_reconstruct_real_signal (pDacConfig, &caps, &signals.signalB);
+        reconstructedSignal = dac_reconstruct_real_signal (pDacConfig, &caps, &signals.signalB.real_signal);
     }
 
     evaluate_similarity_measures(signalSelector, SIMILARITY_MEASURE_DESTINY_SAMPLING, &reconstructedSignal);
 
     __replace_real_signal (
-        signalSelector == SIGNAL_A ? &signals.signalA : &signals.signalB,
+        &pSignal->real_signal,
         reconstructedSignal
     );
 }
@@ -648,31 +686,56 @@ static void reconstruct_signal(signal_selector_t signalSelector) {
 }
 
 static void draw_plot_A() {
-    gnuplot_prepare_real_signal_plot(&signals.signalA, GNUPLOT_SCRIPT_PATH_PLOT_A);
-    gtk_image_set_from_file(GTK_IMAGE(widgets.imageA1), GNUPLOT_OUTFILE_PATH);
+    if (signals.signalA.treat_as_complex) {
+        g_error("Complex signals are not yet supported for plotting");
+        exit(EXIT_FAILURE);
+    } else {
+        gnuplot_prepare_real_signal_plot(&signals.signalA.real_signal, GNUPLOT_SCRIPT_PATH_PLOT_A);
+        gtk_image_set_from_file(GTK_IMAGE(widgets.imageA1), GNUPLOT_OUTFILE_PATH);
+    }
 }
 
 static void draw_plot_B() {
-    gnuplot_prepare_real_signal_plot(&signals.signalB, GNUPLOT_SCRIPT_PATH_PLOT_B);
-    gtk_image_set_from_file(GTK_IMAGE(widgets.imageB1), GNUPLOT_OUTFILE_PATH);
+    if (signals.signalB.treat_as_complex) {
+        g_error("Complex signals are not yet supported for plotting");
+        exit(EXIT_FAILURE);
+    } else {
+        gnuplot_prepare_real_signal_plot(&signals.signalB.real_signal, GNUPLOT_SCRIPT_PATH_PLOT_B);
+        gtk_image_set_from_file(GTK_IMAGE(widgets.imageB1), GNUPLOT_OUTFILE_PATH);
+    }
 }
 
 static void draw_histogram_A() {
-    gnuplot_prepare_real_signal_histogram(&signals.signalA, get_adjustment_val_a(), "Signal A histogram", GNUPLOT_SCRIPT_PATH_HISTOGRAM);
-    gtk_image_set_from_file(GTK_IMAGE(widgets.imageA2), GNUPLOT_OUTFILE_PATH);
+    if (signals.signalA.treat_as_complex) {
+        g_error("Complex signals are not yet supported for histogram plotting");
+        exit(EXIT_FAILURE);
+    } else {
+        gnuplot_prepare_real_signal_histogram(&signals.signalA.real_signal, get_adjustment_val_a(), "Signal A histogram", GNUPLOT_SCRIPT_PATH_HISTOGRAM);
+        gtk_image_set_from_file(GTK_IMAGE(widgets.imageA2), GNUPLOT_OUTFILE_PATH);
+    }
 }
 
 static void draw_histogram_B() {
-    gnuplot_prepare_real_signal_histogram(&signals.signalB, get_adjustment_val_b(), "Signal B histogram", GNUPLOT_SCRIPT_PATH_HISTOGRAM);
-    gtk_image_set_from_file(GTK_IMAGE(widgets.imageB2), GNUPLOT_OUTFILE_PATH);
+    if (signals.signalB.treat_as_complex) {
+        g_error("Complex signals are not yet supported for histogram plotting");
+        exit(EXIT_FAILURE);
+    } else {
+        gnuplot_prepare_real_signal_histogram(&signals.signalB.real_signal, get_adjustment_val_b(), "Signal B histogram", GNUPLOT_SCRIPT_PATH_HISTOGRAM);
+        gtk_image_set_from_file(GTK_IMAGE(widgets.imageB2), GNUPLOT_OUTFILE_PATH);
+    }
 }
 
 static void evaluate_A_aggregates() {
-    double amsv = mean_signal_value(&signals.signalA);
-    double amsav = mean_signal_absolute_value(&signals.signalA);
-    double amsp = mean_signal_power(&signals.signalA);
-    double asv = signal_variance(&signals.signalA);
-    double arms = signal_RMS(&signals.signalA);
+    if (signals.signalA.treat_as_complex) {
+        g_error("Aggregating complex signals not implemneted");
+        exit(EXIT_FAILURE);
+    }
+
+    double amsv = mean_signal_value(&signals.signalA.real_signal);
+    double amsav = mean_signal_absolute_value(&signals.signalA.real_signal);
+    double amsp = mean_signal_power(&signals.signalA.real_signal);
+    double asv = signal_variance(&signals.signalA.real_signal);
+    double arms = signal_RMS(&signals.signalA.real_signal);
 
     char amsvStr[20]; char amsavStr[20]; char amspStr[20]; char asvStr[20]; char armsStr[20];
     snprintf(amsvStr, 20, "%f", amsv); snprintf(amsavStr, 20, "%f", amsav); snprintf(amspStr, 20, "%f", amsp); snprintf(asvStr, 20, "%f", asv); snprintf(armsStr, 20, "%f", arms);
@@ -685,11 +748,16 @@ static void evaluate_A_aggregates() {
 }
 
 static void evaluate_B_aggregates() {
-    double bmsv = mean_signal_value(&signals.signalB);
-    double bmsav = mean_signal_absolute_value(&signals.signalB);
-    double bmsp = mean_signal_power(&signals.signalB);
-    double bsv = signal_variance(&signals.signalB);
-    double brms = signal_RMS(&signals.signalB);
+    if (signals.signalB.treat_as_complex) {
+        g_error("Aggregating complex signals not implemneted");
+        exit(EXIT_FAILURE);
+    }
+
+    double bmsv = mean_signal_value(&signals.signalB.real_signal);
+    double bmsav = mean_signal_absolute_value(&signals.signalB.real_signal);
+    double bmsp = mean_signal_power(&signals.signalB.real_signal);
+    double bsv = signal_variance(&signals.signalB.real_signal);
+    double brms = signal_RMS(&signals.signalB.real_signal);
 
     char bmsvStr[20]; char bmsavStr[20]; char bmspStr[20]; char bsvStr[20]; char brmsStr[20];
     snprintf(bmsvStr, 20, "%f", bmsv); snprintf(bmsavStr, 20, "%f", bmsav); snprintf(bmspStr, 20, "%f", bmsp); snprintf(bsvStr, 20, "%f", bsv); snprintf(brmsStr, 20, "%f", brms);
@@ -807,9 +875,21 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     widget_helpers.op_idx = 0U;
     widget_helpers.a_load_filename = NULL;
     widget_helpers.b_load_filename = NULL;
-    
-    signals.signalA = (real_signal_t) { .info = { .sampling_frequency = 0 }, .pValues = NULL };
-    signals.signalB = (real_signal_t) { .info = { .sampling_frequency = 0 }, .pValues = NULL };
+
+    signals.signalA = (signal_t) {
+        .treat_as_complex = false,
+        .real_signal = {
+            .info = { .sampling_frequency = 0 },
+            .pValues = NULL
+        }
+    };
+    signals.signalB = (signal_t) {
+        .treat_as_complex = false,
+        .real_signal = {
+            .info = { .sampling_frequency = 0 },
+            .pValues = NULL
+        }
+    };
 
     widgets.labelAmsv = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAmsv"));
     widgets.labelAmsav = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "labelAmsav"));
@@ -890,23 +970,29 @@ int controller_run(int* psArgc, char*** pppcArgv) {
 
     gtk_widget_show(widgets.window);
     gtk_main();
+    
+    if (signal_get_values(&signals.signalA) != NULL) {
+        signal_free_values(&signals.signalA);
+    }
+    if (signal_get_values(&signals.signalB) != NULL) {
+        signal_free_values(&signals.signalB);
+    }
 
-    if (signals.signalA.pValues != NULL) {
-        real_signal_free_values(&signals.signalA);
-    }
-    if (signals.signalB.pValues != NULL) {
-        real_signal_free_values(&signals.signalB);
-    }
     gnuplot_cleanup();
     
     return EXIT_SUCCESS;
 }
 
 static void shift_signal_a(double timeshiftVal) {
+    if (signals.signalA.treat_as_complex) {
+        g_error("Complex signals are not yet supported for timeshifting");
+        exit(EXIT_FAILURE);
+    }
+
     pseudo_enable_window(GTK_WINDOW(widgets.window));
     if (timeshiftVal != 0.0) {
         g_message("Signal A shift by %f requested.", timeshiftVal);
-        real_signal_timeshift(&signals.signalA, timeshiftVal);
+        real_signal_timeshift(&signals.signalA.real_signal, timeshiftVal);
 
         // Set signal type as custom (the additional type)
         gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Astype), (gint)(NUM_SIGNALS - 1)); 
@@ -916,10 +1002,15 @@ static void shift_signal_a(double timeshiftVal) {
 }
 
 static void shift_signal_b(double timeshiftVal) {
+    if (signals.signalB.treat_as_complex) {
+        g_error("Complex signals are not yet supported for timeshifting");
+        exit(EXIT_FAILURE);
+    }
+
     pseudo_enable_window(GTK_WINDOW(widgets.window));
     if (timeshiftVal != 0.0) {
         g_message("Signal B shift by %f requested.", timeshiftVal);
-        real_signal_timeshift(&signals.signalB, timeshiftVal);
+        real_signal_timeshift(&signals.signalB.real_signal, timeshiftVal);
 
         // Set signal type as custom (the additional type)
         gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Bstype), (gint)(NUM_SIGNALS - 1)); 
@@ -929,6 +1020,11 @@ static void shift_signal_b(double timeshiftVal) {
 }
 
 static void filter_signal_a(fir_common_config_t config) {
+    if (signals.signalA.treat_as_complex) {
+        g_error("Complex signals are not yet supported for filtering");
+        exit(EXIT_FAILURE);
+    }
+
     pseudo_enable_window(GTK_WINDOW(widgets.window));
     if (config.filterType != -1) {
         g_message("Signal A: FIR filter requested.");
@@ -943,13 +1039,13 @@ static void filter_signal_a(fir_common_config_t config) {
         real_signal_alloc_values(&s);*/
         switch (config.filterType) {
             case FIR_FILTER_TYPE_LOWPASS:
-                fir_filter_real_signal_lowpass(&signals.signalA, &config.oneSidedConfig);
+                fir_filter_real_signal_lowpass(&signals.signalA.real_signal, &config.oneSidedConfig);
                 break;
             case FIR_FILTER_TYPE_HIGHPASS:
-                fir_filter_real_signal_highpass(&signals.signalA, &config.oneSidedConfig);
+                fir_filter_real_signal_highpass(&signals.signalA.real_signal, &config.oneSidedConfig);
                 break;
             case FIR_FILTER_TYPE_BANDPASS:
-                fir_filter_real_signal_bandpass(&signals.signalA, &config.doubleSidedConfig);
+                fir_filter_real_signal_bandpass(&signals.signalA.real_signal, &config.doubleSidedConfig);
                 break;
             default:
                 g_error("Invalid config.filterType");
@@ -966,6 +1062,11 @@ static void filter_signal_a(fir_common_config_t config) {
 }
 
 static void filter_signal_b(fir_common_config_t config) {
+    if (signals.signalB.treat_as_complex) {
+        g_error("Complex signals are not yet supported for filtering");
+        exit(EXIT_FAILURE);
+    }
+    
     pseudo_enable_window(GTK_WINDOW(widgets.window));
     if (config.filterType != -1) {
         g_message("Signal B: FIR filter requested.");
@@ -980,13 +1081,13 @@ static void filter_signal_b(fir_common_config_t config) {
         real_signal_alloc_values(&s);*/
         switch (config.filterType) {
             case FIR_FILTER_TYPE_LOWPASS:
-                fir_filter_real_signal_lowpass(&signals.signalB, &config.oneSidedConfig);
+                fir_filter_real_signal_lowpass(&signals.signalB.real_signal, &config.oneSidedConfig);
                 break;
             case FIR_FILTER_TYPE_HIGHPASS:
-                fir_filter_real_signal_highpass(&signals.signalB, &config.oneSidedConfig);
+                fir_filter_real_signal_highpass(&signals.signalB.real_signal, &config.oneSidedConfig);
                 break;
             case FIR_FILTER_TYPE_BANDPASS:
-                fir_filter_real_signal_bandpass(&signals.signalB, &config.doubleSidedConfig);
+                fir_filter_real_signal_bandpass(&signals.signalB.real_signal, &config.doubleSidedConfig);
                 break;
             default:
                 g_error("Invalid config.filterType");
@@ -1008,27 +1109,33 @@ void on_comboBoxText_op_changed(GtkComboBox* c, gpointer user_data) {
 
 void on_button_perform_clicked(GtkButton* b) {
     g_message("Signal combination requested");
+
+    if (signals.signalA.treat_as_complex || signals.signalB.treat_as_complex) {
+        g_error("Combining complex signals is not yet supported");
+        exit(EXIT_FAILURE);
+    }
+
     switch (widget_helpers.op_idx) {
         case 0U:
-            add_signal (&signals.signalA, &signals.signalB);
+            add_signal (&signals.signalA.real_signal, &signals.signalB.real_signal);
             break;
         case 1U:
-            substract_signal (&signals.signalA, &signals.signalB);
+            substract_signal (&signals.signalA.real_signal, &signals.signalB.real_signal);
             break;
         case 2U:
-            multiply_signal (&signals.signalA, &signals.signalB);
+            multiply_signal (&signals.signalA.real_signal, &signals.signalB.real_signal);
             break;
         case 3U:
-            divide_signal (&signals.signalA, &signals.signalB);
+            divide_signal (&signals.signalA.real_signal, &signals.signalB.real_signal);
             break;
         case 4U:
-            convolve_signal (&signals.signalA, &signals.signalB);
+            convolve_signal (&signals.signalA.real_signal, &signals.signalB.real_signal);
             break;
         case 5U:
-            cross_correlate_signal_1 (&signals.signalA, &signals.signalB);
+            cross_correlate_signal_1 (&signals.signalA.real_signal, &signals.signalB.real_signal);
             break;
         case 6U:
-            cross_correlate_signal_2 (&signals.signalA, &signals.signalB);
+            cross_correlate_signal_2 (&signals.signalA.real_signal, &signals.signalB.real_signal);
             break;
         default:
             g_error ("Unknown signal combination requested");
@@ -1042,7 +1149,7 @@ void on_button_perform_clicked(GtkButton* b) {
 
 void on_button_swap_clicked(GtkButton* b) {
     g_message("Signal swap requested");
-    real_signal_t temp = signals.signalA;
+    signal_t temp = signals.signalA;
     signals.signalA = signals.signalB;
     signals.signalB = temp;
 
@@ -1280,6 +1387,12 @@ void on_entry_Bp5val_changed(GtkEntry* e) {
 }
 
 void on_button_Asave_bin_clicked(GtkButton* b) {
+    if (signals.signalA.treat_as_complex) {
+        g_error("Complex signals are not yet supported for binary saving");
+        exit(EXIT_FAILURE);
+    }
+
+
     //https://docs.gtk.org/gtk3/class.FileChooserDialog.html
 
     GtkWidget *dialog;
@@ -1311,7 +1424,7 @@ void on_button_Asave_bin_clicked(GtkButton* b) {
         filename = gtk_file_chooser_get_filename (chooser);
         
         fprintf(stdout, "Info: Saving signal A (binary) into file '%s'\n", filename);
-        real_signal_file_payload_t payload = real_signal_file_payload_create (&signals.signalA);
+        real_signal_file_payload_t payload = real_signal_file_payload_create (&signals.signalA.real_signal);
         fio_write_rpayload (&payload, (const char*)filename);
 
         g_free (filename);
@@ -1321,6 +1434,11 @@ void on_button_Asave_bin_clicked(GtkButton* b) {
 }
 
 void on_button_Asave_txt_clicked(GtkButton* b) {
+    if (signals.signalA.treat_as_complex) {
+        g_error("Complex signals are not yet supported for txt saving");
+        exit(EXIT_FAILURE);
+    }
+
     //https://docs.gtk.org/gtk3/class.FileChooserDialog.html
 
     GtkWidget *dialog;
@@ -1352,7 +1470,7 @@ void on_button_Asave_txt_clicked(GtkButton* b) {
         filename = gtk_file_chooser_get_filename (chooser);
         
         fprintf(stdout, "Info: Saving signal A (human-readable) into file '%s'\n", filename);
-        real_signal_file_payload_t payload = real_signal_file_payload_create (&signals.signalA);
+        real_signal_file_payload_t payload = real_signal_file_payload_create (&signals.signalA.real_signal);
         fio_write_rpayload_human_readable(&payload, (const char*)filename);
 
         g_free (filename);
@@ -1361,18 +1479,20 @@ void on_button_Asave_txt_clicked(GtkButton* b) {
     gtk_widget_destroy (dialog);
 }
 
-void on_button_Aload_clicked(GtkButton* b) {
+void on_button_Aload_clicked(GtkButton* b) { // [TODO] Handle complex signals
+    signals.signalA.treat_as_complex = false;
+
     if (widget_helpers.a_load_filename != NULL) {
         real_signal_file_payload_t payload = fio_read_rpayload ((const char*)widget_helpers.a_load_filename);
         real_signal_t fetchedSignal = fetch_rsignal (&payload);
 
-        real_signal_free_values (&signals.signalA);
-        signals.signalA.info.num_samples = fetchedSignal.info.num_samples;
-        signals.signalA.info.sampling_frequency = fetchedSignal.info.sampling_frequency;
-        signals.signalA.info.start_time = fetchedSignal.info.start_time;
-        signals.signalA.pValues = fetchedSignal.pValues; //passing buffer ownership
+        signal_free_values (&signals.signalA);
+        signals.signalA.real_signal.info.num_samples = fetchedSignal.info.num_samples;
+        signals.signalA.real_signal.info.sampling_frequency = fetchedSignal.info.sampling_frequency;
+        signals.signalA.real_signal.info.start_time = fetchedSignal.info.start_time;
+        signals.signalA.real_signal.pValues = fetchedSignal.pValues; //passing buffer ownership
 
-        double asf = signals.signalA.info.sampling_frequency;
+        double asf = signals.signalA.real_signal.info.sampling_frequency;
         //printf("%f / %f / %f\n", asf, signals.signalA.info.sampling_frequency, fetchedSignal.info.sampling_frequency);
         char asfStr[50]; snprintf(asfStr, 50, "%f", asf);
         gtk_entry_set_text (GTK_ENTRY(widgets.entry_Asf), (const gchar*)asfStr);
@@ -1386,18 +1506,20 @@ void on_button_Aload_clicked(GtkButton* b) {
     }
 }
 
-void on_button_Bload_clicked(GtkButton* b) {
+void on_button_Bload_clicked(GtkButton* b) { // [TODO] Handle complex signals
+    signals.signalA.treat_as_complex = false;
+    
     if (widget_helpers.b_load_filename != NULL) {
         real_signal_file_payload_t payload = fio_read_rpayload ((const char*)widget_helpers.b_load_filename);
         real_signal_t fetchedSignal = fetch_rsignal (&payload);
 
-        real_signal_free_values (&signals.signalB);
-        signals.signalB.info.num_samples = fetchedSignal.info.num_samples;
-        signals.signalB.info.sampling_frequency = fetchedSignal.info.sampling_frequency;
-        signals.signalB.info.start_time = fetchedSignal.info.start_time;
-        signals.signalB.pValues = fetchedSignal.pValues; //passing buffer ownership
+        signal_free_values (&signals.signalB);
+        signals.signalB.real_signal.info.num_samples = fetchedSignal.info.num_samples;
+        signals.signalB.real_signal.info.sampling_frequency = fetchedSignal.info.sampling_frequency;
+        signals.signalB.real_signal.info.start_time = fetchedSignal.info.start_time;
+        signals.signalB.real_signal.pValues = fetchedSignal.pValues; //passing buffer ownership
 
-        double bsf = signals.signalB.info.sampling_frequency;
+        double bsf = signals.signalB.real_signal.info.sampling_frequency;
         //printf("%f / %f / %f\n", asf, signals.signalA.info.sampling_frequency, fetchedSignal.info.sampling_frequency);
         char bsfStr[50]; snprintf(bsfStr, 50, "%f", bsf);
         gtk_entry_set_text (GTK_ENTRY(widgets.entry_Bsf), (const gchar*)bsfStr);
@@ -1588,12 +1710,18 @@ void on_entry_BsNeighCoeffVal_changed(GtkEntry* e) {
 }
 
 void on_button_cpy_clicked(GtkButton* b) {
-    real_signal_free_values(&signals.signalB);
-    signals.signalB.info.num_samples = signals.signalA.info.num_samples;
-    signals.signalB.info.sampling_frequency = signals.signalA.info.sampling_frequency;
-    signals.signalB.info.start_time = signals.signalA.info.start_time;
-    real_signal_alloc_values(&signals.signalB);
-    memcpy(signals.signalB.pValues, signals.signalA.pValues, sizeof(double) * signals.signalA.info.num_samples);
+    //real_signal_free_values(&signals.signalB);
+    // signals.signalB.info.num_samples = signals.signalA.info.num_samples;
+    // signals.signalB.info.sampling_frequency = signals.signalA.info.sampling_frequency;
+    // signals.signalB.info.start_time = signals.signalA.info.start_time;
+    // real_signal_alloc_values(&signals.signalB);
+    // memcpy(signals.signalB.pValues, signals.signalA.pValues, sizeof(double) * signals.signalA.info.num_samples);
+    signal_free_values(&signals.signalB);
+    signal_set_num_samples(&signals.signalB, signal_get_num_samples(&signals.signalA));
+    signal_set_sampling_frequency(&signals.signalB, signal_get_sampling_frequency(&signals.signalA));
+    signal_set_start_time(&signals.signalB, signal_get_start_time(&signals.signalA));
+    signal_alloc_values(&signals.signalB);
+    memcpy(signal_get_values(&signals.signalB), signal_get_values(&signals.signalA), sizeof(double) * signal_get_num_samples(&signals.signalA));
 
     uint32_t signalA_idx = gtk_combo_box_get_active(GTK_COMBO_BOX(widgets.comboBoxText_Astype));
     gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Bstype), signalA_idx);
@@ -1725,7 +1853,12 @@ void on_button_Bfir_clicked(GtkButton* b) {
 }
 
 void on_button_collapseTDomains_clicked(GtkButton* b) {
-    real_signal_collapse_signals_tdomains(&signals.signalA, &signals.signalB);
+    if (signals.signalA.treat_as_complex || signals.signalB.treat_as_complex) {
+        g_error("Complex signals are not yet supported for time domain collapsing");
+        exit(EXIT_FAILURE);
+    }
+
+    real_signal_collapse_signals_tdomains(&signals.signalA.real_signal, &signals.signalB.real_signal);
 
     // Set signal types as custom (the additional type)
     gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Astype), (gint)(NUM_SIGNALS - 1));
@@ -1739,7 +1872,11 @@ void on_button_collapseTDomains_clicked(GtkButton* b) {
 }
 
 void on_button_computeAargmax_clicked(GtkButton* b) {
-    double aargmax = signal_rightmost_argmax(&signals.signalA);
+    if (signals.signalA.treat_as_complex) {
+        g_error("Complex signals are not yet supported for radar object detection");
+        exit(EXIT_FAILURE);
+    }
+    double aargmax = signal_rightmost_argmax(&signals.signalA.real_signal);
     char aargmaxStr[20];
     snprintf(aargmaxStr, 20, "%f", aargmax);
     
@@ -1747,7 +1884,11 @@ void on_button_computeAargmax_clicked(GtkButton* b) {
 }
 
 void on_button_computeAcdist_clicked(GtkButton* b) {
-    double acdist = signal_radar_object_cdist(&signals.signalA);
+    if (signals.signalA.treat_as_complex) {
+        g_error("Complex signals are not yet supported for radar object detection");
+        exit(EXIT_FAILURE);
+    }
+    double acdist = signal_radar_object_cdist(&signals.signalA.real_signal);
     char acdistStr[20];
     snprintf(acdistStr, 20, "%f", acdist);
     
@@ -1755,7 +1896,11 @@ void on_button_computeAcdist_clicked(GtkButton* b) {
 }
 
 void on_button_computeBargmax_clicked(GtkButton* b) {
-    double bargmax = signal_rightmost_argmax(&signals.signalB);
+    if (signals.signalB.treat_as_complex) {
+        g_error("Complex signals are not yet supported for radar object detection");
+        exit(EXIT_FAILURE);
+    }
+    double bargmax = signal_rightmost_argmax(&signals.signalB.real_signal);
     char bargmaxStr[20];
     snprintf(bargmaxStr, 20, "%f", bargmax);
     
@@ -1763,7 +1908,11 @@ void on_button_computeBargmax_clicked(GtkButton* b) {
 }
 
 void on_button_computeBcdist_clicked(GtkButton* b) {
-    double bcdist = signal_radar_object_cdist(&signals.signalB);
+    if (signals.signalB.treat_as_complex) {
+        g_error("Complex signals are not yet supported for radar object detection");
+        exit(EXIT_FAILURE);
+    }
+    double bcdist = signal_radar_object_cdist(&signals.signalB.real_signal);
     char bcdistStr[20];
     snprintf(bcdistStr, 20, "%f", bcdist);
     

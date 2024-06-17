@@ -1,5 +1,6 @@
 #include "signal.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <memory.h>
 
 void signal_free_values(signal_t* pSignal) {
@@ -30,6 +31,90 @@ void real_signal_alloc_values(real_signal_t* pSignal) {
 }
 void complex_signal_alloc_values(complex_signal_t* pSignal) {
     pSignal->pValues = malloc(pSignal->info.num_samples * sizeof(double complex));
+}
+
+void signal_copy_values(signal_t* pDestination, signal_t* pSource) {
+    if (pDestination->treat_as_complex) {
+        complex_signal_copy_values(&pDestination->complex_signal, &pSource->complex_signal);
+    } else {
+        real_copy_values(&pDestination->real_signal, &pSource->real_signal);
+    }
+}
+void real_copy_values(real_signal_t* pDestination, real_signal_t* pSource) {
+    if (pDestination->pValues == 0) {
+        fprintf(stdout, "Warning: pValues is null, allocating memory for pValues\n");
+        pDestination->pValues = malloc(pSource->info.num_samples * sizeof(double));
+    } else if (pDestination->info.num_samples != pSource->info.num_samples) {
+        fprintf(stdout, "Warning: Source and destination signal num samples discrepancy, reallocating memory for the destination signal samples\n");
+        pDestination->pValues = realloc(pDestination->pValues, pSource->info.num_samples * sizeof(double));
+    }
+    memcpy(pDestination->pValues, pSource->pValues, sizeof(double) * pSource->info.num_samples);
+}
+void complex_signal_copy_values(complex_signal_t* pDestination, complex_signal_t* pSource) {
+    if (pDestination->pValues == 0) {
+        fprintf(stdout, "Warning: pValues is null, allocating memory for pValues\n");
+        pDestination->pValues = malloc(pSource->info.num_samples * sizeof(double complex));
+    } else if (pDestination->info.num_samples != pSource->info.num_samples) {
+        fprintf(stdout, "Warning: Source and destination signal num samples discrepancy, reallocating memory for the destination signal samples\n");
+        pDestination->pValues = realloc(pDestination->pValues, pSource->info.num_samples * sizeof(double complex));
+    }
+    memcpy(pDestination->pValues, pSource->pValues, sizeof(double complex) * pSource->info.num_samples);
+}
+
+void* signal_get_values(signal_t* pSignal) {
+    if (pSignal->treat_as_complex) {
+        return (void*)complex_signal_get_values(&pSignal->complex_signal);
+    } else {
+        return (void*)real_signal_get_values(&pSignal->real_signal);
+    }
+}
+double* real_signal_get_values(real_signal_t* pSignal) {
+    return pSignal->pValues;
+}
+double complex* complex_signal_get_values(complex_signal_t* pSignal) {
+    return pSignal->pValues;
+}
+void signal_set_num_samples(signal_t* pSignal, uint64_t numSamples) {
+    if (pSignal->treat_as_complex) {
+        pSignal->complex_signal.info.num_samples = numSamples;
+    } else {
+        pSignal->real_signal.info.num_samples = numSamples;
+    }
+}
+uint64_t signal_get_num_samples(signal_t* pSignal) {
+    if (pSignal->treat_as_complex) {
+        return pSignal->complex_signal.info.num_samples;
+    } else {
+        return pSignal->real_signal.info.num_samples;
+    }
+}
+void signal_set_sampling_frequency(signal_t* pSignal, double samplingFrequency) {
+    if (pSignal->treat_as_complex) {
+        pSignal->complex_signal.info.sampling_frequency = samplingFrequency;
+    } else {
+        pSignal->real_signal.info.sampling_frequency = samplingFrequency;
+    }
+}
+double signal_get_sampling_frequency(signal_t* pSignal) {
+    if (pSignal->treat_as_complex) {
+        return pSignal->complex_signal.info.sampling_frequency;
+    } else {
+        return pSignal->real_signal.info.sampling_frequency;
+    }
+}
+void signal_set_start_time(signal_t* pSignal, double startTime) {
+    if (pSignal->treat_as_complex) {
+        pSignal->complex_signal.info.start_time = startTime;
+    } else {
+        pSignal->real_signal.info.start_time = startTime;
+    }
+}
+double signal_get_start_time(signal_t* pSignal) {
+    if (pSignal->treat_as_complex) {
+        return pSignal->complex_signal.info.start_time;
+    } else {
+        return pSignal->real_signal.info.start_time;
+    }
 }
 
 

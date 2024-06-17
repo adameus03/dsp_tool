@@ -38,6 +38,19 @@ void signal_alloc_values(signal_t* pSignal);
 void real_signal_alloc_values(real_signal_t* pSignal);
 void complex_signal_alloc_values(complex_signal_t* pSignal);
 
+void signal_copy_values(signal_t* pDestination, signal_t* pSource);
+void real_copy_values(real_signal_t* pDestination, real_signal_t* pSource);
+void complex_signal_copy_values(complex_signal_t* pDestination, complex_signal_t* pSource);
+void* signal_get_values(signal_t* pSignal);
+double* real_signal_get_values(real_signal_t* pSignal);
+double complex* complex_signal_get_values(complex_signal_t* pSignal);
+void signal_set_num_samples(signal_t* pSignal, uint64_t numSamples);
+uint64_t signal_get_num_samples(signal_t* pSignal);
+void signal_set_sampling_frequency(signal_t* pSignal, double samplingFrequency);
+double signal_get_sampling_frequency(signal_t* pSignal);
+void signal_set_start_time(signal_t* pSignal, double startTime);
+double signal_get_start_time(signal_t* pSignal);
+
 void signal_domain_adjust_start_time(signal_t* pSignal, double newStartTime);
 void signal_domain_adjust_end_time(signal_t* pSignal, double oldEndTime, double newEndTime);
 void real_signal_domain_adjust_start_time(real_signal_t* pSignal, double newStartTime);
