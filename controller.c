@@ -52,9 +52,13 @@ static struct ApplicationControls {
     GtkWidget* entry_Bsf;
 
     GtkWidget* imageA1;
+    GtkWidget* imageA1x;
     GtkWidget* imageA2;
+    GtkWidget* imageA2x;
     GtkWidget* imageB1;
+    GtkWidget* imageB1x;
     GtkWidget* imageB2;
+    GtkWidget* imageB2x;
 
     GtkWidget* scaleA;
     GtkWidget* scaleB;
@@ -123,12 +127,17 @@ static struct ApplicationControls {
 
 static struct ApplicationControlHelpers {
     GtkAdjustment* adjustment1;   ///////////////////////////
-                                 // For the scale widgets //
+                                 // For the scale widgets //   They control the resolution of both A2 + A2x or B2 + B2x GTK image widgets respectively
     GtkAdjustment* adjustment2; ///////////////////////////
 
     uint8_t op_idx; // for comboBoxText_op
     char* a_load_filename;
     char* b_load_filename;
+
+    struct {
+        controller_complex_plotting_mode modeAcp;
+        controller_complex_plotting_mode modeBcp;
+    } complex_plotting_settings; // for complex plotting
 } widget_helpers;
 
 static struct ApplicationBuilders {
@@ -687,8 +696,34 @@ static void reconstruct_signal(signal_selector_t signalSelector) {
 
 static void draw_plot_A() {
     if (signals.signalA.treat_as_complex) {
-        g_error("Complex signals are not yet supported for plotting");
-        exit(EXIT_FAILURE);
+        // g_error("Complex signals are not yet supported for plotting");
+        // exit(EXIT_FAILURE);
+        switch (widget_helpers.complex_plotting_settings.modeAcp) {
+            case CONTROLLER_COMPLEX_PLOTTING_MODE_NONE:
+                g_error("Detected discrepancy between signalA.treat_as_complex and complex_plotting_settings.modeAcp");
+                exit(EXIT_FAILURE);
+                break;
+            case CONTROLLER_COMPLEX_PLOTTING_MODE_CARTESIAN:
+                real_signal_t signalARe, signalAIm;
+                complex_signal_extract_cartesian(&signals.signalA.complex_signal, &signalARe, &signalAIm);
+                gnuplot_prepare_real_signal_plot(&signalARe, GNUPLOT_SCRIPT_PATH_PLOT_A); // [TODO] Change paths and scripts if needed
+                gtk_image_set_from_file(GTK_IMAGE(widgets.imageA1), GNUPLOT_OUTFILE_PATH);
+                gnuplot_prepare_real_signal_plot(&signalAIm, GNUPLOT_SCRIPT_PATH_PLOT_A);
+                gtk_image_set_from_file(GTK_IMAGE(widgets.imageA1x), GNUPLOT_OUTFILE_PATH);
+                break;
+            case CONTROLLER_COMPLEX_PLOTTING_MODE_POLAR:
+                real_signal_t signalACmag, signalACarg;
+                complex_signal_extract_polar(&signals.signalA.complex_signal, &signalACmag, &signalACarg);
+                gnuplot_prepare_real_signal_plot(&signalACmag, GNUPLOT_SCRIPT_PATH_PLOT_A);
+                gtk_image_set_from_file(GTK_IMAGE(widgets.imageA1), GNUPLOT_OUTFILE_PATH);
+                gnuplot_prepare_real_signal_plot(&signalACarg, GNUPLOT_SCRIPT_PATH_PLOT_A);
+                gtk_image_set_from_file(GTK_IMAGE(widgets.imageA1x), GNUPLOT_OUTFILE_PATH);
+                break;
+            case CONTROLLER_COMPLEX_PLOTTING_MODE_PARAMETRIC_CURVE:
+                g_error("Parametric curve plotting for complex signals is an experimental feature which is not yet supported");
+                exit(EXIT_FAILURE);
+                break;
+        }
     } else {
         gnuplot_prepare_real_signal_plot(&signals.signalA.real_signal, GNUPLOT_SCRIPT_PATH_PLOT_A);
         gtk_image_set_from_file(GTK_IMAGE(widgets.imageA1), GNUPLOT_OUTFILE_PATH);
@@ -769,7 +804,7 @@ static void evaluate_B_aggregates() {
     gtk_label_set_text(GTK_LABEL(widgets.labelBrms), (const gchar*)brmsStr);
 }
 
-static void update_A_plots_no_sigload() {
+static void update_A_plots_no_sigload() { //[HERE] Handle complex plots (cartesian, polar)
     //fprintf(stdout, "Info: Drawing plot A\n");
     draw_plot_A();
     //fprintf(stdout, "Info: Drawing histogram A\n");
@@ -864,9 +899,13 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     widgets.entry_Asf = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Asf"));
     widgets.entry_Bsf = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "entry_Bsf"));
     widgets.imageA1 = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "imageA1"));
+    widgets.imageA1x = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "imageA1x"));
     widgets.imageA2 = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "imageA2"));
+    widgets.imageA2x = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "imageA2x"));
     widgets.imageB1 = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "imageB1"));
+    widgets.imageB1x = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "imageB1x"));
     widgets.imageB2 = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "imageB2"));
+    widgets.imageB2x = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "imageB2x"));
     widgets.scaleA = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "scaleA"));
     widgets.scaleB = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "scaleB"));
 
@@ -1917,4 +1956,67 @@ void on_button_computeBcdist_clicked(GtkButton* b) {
     snprintf(bcdistStr, 20, "%f", bcdist);
     
     gtk_label_set_text(GTK_LABEL(widgets.labelBcdist), (const gchar*)bcdistStr);
+}
+
+void on_button_Atransform_clicked(GtkButton* b) {
+    g_error("on_button_Atransform_clicked handler not supported yet.");
+    exit(EXIT_FAILURE);
+}
+
+void on_button_Btransform_clicked(GtkButton* b) {
+    g_error("on_button_Btransform_clicked handler not supported yet.");
+    exit(EXIT_FAILURE);
+}
+
+void on_comboBoxText_AviewType_changed(GtkComboBox* c, gpointer user_data) {
+    gint activeIndex = gtk_combo_box_get_active(c);
+    switch (activeIndex) {
+        case 0: // real values only
+            signals.signalA.treat_as_complex = false;
+            widget_helpers.complex_plotting_settings.modeAcp = CONTROLLER_COMPLEX_PLOTTING_MODE_NONE;
+            break;
+        case 1: //complex cartesian
+            signals.signalA.treat_as_complex = true;
+            widget_helpers.complex_plotting_settings.modeAcp = CONTROLLER_COMPLEX_PLOTTING_MODE_CARTESIAN;
+            break;
+        case 2: //complex polar
+            signals.signalA.treat_as_complex = true;
+            widget_helpers.complex_plotting_settings.modeAcp = CONTROLLER_COMPLEX_PLOTTING_MODE_POLAR;
+            break;
+        case 3: //complex parametric
+            signals.signalA.treat_as_complex = true;
+            widget_helpers.complex_plotting_settings.modeAcp = CONTROLLER_COMPLEX_PLOTTING_MODE_PARAMETRIC_CURVE;
+            break;
+        default:
+            g_error("Unexpected activeIndex detected");
+            exit(EXIT_FAILURE);
+            break;
+    }
+    update_A_plots_no_sigload();
+}
+
+void on_comboBoxText_BviewType_changed(GtkComboBox* c, gpointer user_data) {
+    gint activeIndex = gtk_combo_box_get_active(c);
+    switch (activeIndex) {
+        case 0: // real values only
+            signals.signalB.treat_as_complex = false;
+            widget_helpers.complex_plotting_settings.modeBcp = CONTROLLER_COMPLEX_PLOTTING_MODE_NONE;
+            break;
+        case 1: //complex cartesian
+            signals.signalB.treat_as_complex = true;
+            widget_helpers.complex_plotting_settings.modeBcp = CONTROLLER_COMPLEX_PLOTTING_MODE_CARTESIAN;
+            break;
+        case 2: //complex polar
+            signals.signalB.treat_as_complex = true;
+            widget_helpers.complex_plotting_settings.modeBcp = CONTROLLER_COMPLEX_PLOTTING_MODE_POLAR;
+            break;
+        case 3: //complex parametric
+            signals.signalB.treat_as_complex = true;
+            widget_helpers.complex_plotting_settings.modeBcp = CONTROLLER_COMPLEX_PLOTTING_MODE_PARAMETRIC_CURVE;
+        default:
+            g_error("Unexpected activeIndex detected");
+            exit(EXIT_FAILURE);
+            break;
+    }
+    update_B_plots_no_sigload();
 }

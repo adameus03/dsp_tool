@@ -69,4 +69,16 @@ void real_signal_collapse_signals_tdomains(real_signal_t* pSignal_1, real_signal
 void complex_signal_timeshift(complex_signal_t* pSignal, double timeshiftValue);
 void complex_signal_collapse_signals_tdomains(complex_signal_t* pSignal_1, complex_signal_t* pSignal_2);
 
-#endif
+/**
+ * @param pSignal_in Input signal
+ * @param pSignalRe_out Address where to store the real part signal obtained from the input signal
+ * @param pSignalIm_out Address where to store the imaginary part signal obtained from the input signal
+ */
+void complex_signal_extract_cartesian(complex_signal_t* pSignal_in, real_signal_t* pSignalRe_out, real_signal_t* pSignalIm_out);
+/**
+ * @param pSignal_in Input signal
+ * @param pSignalCmag_out Address where to store the complex magnitude signal obtained from the input signal
+ * @param pSignalCarg_out Address where to store the complex argument signal obtained from the input signal     
+ */
+void complex_signal_extract_polar(complex_signal_t* pSignal_in, real_signal_t* pSignalCmag_out, real_signal_t* pSignalCarg_out);
+#endif // __GUARD_SIGNAL_H

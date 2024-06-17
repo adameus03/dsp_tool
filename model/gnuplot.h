@@ -11,7 +11,8 @@
 #define MIN_SIGNAL_PLOTTED_VALUE -1000000
 
 void gnuplot_prepare_real_signal_plot(real_signal_t* pSignal, const char* script_path);
-void gnuplot_prepare_complex_signal_plots(complex_signal_t* pSignal);
+// [TODO] Maybe for parametric plotting? (experimental)
+//void gnuplot_prepare_complex_signal_plots(complex_signal_t* pSignal);
 void gnuplot_prepare_real_signal_histogram(real_signal_t* pSignal, uint64_t num_intervals, char* plotTitle, char* script_path);
 // TODO: What about complex signal histograms?
 

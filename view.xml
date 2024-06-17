@@ -548,6 +548,7 @@
                       <item translatable="yes">Real values only</item>
                       <item translatable="yes">Complex cartesian</item>
                       <item translatable="yes">Complex polar</item>
+                      <item translatable="yes">Complex parametric</item>
                     </items>
                     <signal name="changed" handler="on_comboBoxText_BviewType_changed" swapped="no"/>
                   </object>
@@ -1058,6 +1059,7 @@
                       <item translatable="yes">Real values only</item>
                       <item translatable="yes">Complex cartesian</item>
                       <item translatable="yes">Complex polar</item>
+                      <item translatable="yes">Complex parametric</item>
                     </items>
                     <signal name="changed" handler="on_comboBoxText_AviewType_changed" swapped="no"/>
                   </object>

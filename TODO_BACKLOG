@@ -1,0 +1,3 @@
+Histograms for complex signals
+When copying/swaping take into account that signals that one or both of the signals need to be treated as complex signals
+Parametrize gnuplot simple call as well? (Avoid gnuplot code duplication in between gnuplot scripts)

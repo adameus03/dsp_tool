@@ -432,3 +432,33 @@ void complex_signal_collapse_signals_tdomains(complex_signal_t* pSignal_1, compl
     *pSignal_1 = signal_1.complex_signal;
     *pSignal_2 = signal_2.complex_signal;
 }
+
+void complex_signal_extract_cartesian(complex_signal_t* pSignal_in, real_signal_t* pSignalRe_out, real_signal_t* pSignalIm_out) {
+    *pSignalRe_out = (real_signal_t) {
+        .info = pSignal_in->info
+    };
+    *pSignalIm_out = (real_signal_t) {
+        .info = pSignal_in->info
+    };
+    real_signal_alloc_values(pSignalRe_out);
+    real_signal_alloc_values(pSignalIm_out);
+    for (uint64_t i = 0; i < pSignal_in->info.num_samples; i++) {
+        pSignalRe_out->pValues[i] = creal(pSignal_in->pValues[i]);
+        pSignalIm_out->pValues[i] = cimag(pSignal_in->pValues[i]);
+    }
+}
+
+void complex_signal_extract_polar(complex_signal_t* pSignal_in, real_signal_t* pSignalCmag_out, real_signal_t* pSignalCarg_out) {
+    *pSignalCmag_out = (real_signal_t) {
+        .info = pSignal_in->info
+    };
+    *pSignalCarg_out = (real_signal_t) {
+        .info = pSignal_in->info
+    };
+    real_signal_alloc_values(pSignalCmag_out);
+    real_signal_alloc_values(pSignalCarg_out);
+    for (uint64_t i = 0; i < pSignal_in->info.num_samples; i++) {
+        pSignalCmag_out->pValues[i] = cabs(pSignal_in->pValues[i]);
+        pSignalCarg_out->pValues[i] = carg(pSignal_in->pValues[i]);
+    }
+}

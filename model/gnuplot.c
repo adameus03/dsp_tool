@@ -65,9 +65,9 @@ void gnuplot_prepare_real_signal_plot(real_signal_t* pSignal, const char* script
     // Call gnuplot to create output image
     __gnuplot_simple_call(script_path);
 }
-void gnuplot_prepare_complex_signal_plots(complex_signal_t* pSignal) {
+/*void gnuplot_prepare_complex_signal_plots(complex_signal_t* pSignal) {
     fprintf(stderr, "Error: Complex signal plotting not implemented yet\n");
-}
+}*/
 void gnuplot_prepare_real_signal_histogram(real_signal_t* pSignal, uint64_t num_intervals, char* plotTitle, char* script_path) {
     if (pSignal->info.num_samples == 0) {
         fprintf(stderr, "Error: Won't prepare a histogram for a null signal\n");
