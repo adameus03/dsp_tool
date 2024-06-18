@@ -33,4 +33,4 @@ set title plottitle #
 set xlabel "Signal value"
 set ylabel "Value frequency"
 #count and plot
-plot infile u (hist($2,width)):(1.0) smooth freq w boxes lc rgb"green" notitle
+plot infile u (hist($2,width)):(1.0) smooth freq w boxes lc rgb"green" notitle #

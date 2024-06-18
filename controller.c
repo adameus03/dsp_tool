@@ -138,6 +138,11 @@ static struct ApplicationControlHelpers {
         controller_complex_plotting_mode modeAcp;
         controller_complex_plotting_mode modeBcp;
     } complex_plotting_settings; // for complex plotting
+
+    struct {
+        controller_plot_domain_units domain_units_A;
+        controller_plot_domain_units domain_units_B;
+    } plot_domain_settings;
 } widget_helpers;
 
 static struct ApplicationBuilders {
@@ -694,6 +699,23 @@ static void reconstruct_signal(signal_selector_t signalSelector) {
     }
 }
 
+static const char* __get_units_label_for_domain(controller_plot_domain_units domain_units) {
+    switch (domain_units) {
+        case CONTROLLER_PLOT_DOMAIN_UNITS_SECONDS:
+            return GNUPLOT_UNITS_LABEL_TIME;
+        case CONTROLLER_PLOT_DOMAIN_UNITS_HERTZ:
+            return GNUPLOT_UNITS_LABEL_FREQUENCY;
+        default:
+            g_error("Invalid domain units detected");
+            exit(EXIT_FAILURE);
+    }
+}
+
+static real_signal_t __cached_extracted_signal_A;
+static real_signal_t __cached_extracted_signal_Ax;
+static real_signal_t __cached_extracted_signal_B;
+static real_signal_t __cached_extracted_signal_Bx;
+
 static void draw_plot_A() {
     if (signals.signalA.treat_as_complex) {
         // g_error("Complex signals are not yet supported for plotting");
@@ -706,18 +728,22 @@ static void draw_plot_A() {
             case CONTROLLER_COMPLEX_PLOTTING_MODE_CARTESIAN:
                 real_signal_t signalARe, signalAIm;
                 complex_signal_extract_cartesian(&signals.signalA.complex_signal, &signalARe, &signalAIm);
-                gnuplot_prepare_real_signal_plot(&signalARe, GNUPLOT_SCRIPT_PATH_PLOT_A); // [TODO] Change paths and scripts if needed
+                gnuplot_prepare_real_signal_plot(&signalARe, "Signal A real part", GNUPLOT_SCRIPT_PATH_PLOT, false, GNUPLOT_SIZE_MODE_DEFAULT_HALF_HEIGHT, (char*)__get_units_label_for_domain(widget_helpers.plot_domain_settings.domain_units_A), GNUPLOT_UNITS_LABEL_AMPLITUDE_VOLTAGE);
                 gtk_image_set_from_file(GTK_IMAGE(widgets.imageA1), GNUPLOT_OUTFILE_PATH);
-                gnuplot_prepare_real_signal_plot(&signalAIm, GNUPLOT_SCRIPT_PATH_PLOT_A);
+                gnuplot_prepare_real_signal_plot(&signalAIm, "Signal A imaginary part", GNUPLOT_SCRIPT_PATH_PLOT, true, GNUPLOT_SIZE_MODE_DEFAULT_HALF_HEIGHT, (char*)__get_units_label_for_domain(widget_helpers.plot_domain_settings.domain_units_A), GNUPLOT_UNITS_LABEL_AMPLITUDE_VOLTAGE);
                 gtk_image_set_from_file(GTK_IMAGE(widgets.imageA1x), GNUPLOT_OUTFILE_PATH);
+                __cached_extracted_signal_A = signalARe;
+                __cached_extracted_signal_Ax = signalAIm;
                 break;
             case CONTROLLER_COMPLEX_PLOTTING_MODE_POLAR:
                 real_signal_t signalACmag, signalACarg;
                 complex_signal_extract_polar(&signals.signalA.complex_signal, &signalACmag, &signalACarg);
-                gnuplot_prepare_real_signal_plot(&signalACmag, GNUPLOT_SCRIPT_PATH_PLOT_A);
+                gnuplot_prepare_real_signal_plot(&signalACmag, "Signal A complex magnitude", GNUPLOT_SCRIPT_PATH_PLOT, false, GNUPLOT_SIZE_MODE_DEFAULT_HALF_HEIGHT, (char*)__get_units_label_for_domain(widget_helpers.plot_domain_settings.domain_units_A), GNUPLOT_UNITS_LABEL_AMPLITUDE_VOLTAGE);
                 gtk_image_set_from_file(GTK_IMAGE(widgets.imageA1), GNUPLOT_OUTFILE_PATH);
-                gnuplot_prepare_real_signal_plot(&signalACarg, GNUPLOT_SCRIPT_PATH_PLOT_A);
+                gnuplot_prepare_real_signal_plot(&signalACarg, "Signal A complex argument", GNUPLOT_SCRIPT_PATH_PLOT, true, GNUPLOT_SIZE_MODE_DEFAULT_HALF_HEIGHT, (char*)__get_units_label_for_domain(widget_helpers.plot_domain_settings.domain_units_A), GNUPLOT_UNITS_LABEL_AMPLITUDE_VOLTAGE);
                 gtk_image_set_from_file(GTK_IMAGE(widgets.imageA1x), GNUPLOT_OUTFILE_PATH);
+                __cached_extracted_signal_A = signalACmag;
+                __cached_extracted_signal_Ax = signalACarg;
                 break;
             case CONTROLLER_COMPLEX_PLOTTING_MODE_PARAMETRIC_CURVE:
                 g_error("Parametric curve plotting for complex signals is an experimental feature which is not yet supported");
@@ -725,7 +751,7 @@ static void draw_plot_A() {
                 break;
         }
     } else {
-        gnuplot_prepare_real_signal_plot(&signals.signalA.real_signal, GNUPLOT_SCRIPT_PATH_PLOT_A);
+        gnuplot_prepare_real_signal_plot(&signals.signalA.real_signal, "Signal A", GNUPLOT_SCRIPT_PATH_PLOT, false, GNUPLOT_SIZE_MODE_DEFAULT, (char*)__get_units_label_for_domain(widget_helpers.plot_domain_settings.domain_units_A), GNUPLOT_UNITS_LABEL_AMPLITUDE_VOLTAGE);
         gtk_image_set_from_file(GTK_IMAGE(widgets.imageA1), GNUPLOT_OUTFILE_PATH);
         gtk_image_clear(GTK_IMAGE(widgets.imageA1x));
     }
@@ -736,17 +762,21 @@ static void draw_plot_B() {
         g_error("Complex signals are not yet supported for plotting");
         exit(EXIT_FAILURE);
     } else {
-        gnuplot_prepare_real_signal_plot(&signals.signalB.real_signal, GNUPLOT_SCRIPT_PATH_PLOT_B);
+        gnuplot_prepare_real_signal_plot(&signals.signalB.real_signal, "Signal B", GNUPLOT_SCRIPT_PATH_PLOT, false, GNUPLOT_SIZE_MODE_DEFAULT, (char*)__get_units_label_for_domain(widget_helpers.plot_domain_settings.domain_units_B), GNUPLOT_UNITS_LABEL_AMPLITUDE_VOLTAGE);
         gtk_image_set_from_file(GTK_IMAGE(widgets.imageB1), GNUPLOT_OUTFILE_PATH);
     }
 }
 
 static void draw_histogram_A() {
     if (signals.signalA.treat_as_complex) {
-        g_warning("Complex signals are not yet supported for histogram plotting");
-    } else {
-        gnuplot_prepare_real_signal_histogram(&signals.signalA.real_signal, get_adjustment_val_a(), "Signal A histogram", GNUPLOT_SCRIPT_PATH_HISTOGRAM);
+        gnuplot_prepare_real_signal_histogram(&__cached_extracted_signal_A, get_adjustment_val_a(), "Signal A histogram #1", GNUPLOT_SCRIPT_PATH_HISTOGRAM, false); //[TODO] Change title for the plot
         gtk_image_set_from_file(GTK_IMAGE(widgets.imageA2), GNUPLOT_OUTFILE_PATH);
+        gnuplot_prepare_real_signal_histogram(&__cached_extracted_signal_Ax, get_adjustment_val_a(), "Signal A histogram #2", GNUPLOT_SCRIPT_PATH_HISTOGRAM, true); //[TODO] Change title for the plot
+        gtk_image_set_from_file(GTK_IMAGE(widgets.imageA2x), GNUPLOT_OUTFILE_PATH);
+    } else {
+        gnuplot_prepare_real_signal_histogram(&signals.signalA.real_signal, get_adjustment_val_a(), "Signal A histogram", GNUPLOT_SCRIPT_PATH_HISTOGRAM, false);
+        gtk_image_set_from_file(GTK_IMAGE(widgets.imageA2), GNUPLOT_OUTFILE_PATH);
+        gtk_image_clear(GTK_IMAGE(widgets.imageA2x));
     }
 }
 
@@ -755,7 +785,7 @@ static void draw_histogram_B() {
         g_error("Complex signals are not yet supported for histogram plotting");
         exit(EXIT_FAILURE);
     } else {
-        gnuplot_prepare_real_signal_histogram(&signals.signalB.real_signal, get_adjustment_val_b(), "Signal B histogram", GNUPLOT_SCRIPT_PATH_HISTOGRAM);
+        gnuplot_prepare_real_signal_histogram(&signals.signalB.real_signal, get_adjustment_val_b(), "Signal B histogram", GNUPLOT_SCRIPT_PATH_HISTOGRAM, false);
         gtk_image_set_from_file(GTK_IMAGE(widgets.imageB2), GNUPLOT_OUTFILE_PATH);
     }
 }
