@@ -727,6 +727,7 @@ static void draw_plot_A() {
     } else {
         gnuplot_prepare_real_signal_plot(&signals.signalA.real_signal, GNUPLOT_SCRIPT_PATH_PLOT_A);
         gtk_image_set_from_file(GTK_IMAGE(widgets.imageA1), GNUPLOT_OUTFILE_PATH);
+        gtk_image_clear(GTK_IMAGE(widgets.imageA1x));
     }
 }
 
@@ -1970,19 +1971,15 @@ void on_comboBoxText_AviewType_changed(GtkComboBox* c, gpointer user_data) { //[
     gint activeIndex = gtk_combo_box_get_active(c);
     switch (activeIndex) {
         case 0: // real values only
-            signals.signalA.treat_as_complex = false;
             widget_helpers.complex_plotting_settings.modeAcp = CONTROLLER_COMPLEX_PLOTTING_MODE_NONE;
             break;
         case 1: //complex cartesian
-            signals.signalA.treat_as_complex = true;
             widget_helpers.complex_plotting_settings.modeAcp = CONTROLLER_COMPLEX_PLOTTING_MODE_CARTESIAN;
             break;
         case 2: //complex polar
-            signals.signalA.treat_as_complex = true;
             widget_helpers.complex_plotting_settings.modeAcp = CONTROLLER_COMPLEX_PLOTTING_MODE_POLAR;
             break;
         case 3: //complex parametric
-            signals.signalA.treat_as_complex = true;
             widget_helpers.complex_plotting_settings.modeAcp = CONTROLLER_COMPLEX_PLOTTING_MODE_PARAMETRIC_CURVE;
             break;
         default:
@@ -1990,8 +1987,15 @@ void on_comboBoxText_AviewType_changed(GtkComboBox* c, gpointer user_data) { //[
             exit(EXIT_FAILURE);
             break;
     }
-    if (signals.signalA.treat_as_complex && !signals.signalA.is_inherently_complex) { //[BREAK] set a breakpoint here
-        signal_complexize(&signals.signalA);
+    if (activeIndex > 0) { //[BREAK] set a breakpoint here
+        if (!signals.signalA.is_inherently_complex && !signals.signalA.treat_as_complex) {
+            signals.signalA.treat_as_complex = true;
+            signal_complexize(&signals.signalA);
+        }
+    } else {
+        signals.signalA.treat_as_complex = false;
+        signals.signalA.is_inherently_complex = false; // [TODO] Verify if it could be handled in a better way in order to avoid losing the original signal
+        signal_realize(&signals.signalA);
     }
     update_A_plots_no_sigload();
 }

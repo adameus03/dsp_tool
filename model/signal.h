@@ -95,4 +95,17 @@ void real_signal_to_complex(real_signal_t* pSignal_in, complex_signal_t* pSignal
  * @brief Turn a provided signal into a complex signal
  */
 void signal_complexize(signal_t* pSignal);
+
+/**
+ * @brief Converts a complex signal to a real signal using a target signal pointer as destination
+ * @details The real part of the complex signal is preserved from the input signal while the imaginary part is discarded
+ * @param pSignal_in Input signal
+ * @param pSignal_out Address where to store the real signal obtained from the input signal
+ */
+void complex_signal_to_real(complex_signal_t* pSignal_in, real_signal_t* pSignal_out);
+
+/**
+ * @brief Turn a provided signal into a real signal by discarding the imaginary part
+ */
+void signal_realize(signal_t* pSignal);
 #endif // __GUARD_SIGNAL_H

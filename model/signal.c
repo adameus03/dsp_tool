@@ -473,9 +473,9 @@ void real_signal_to_complex(real_signal_t* pSignal_in, complex_signal_t* pSignal
     }
 }
 
-void signal_complexize(signal_t* pSignal) {
-    if (pSignal->treat_as_complex) {
-        fprintf(stdout, "Warning: signal_complexize called on a signal already treated as complex\n");
+void signal_complexize(signal_t* pSignal) { //[HERE] [BREAK] trace
+    if (pSignal->is_inherently_complex) {
+        fprintf(stdout, "Warning: signal_complexize called on a signal already known as inherently complex\n");
         return;
     }
     complex_signal_t complex_signal;
@@ -483,4 +483,22 @@ void signal_complexize(signal_t* pSignal) {
     signal_free_values(pSignal);
     pSignal->treat_as_complex = true;
     pSignal->complex_signal = complex_signal;
+}
+
+void complex_signal_to_real(complex_signal_t* pSignal_in, real_signal_t* pSignal_out) {
+    *pSignal_out = (real_signal_t) {
+        .info = pSignal_in->info
+    };
+    real_signal_alloc_values(pSignal_out);
+    for (uint64_t i = 0; i < pSignal_in->info.num_samples; i++) {
+        pSignal_out->pValues[i] = creal(pSignal_in->pValues[i]);
+    }
+}
+
+void signal_realize(signal_t* pSignal) {
+    real_signal_t real_signal;
+    complex_signal_to_real(&pSignal->complex_signal, &real_signal);
+    signal_free_values(pSignal);
+    pSignal->treat_as_complex = false;
+    pSignal->real_signal = real_signal;
 }
