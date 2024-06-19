@@ -34,7 +34,7 @@ typedef enum {
 
 typedef enum {
     TRANSFORM_COMPUTATION_MODE_NAIVE,
-    TRANSFORM_COMPUTATION_MOVE_FAST
+    TRANSFORM_COMPUTATION_MODE_FAST
 } transform_computation_mode;
 
 typedef enum {

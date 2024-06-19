@@ -117,7 +117,7 @@ complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal) {
     for (uint64_t i = 0; i < dftSignal.info.num_samples; i++) {
         double complex* pDftValue = dftSignal.pValues + i;
         *pDftValue = 0.0;
-        for (uint64_t j = 0; j < pRealSignal->info.num_samples; j++) {
+        for (uint64_t j = 0; j < dftSignal.info.num_samples; j++) {
             *pDftValue += pRealSignal->pValues[j] * cexp(-2.0 * M_PI * I * (double)i * (double)j / (double)pRealSignal->info.num_samples);
         }
         *pDftValue /= (double)pRealSignal->info.num_samples;
@@ -161,7 +161,7 @@ complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal) {
     complex_signal_alloc_values(&s1);
     complex_signal_alloc_values(&s2);
 
-    for (uint64_t i = 0; i < pRealSignal->info.num_samples; i++) {
+    for (uint64_t i = 0; i < s2.info.num_samples; i++) {
         s2.pValues[i] = (double complex) pRealSignal->pValues[i];
     }
 
@@ -343,7 +343,7 @@ real_signal_t transform_walsh_hadamard_real_naive(real_signal_t* pRealSignal, wa
         double* pWhValue = whSignal.pValues + i;
         *pWhValue = 0.0;
         // Iterate over input signal samples and at the same time over WH matrix rows
-        for (uint64_t j = 0; j < pRealSignal->info.num_samples; j++) {
+        for (uint64_t j = 0; j < whSignal.info.num_samples; j++) {
             *pWhValue += pRealSignal->pValues[j] * pMatrix[i * whSignal.info.num_samples + j];
         }
     }

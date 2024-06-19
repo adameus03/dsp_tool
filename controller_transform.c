@@ -14,6 +14,7 @@ static struct ApplicationControls {
     GtkWidget* button_executeTransform;
     GtkWidget* label_runtime;
     GtkWidget* button_abort;
+    GtkWidget* progressBar;
 } widgets;
 
 static struct ApplicationControlHelpers {
@@ -94,6 +95,7 @@ void controller_transform_run(controller_transform_callback_fn onConfiguredCb, c
     widgets.button_executeTransform = GTK_WIDGET(gtk_builder_get_object(builders.viewTransformBuilder, "button_executeTransform"));
     widgets.label_runtime = GTK_WIDGET(gtk_builder_get_object(builders.viewTransformBuilder, "label_runtime"));
     widgets.button_abort = GTK_WIDGET(gtk_builder_get_object(builders.viewTransformBuilder, "button_abort"));
+    widgets.progressBar = GTK_WIDGET(gtk_builder_get_object(builders.viewTransformBuilder, "progressBar"));
 
     widget_helpers.configureCb = onConfiguredCb;
     widget_helpers.abortCb = onAbortedCb;
@@ -110,7 +112,9 @@ void controller_transform_run(controller_transform_callback_fn onConfiguredCb, c
 }
 
 void controller_transform_set_progress(double fraction) {
-    g_message("controller_transform_set_progress called"); // [TODO] Implement
+    g_message("controller_transform_set_progress called");
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(widgets.progressBar), fraction);
+    gtk_label_set_text(GTK_LABEL(widgets.label_runtime), g_strdup_printf("Progress: %.2f%%", fraction * 100.0));
     if (fraction >= 1.0) {
         g_message("It seems like the transform computation has finished.");
         __is_transformation_issued = false;
@@ -143,7 +147,7 @@ static void __controller_transform_config_set_computation_mode(transform_common_
             pConfig->computationMode = TRANSFORM_COMPUTATION_MODE_NAIVE;
             break;
         case 1U:
-            pConfig->computationMode = TRANSFORM_COMPUTATION_MOVE_FAST;
+            pConfig->computationMode = TRANSFORM_COMPUTATION_MODE_FAST;
             break;
         default:
             g_error("Unknown value detected for computationModeIdx");

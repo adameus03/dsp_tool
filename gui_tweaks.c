@@ -47,11 +47,13 @@ void disable_combo_box( GtkComboBox* c ) {
 void enable_button( GtkButton* b ) {
     gtk_widget_set_opacity (GTK_WIDGET(b), 1.0);
     gtk_widget_set_can_focus (GTK_WIDGET(b), TRUE);
+    gtk_widget_set_sensitive (GTK_WIDGET(b), TRUE);
 }
 
 void disable_button( GtkButton* b ) {
     gtk_widget_set_opacity (GTK_WIDGET(b), 0.6);
     gtk_widget_set_can_focus (GTK_WIDGET(b), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(b), FALSE);
 }
 
 void pseudo_disable_window( GtkWindow* w ) {

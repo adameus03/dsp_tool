@@ -20,6 +20,7 @@ src = [
     'controller_timeshift.c',
     'controller_fir.c',
     'controller_transform.c',
+    'threadbox.c',
     'gui_tweaks.c',
     'model/gnuplot.c', 
     'model/generator.c',

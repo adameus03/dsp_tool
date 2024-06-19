@@ -17,6 +17,8 @@
 #include "controller_fir.h"
 #include "controller_transform.h"
 
+#include "threadbox.h"
+
 #define NUM_PARAMS 10
 #define NUM_SIGNALS 12
 #define MAX_PARAMS_PER_SIGNAL 5
@@ -124,6 +126,11 @@ static struct ApplicationControls {
     GtkWidget* button_computeAcdist;
     GtkWidget* button_computeBargmax;
     GtkWidget* button_computeBcdist;
+
+    GtkWidget* button_Atransform;
+    GtkWidget* comboBoxText_AviewType;
+    GtkWidget* button_Btransform;
+    GtkWidget* comboBoxText_BviewType;
 } widgets;
 
 static struct ApplicationControlHelpers {
@@ -509,6 +516,8 @@ static void load_signal_A() {
         exit(EXIT_FAILURE);
     }
 
+    widget_helpers.plot_domain_settings.domain_units_A = CONTROLLER_PLOT_DOMAIN_UNITS_SECONDS;
+
     uint8_t signal_idx = get_signal_idx_a();
 
     if ((signal_get_values(&signals.signalA) != NULL) && (signal_idx != (NUM_SIGNALS - 1))) {
@@ -574,6 +583,8 @@ static void load_signal_B() {
         g_error("Complex signals are not supported for generating in this mode");
         exit(EXIT_FAILURE);
     }
+
+    widget_helpers.plot_domain_settings.domain_units_B = CONTROLLER_PLOT_DOMAIN_UNITS_SECONDS;
 
     uint8_t signal_idx = get_signal_idx_b();
 
@@ -643,6 +654,15 @@ static void __replace_real_signal(real_signal_t* signalAddr, real_signal_t newSi
     real_signal_free_values (signalAddr);
     signalAddr->info = newSignal.info;
     signalAddr->pValues = newSignal.pValues;
+}
+
+static void __replace_signal_with_complex(signal_t* signalAddr, complex_signal_t newSignal) {
+    signal_free_values(signalAddr);
+    // Set signal as inherently complex and treat as complex
+    signalAddr->is_inherently_complex = true;
+    signalAddr->treat_as_complex = true;
+    signalAddr->complex_signal.info = newSignal.info;
+    signalAddr->complex_signal.pValues = newSignal.pValues;
 }
 
 static void __reconstruct_signal_caps_helper(signal_selector_t signalSelector, dac_config_t* pDacConfig) {
@@ -1052,6 +1072,11 @@ int controller_run(int* psArgc, char*** pppcArgv) {
     widgets.button_computeBargmax = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_computeBargmax"));
     widgets.button_computeBcdist = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_computeBcdist"));
 
+    widgets.button_Atransform = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_Atransform"));
+    widgets.comboBoxText_AviewType = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "comboBoxText_AviewType"));
+    widgets.button_Btransform = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "button_Btransform"));
+    widgets.comboBoxText_BviewType = GTK_WIDGET(gtk_builder_get_object(builders.viewBuilder, "comboBoxText_BviewType"));
+
 
     set_param_names(get_signal_idx_a(), SIGNAL_A);
     set_param_names(get_signal_idx_b(), SIGNAL_B);
@@ -1203,33 +1228,128 @@ static void filter_signal_b(fir_common_config_t config) {
     }
 }
 
+static threadbox_t __transformation_threadbox;
+
 static void abort_transform_signal() {
     g_error("abort_signal not implemented");
     exit(EXIT_FAILURE);
 }
 
 static void transform_signal(transform_common_config_t config, signal_selector_t sel) {
+    controller_transform_set_progress(0.0);
+    switch (config.transformType) {
+        case TRANSFORM_TYPE_DFT:
+            switch (config.direction) {
+                case TRANSFORM_DIRECTION_FORWARD:
+                    complex_signal_t dftSignal = {};
+                    switch (config.computationMode) {
+                        case TRANSFORM_COMPUTATION_MODE_NAIVE:
+                            dftSignal = transform_dft_real_naive(sel == SIGNAL_A ? &signals.signalA.real_signal : &signals.signalB.real_signal);
+                            break;
+                        case TRANSFORM_COMPUTATION_MODE_FAST:
+                            dftSignal = transform_dft_real_fast_p2(sel == SIGNAL_A ? &signals.signalA.real_signal : &signals.signalB.real_signal);                            
+                            break;
+                        default:
+                            g_error("Unknown value detected for config.computationMode");
+                            exit(EXIT_FAILURE);
+                            break;
+                    }
+                    __replace_signal_with_complex(sel == SIGNAL_A ? &signals.signalA : &signals.signalB, dftSignal);
+                    if (sel == SIGNAL_A) {
+                        widget_helpers.complex_plotting_settings.modeAcp = CONTROLLER_COMPLEX_PLOTTING_MODE_CARTESIAN;
+                        widget_helpers.plot_domain_settings.domain_units_A = CONTROLLER_PLOT_DOMAIN_UNITS_HERTZ;
+                        gtk_combo_box_set_active(GTK_COMBO_BOX(widgets.comboBoxText_AviewType), (gint)1);
+                    } else {
+                        widget_helpers.complex_plotting_settings.modeBcp = CONTROLLER_COMPLEX_PLOTTING_MODE_CARTESIAN;
+                        widget_helpers.plot_domain_settings.domain_units_B = CONTROLLER_PLOT_DOMAIN_UNITS_HERTZ;
+                        gtk_combo_box_set_active(GTK_COMBO_BOX(widgets.comboBoxText_BviewType), (gint)1);
+                    }
+                    break;
+                case TRANSFORM_DIRECTION_REVERSE:
+                    g_error("Not implemented");
+                    exit(EXIT_FAILURE);
+                    break;
+                default:
+                    g_error("Unknown value detected for config.direction");
+                    exit(EXIT_FAILURE);
+                    break;
+            }
+            break;
+        case TRANSFORM_TYPE_WALSH_HADAMARD:
+            switch (config.direction) {
+                case TRANSFORM_DIRECTION_FORWARD:
+                    real_signal_t whtSignal = {};
+                    switch (config.computationMode) {
+                        case TRANSFORM_COMPUTATION_MODE_NAIVE:
+                            whtSignal = transform_walsh_hadamard_real_naive(sel == SIGNAL_A ? &signals.signalA.real_signal : &signals.signalB.real_signal, &config.whConfig);
+                            break;
+                        case TRANSFORM_COMPUTATION_MODE_FAST:
+                            whtSignal = transform_walsh_hadamard_real_fast(sel == SIGNAL_A ? &signals.signalA.real_signal : &signals.signalB.real_signal, &config.whConfig);
+                            break;
+                        default:
+                            g_error("Unknown value detected for config.computationMode");
+                            exit(EXIT_FAILURE);
+                            break;
+                    }
+                    __replace_real_signal(sel == SIGNAL_A ? &signals.signalA.real_signal : &signals.signalB.real_signal, whtSignal);
+                    break;
+                case TRANSFORM_DIRECTION_REVERSE:
+                    g_error("Not implemented");
+                    exit(EXIT_FAILURE);
+                    break;
+                default:
+                    g_error("Unknown value detected for config.direction");
+                    exit(EXIT_FAILURE);
+                    break;
+            }
+            break;
+        default:
+            g_error("Unknown value detected for config.transformType");
+            exit(EXIT_FAILURE);
+            break;
+    }
+
     controller_transform_set_progress(1.0);
     pseudo_enable_window(GTK_WINDOW(widgets.window));
-    g_error("transform_signal implementation pending.");
-    exit(EXIT_FAILURE);
 
-    
+    // Set signal type as custom (the additional type)
+    gtk_combo_box_set_active(GTK_COMBO_BOX (sel == SIGNAL_A ? widgets.comboBoxText_Astype : widgets.comboBoxText_Bstype), (gint)(NUM_SIGNALS - 1)); 
+    set_param_names (NUM_SIGNALS - 1, sel);
+    if (sel == SIGNAL_A) {
+        update_A_plots_no_sigload();
+    } else {
+        update_B_plots_no_sigload();
+    }
 }
 
+typedef struct {
+    transform_common_config_t config;
+    signal_selector_t sel;
+} transform_signal_bg_args_t;
+
+static void* transform_signal_bg_handler(void* __pArgs) {
+    transform_signal_bg_args_t* pArgs = (transform_signal_bg_args_t*)__pArgs;
+    transform_signal(pArgs->config, pArgs->sel);
+    return NULL;
+}
+
+static transform_signal_bg_args_t __transformBgArgs;
 static void transform_signal_a(transform_common_config_t config, bool submitted) {
     if (!submitted) {
         g_message("User escaped the transform window without submitting the configuration");
         pseudo_enable_window(GTK_WINDOW(widgets.window));
         return;
     }
-    transform_signal(config, SIGNAL_A);
-    // set signalA as inherently complex ???
-
-    // Set signal type as custom (the additional type)
-    gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Astype), (gint)(NUM_SIGNALS - 1)); 
-    set_param_names (NUM_SIGNALS - 1, SIGNAL_A);
-    update_A_plots();
+    //transform_signal(config, SIGNAL_A);
+    __transformBgArgs.config = config;
+    __transformBgArgs.sel = SIGNAL_A;
+    __transformation_threadbox = threadbox_create();
+    threadbox_set_task_function(&__transformation_threadbox, transform_signal_bg_handler);
+    threadbox_set_task_data(&__transformation_threadbox, (void*)&__transformBgArgs);
+    if (!threadbox_task_run(&__transformation_threadbox)) {
+        g_error("Failed to run the transformation thread for signal A!");
+        exit(EXIT_FAILURE);
+    }
 }
 
 static void transform_signal_b(transform_common_config_t config, bool submitted) {
@@ -1238,13 +1358,16 @@ static void transform_signal_b(transform_common_config_t config, bool submitted)
         pseudo_enable_window(GTK_WINDOW(widgets.window));
         return;
     }
-    transform_signal(config, SIGNAL_B);
-    // set signalB  as inherently complex ???
-
-    // Set signal type as custom (the additional type)
-    gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Bstype), (gint)(NUM_SIGNALS - 1)); 
-    set_param_names (NUM_SIGNALS - 1, SIGNAL_B);
-    update_B_plots();
+    //transform_signal(config, SIGNAL_B);
+    __transformBgArgs.config = config;
+    __transformBgArgs.sel = SIGNAL_B;
+    __transformation_threadbox = threadbox_create();
+    threadbox_set_task_function(&__transformation_threadbox, transform_signal_bg_handler);
+    threadbox_set_task_data(&__transformation_threadbox, (void*)&__transformBgArgs);
+    if (!threadbox_task_run(&__transformation_threadbox)) {
+        g_error("Failed to run the transformation thread for signal B!");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void on_comboBoxText_op_changed(GtkComboBox* c, gpointer user_data) {
@@ -1480,13 +1603,17 @@ void on_button_swap_clicked(GtkButton* b) {
 void on_comboBoxText_Astype_changed(GtkComboBox* c, gpointer user_data) {
     uint32_t signal_idx = gtk_combo_box_get_active(c);
     set_param_names(signal_idx, SIGNAL_A);
-    update_A_plots();
+    if (signal_idx != NUM_SIGNALS - 1) {
+        update_A_plots();
+    }
 }
 
 void on_comboBoxText_Bstype_changed(GtkComboBox* c, gpointer user_data) {
     uint32_t signal_idx = gtk_combo_box_get_active(c);
     set_param_names(signal_idx, SIGNAL_B);
-    update_B_plots();
+    if (signal_idx != NUM_SIGNALS - 1) {
+        update_B_plots();
+    }
 }
 
 
@@ -2064,12 +2191,20 @@ void on_button_computeBcdist_clicked(GtkButton* b) {
 }
 
 void on_button_Atransform_clicked(GtkButton* b) {
+    if (signals.signalA.treat_as_complex) {
+        g_error("Complex signals are not yet supported as signal transformation input");
+        exit(EXIT_FAILURE);
+    }
     pseudo_disable_window(GTK_WINDOW(widgets.window));
     controller_transform_run( transform_signal_a, abort_transform_signal );
     g_message("controller_transform_run returned.");
 }
 
 void on_button_Btransform_clicked(GtkButton* b) {
+    if (signals.signalB.treat_as_complex) {
+        g_error("Complex signals are not yet supported as signal transformation input");
+        exit(EXIT_FAILURE);
+    }
     pseudo_disable_window(GTK_WINDOW(widgets.window));
     controller_transform_run( transform_signal_b, abort_transform_signal );
     g_message("controller_transform_run returned.");
