@@ -37,9 +37,15 @@ typedef enum {
     TRANSFORM_COMPUTATION_MOVE_FAST
 } transform_computation_mode;
 
+typedef enum {
+    TRANSFORM_DIRECTION_FORWARD,
+    TRANSFORM_DIRECTION_REVERSE
+} transform_direction;
+
 typedef struct {
     transform_type transformType;
     transform_computation_mode computationMode;
+    transform_direction direction;
     union {
         dft_config_t dftConfig;
         walsh_hadamard_config_t whConfig;

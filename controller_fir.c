@@ -23,7 +23,7 @@ static struct ApplicationControlHelpers {
     controller_fir_callback_fn windowDestroyCb;
     gboolean isFirSubmitted;
 
-    uint8_t filterType_idx; // for comboBoxText_filterType
+    uint8_t filterType_idx; // for comboBoxText_filterType // [TODO] ditch
 } widget_helpers;
 
 static struct ApplicationBuilders {
@@ -138,6 +138,7 @@ static void on_window_destroyed() {
                 break;
             default:
                 g_error("Invalid widget_helpers.filterType_idx detected");
+                exit(EXIT_FAILURE);
                 break;
         }
 

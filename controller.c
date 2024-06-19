@@ -15,6 +15,7 @@
 
 #include "controller_timeshift.h"
 #include "controller_fir.h"
+#include "controller_transform.h"
 
 #define NUM_PARAMS 10
 #define NUM_SIGNALS 12
@@ -1202,6 +1203,50 @@ static void filter_signal_b(fir_common_config_t config) {
     }
 }
 
+static void abort_transform_signal() {
+    g_error("abort_signal not implemented");
+    exit(EXIT_FAILURE);
+}
+
+static void transform_signal(transform_common_config_t config, signal_selector_t sel) {
+    controller_transform_set_progress(1.0);
+    pseudo_enable_window(GTK_WINDOW(widgets.window));
+    g_error("transform_signal implementation pending.");
+    exit(EXIT_FAILURE);
+
+    
+}
+
+static void transform_signal_a(transform_common_config_t config, bool submitted) {
+    if (!submitted) {
+        g_message("User escaped the transform window without submitting the configuration");
+        pseudo_enable_window(GTK_WINDOW(widgets.window));
+        return;
+    }
+    transform_signal(config, SIGNAL_A);
+    // set signalA as inherently complex ???
+
+    // Set signal type as custom (the additional type)
+    gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Astype), (gint)(NUM_SIGNALS - 1)); 
+    set_param_names (NUM_SIGNALS - 1, SIGNAL_A);
+    update_A_plots();
+}
+
+static void transform_signal_b(transform_common_config_t config, bool submitted) {
+    if (!submitted) {
+        g_message("User escaped the transform window without submitting the configuration");
+        pseudo_enable_window(GTK_WINDOW(widgets.window));
+        return;
+    }
+    transform_signal(config, SIGNAL_B);
+    // set signalB  as inherently complex ???
+
+    // Set signal type as custom (the additional type)
+    gtk_combo_box_set_active(GTK_COMBO_BOX (widgets.comboBoxText_Bstype), (gint)(NUM_SIGNALS - 1)); 
+    set_param_names (NUM_SIGNALS - 1, SIGNAL_B);
+    update_B_plots();
+}
+
 void on_comboBoxText_op_changed(GtkComboBox* c, gpointer user_data) {
     widget_helpers.op_idx = gtk_combo_box_get_active(c);
 }
@@ -2019,13 +2064,15 @@ void on_button_computeBcdist_clicked(GtkButton* b) {
 }
 
 void on_button_Atransform_clicked(GtkButton* b) {
-    g_error("on_button_Atransform_clicked handler not supported yet.");
-    exit(EXIT_FAILURE);
+    pseudo_disable_window(GTK_WINDOW(widgets.window));
+    controller_transform_run( transform_signal_a, abort_transform_signal );
+    g_message("controller_transform_run returned.");
 }
 
 void on_button_Btransform_clicked(GtkButton* b) {
-    g_error("on_button_Btransform_clicked handler not supported yet.");
-    exit(EXIT_FAILURE);
+    pseudo_disable_window(GTK_WINDOW(widgets.window));
+    controller_transform_run( transform_signal_b, abort_transform_signal );
+    g_message("controller_transform_run returned.");
 }
 
 void on_comboBoxText_AviewType_changed(GtkComboBox* c, gpointer user_data) { //[HERE] seek bugs in signal.complex_signal.pValues with gdb
