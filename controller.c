@@ -718,8 +718,6 @@ static real_signal_t __cached_extracted_signal_Bx;
 
 static void draw_plot_A() {
     if (signals.signalA.treat_as_complex) {
-        // g_error("Complex signals are not yet supported for plotting");
-        // exit(EXIT_FAILURE);
         switch (widget_helpers.complex_plotting_settings.modeAcp) {
             case CONTROLLER_COMPLEX_PLOTTING_MODE_NONE:
                 g_error("Detected discrepancy between signalA.treat_as_complex and complex_plotting_settings.modeAcp");
@@ -757,13 +755,42 @@ static void draw_plot_A() {
     }
 }
 
-static void draw_plot_B() {
+static void draw_plot_B() { // [HERE] [NOW]
     if (signals.signalB.treat_as_complex) {
-        g_error("Complex signals are not yet supported for plotting");
-        exit(EXIT_FAILURE);
+        switch (widget_helpers.complex_plotting_settings.modeBcp) {
+            case CONTROLLER_COMPLEX_PLOTTING_MODE_NONE:
+                g_error("Detected discrepancy between signalB.treat_as_complex and complex_plotting_settings.modeBcp");
+                exit(EXIT_FAILURE);
+                break;
+            case CONTROLLER_COMPLEX_PLOTTING_MODE_CARTESIAN:
+                real_signal_t signalBRe, signalBIm;
+                complex_signal_extract_cartesian(&signals.signalB.complex_signal, &signalBRe, &signalBIm);
+                gnuplot_prepare_real_signal_plot(&signalBRe, "Signal B real part", GNUPLOT_SCRIPT_PATH_PLOT, false, GNUPLOT_SIZE_MODE_DEFAULT_HALF_HEIGHT, (char*)__get_units_label_for_domain(widget_helpers.plot_domain_settings.domain_units_B), GNUPLOT_UNITS_LABEL_AMPLITUDE_VOLTAGE);
+                gtk_image_set_from_file(GTK_IMAGE(widgets.imageB1), GNUPLOT_OUTFILE_PATH);
+                gnuplot_prepare_real_signal_plot(&signalBIm, "Signal B imaginary part", GNUPLOT_SCRIPT_PATH_PLOT, true, GNUPLOT_SIZE_MODE_DEFAULT_HALF_HEIGHT, (char*)__get_units_label_for_domain(widget_helpers.plot_domain_settings.domain_units_B), GNUPLOT_UNITS_LABEL_AMPLITUDE_VOLTAGE);
+                gtk_image_set_from_file(GTK_IMAGE(widgets.imageB1x), GNUPLOT_OUTFILE_PATH);
+                __cached_extracted_signal_B = signalBRe;
+                __cached_extracted_signal_Bx = signalBIm;
+                break;
+            case CONTROLLER_COMPLEX_PLOTTING_MODE_POLAR:
+                real_signal_t signalBCmag, signalBCarg;
+                complex_signal_extract_polar(&signals.signalB.complex_signal, &signalBCmag, &signalBCarg);
+                gnuplot_prepare_real_signal_plot(&signalBCmag, "Signal B complex magnitude", GNUPLOT_SCRIPT_PATH_PLOT, false, GNUPLOT_SIZE_MODE_DEFAULT_HALF_HEIGHT, (char*)__get_units_label_for_domain(widget_helpers.plot_domain_settings.domain_units_B), GNUPLOT_UNITS_LABEL_AMPLITUDE_VOLTAGE);
+                gtk_image_set_from_file(GTK_IMAGE(widgets.imageB1), GNUPLOT_OUTFILE_PATH);
+                gnuplot_prepare_real_signal_plot(&signalBCarg, "Signal B complex argument", GNUPLOT_SCRIPT_PATH_PLOT, true, GNUPLOT_SIZE_MODE_DEFAULT_HALF_HEIGHT, (char*)__get_units_label_for_domain(widget_helpers.plot_domain_settings.domain_units_B), GNUPLOT_UNITS_LABEL_AMPLITUDE_VOLTAGE);
+                gtk_image_set_from_file(GTK_IMAGE(widgets.imageB1x), GNUPLOT_OUTFILE_PATH);
+                __cached_extracted_signal_B = signalBCmag;
+                __cached_extracted_signal_Bx = signalBCarg;
+                break;
+            case CONTROLLER_COMPLEX_PLOTTING_MODE_PARAMETRIC_CURVE:
+                g_error("Parametric curve plotting for complex signals is an experimental feature which is not yet supported");
+                exit(EXIT_FAILURE);
+                break;
+        }
     } else {
         gnuplot_prepare_real_signal_plot(&signals.signalB.real_signal, "Signal B", GNUPLOT_SCRIPT_PATH_PLOT, false, GNUPLOT_SIZE_MODE_DEFAULT, (char*)__get_units_label_for_domain(widget_helpers.plot_domain_settings.domain_units_B), GNUPLOT_UNITS_LABEL_AMPLITUDE_VOLTAGE);
         gtk_image_set_from_file(GTK_IMAGE(widgets.imageB1), GNUPLOT_OUTFILE_PATH);
+        gtk_image_clear(GTK_IMAGE(widgets.imageB1x));
     }
 }
 
@@ -782,17 +809,21 @@ static void draw_histogram_A() {
 
 static void draw_histogram_B() {
     if (signals.signalB.treat_as_complex) {
-        g_error("Complex signals are not yet supported for histogram plotting");
-        exit(EXIT_FAILURE);
+        gnuplot_prepare_real_signal_histogram(&__cached_extracted_signal_B, get_adjustment_val_b(), "Signal B histogram #1", GNUPLOT_SCRIPT_PATH_HISTOGRAM, false); //[TODO] Change title for the plot
+        gtk_image_set_from_file(GTK_IMAGE(widgets.imageB2), GNUPLOT_OUTFILE_PATH);
+        gnuplot_prepare_real_signal_histogram(&__cached_extracted_signal_Bx, get_adjustment_val_b(), "Signal B histogram #2", GNUPLOT_SCRIPT_PATH_HISTOGRAM, true); //[TODO] Change title for the plot
+        gtk_image_set_from_file(GTK_IMAGE(widgets.imageB2x), GNUPLOT_OUTFILE_PATH);
     } else {
         gnuplot_prepare_real_signal_histogram(&signals.signalB.real_signal, get_adjustment_val_b(), "Signal B histogram", GNUPLOT_SCRIPT_PATH_HISTOGRAM, false);
         gtk_image_set_from_file(GTK_IMAGE(widgets.imageB2), GNUPLOT_OUTFILE_PATH);
+        gtk_image_clear(GTK_IMAGE(widgets.imageB2x));
     }
 }
 
 static void evaluate_A_aggregates() {
     if (signals.signalA.treat_as_complex) {
         g_warning("Aggregating complex signals not implemneted");
+        return;
     }
 
     double amsv = mean_signal_value(&signals.signalA.real_signal);
@@ -813,8 +844,8 @@ static void evaluate_A_aggregates() {
 
 static void evaluate_B_aggregates() {
     if (signals.signalB.treat_as_complex) {
-        g_error("Aggregating complex signals not implemneted");
-        exit(EXIT_FAILURE);
+        g_warning("Aggregating complex signals not implemneted");
+        return;
     }
 
     double bmsv = mean_signal_value(&signals.signalB.real_signal);
@@ -2017,7 +2048,7 @@ void on_comboBoxText_AviewType_changed(GtkComboBox* c, gpointer user_data) { //[
             exit(EXIT_FAILURE);
             break;
     }
-    if (activeIndex > 0) { //[BREAK] set a breakpoint here
+    if (activeIndex > 0) { //[BREAK] set a breakpoint here [DONE]
         if (!signals.signalA.is_inherently_complex && !signals.signalA.treat_as_complex) {
             signals.signalA.treat_as_complex = true;
             signal_complexize(&signals.signalA);
@@ -2034,24 +2065,30 @@ void on_comboBoxText_BviewType_changed(GtkComboBox* c, gpointer user_data) {
     gint activeIndex = gtk_combo_box_get_active(c);
     switch (activeIndex) {
         case 0: // real values only
-            signals.signalB.treat_as_complex = false;
             widget_helpers.complex_plotting_settings.modeBcp = CONTROLLER_COMPLEX_PLOTTING_MODE_NONE;
             break;
         case 1: //complex cartesian
-            signals.signalB.treat_as_complex = true;
             widget_helpers.complex_plotting_settings.modeBcp = CONTROLLER_COMPLEX_PLOTTING_MODE_CARTESIAN;
             break;
-        case 2: //complex polar
-            signals.signalB.treat_as_complex = true;
+        case 2: //complex polar            
             widget_helpers.complex_plotting_settings.modeBcp = CONTROLLER_COMPLEX_PLOTTING_MODE_POLAR;
             break;
-        case 3: //complex parametric
-            signals.signalB.treat_as_complex = true;
+        case 3: //complex parametric            
             widget_helpers.complex_plotting_settings.modeBcp = CONTROLLER_COMPLEX_PLOTTING_MODE_PARAMETRIC_CURVE;
         default:
             g_error("Unexpected activeIndex detected");
             exit(EXIT_FAILURE);
             break;
+    }
+    if (activeIndex > 0) { //[BREAK][DONE]
+        if (!signals.signalB.is_inherently_complex && !signals.signalB.treat_as_complex) {
+            signals.signalB.treat_as_complex = true;
+            signal_complexize(&signals.signalB);
+        }
+    } else {
+        signals.signalB.treat_as_complex = false;
+        signals.signalB.is_inherently_complex = false; //[TODO] Verify if it could be handled in a better way in order to avoid losing the original signal
+        signal_realize(&signals.signalB); 
     }
     update_B_plots_no_sigload();
 }
