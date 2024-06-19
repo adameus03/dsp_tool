@@ -92,6 +92,28 @@ histogram_data_t rsignal_to_histogram_transform(real_signal_t* pRealSignal, uint
     return histogramData;
 }
 
+static void transform_complex_adjust_frequency_domain(complex_signal_t* pComplexSignal) {
+    if (pComplexSignal->info.num_samples == 0) {
+        assert(0);
+        return;
+    }
+    // double oldDomainSpan = ((double)(pComplexSignal->info.num_samples - 1)) / pComplexSignal->info.sampling_frequency;
+    double newDomainSpan = pComplexSignal->info.sampling_frequency;
+    pComplexSignal->info.sampling_frequency = ((double)(pComplexSignal->info.num_samples - 1)) / newDomainSpan;
+    pComplexSignal->info.start_time = 0.0;
+}
+
+static void transform_real_adjust_frequency_domain(real_signal_t* pRealSignal) {
+    if (pRealSignal->info.num_samples == 0) {
+        assert(0);
+        return;
+    }
+    // double oldDomainSpan = ((double)(pRealSignal->info.num_samples - 1)) / pRealSignal->info.sampling_frequency;
+    double newDomainSpan = pRealSignal->info.sampling_frequency;
+    pRealSignal->info.sampling_frequency = ((double)(pRealSignal->info.num_samples - 1)) / newDomainSpan;
+    pRealSignal->info.start_time = 0.0;
+}
+
 //double complex __w_dftKernel
 
 complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal) {
@@ -122,6 +144,8 @@ complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal) {
         }
         *pDftValue /= (double)pRealSignal->info.num_samples;
     }
+
+    transform_complex_adjust_frequency_domain(&dftSignal);
 
     return dftSignal;
 }
@@ -240,6 +264,8 @@ complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal) {
         *pValue /= pOutputSignal->info.num_samples;
     }
 
+    transform_complex_adjust_frequency_domain(pOutputSignal);
+
     return *pOutputSignal;    
     
 }
@@ -350,6 +376,8 @@ real_signal_t transform_walsh_hadamard_real_naive(real_signal_t* pRealSignal, wa
 
     free(pMatrix);
 
+    transform_real_adjust_frequency_domain(&whSignal);
+
     return whSignal;
 }
 
@@ -424,6 +452,8 @@ real_signal_t transform_walsh_hadamard_unnormalized_real_fast(real_signal_t* pRe
     real_signal_t* pDisposeSignal = pS2;
     
     real_signal_free_values(pDisposeSignal);
+
+    transform_real_adjust_frequency_domain(pOutputSignal);
 
     return *pOutputSignal;
 }
