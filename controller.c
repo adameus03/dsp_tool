@@ -1231,8 +1231,9 @@ static void filter_signal_b(fir_common_config_t config) {
 static threadbox_t __transformation_threadbox;
 
 static void abort_transform_signal() {
-    g_error("abort_signal not implemented");
-    exit(EXIT_FAILURE);
+    g_message("Cancel transformation thread");
+    threadbox_task_kill(&__transformation_threadbox);
+    g_message("Transformation task killed");
 }
 
 static void transform_signal(transform_common_config_t config, signal_selector_t sel) {
