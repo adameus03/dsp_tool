@@ -122,7 +122,7 @@ void controller_transform_set_progress(double fraction) {
         // Set start time
         __start_time = clock();
 
-    } else if (fraction >= 1.0) {
+    } else if (fraction >= 0.99999) {
         g_message("It seems like the transform computation has finished.");
         __is_transformation_issued = false;
         gtk_widget_set_visible(widgets.button_abort, FALSE);
@@ -176,6 +176,10 @@ static void __controller_tranform_config_set_direction(transform_common_config_t
 }
 
 void on_button_executeTransform_clicked(GtkButton* b) {
+    __is_transformation_issued = true;
+    gtk_widget_set_visible(widgets.button_abort, TRUE);
+    disable_button(GTK_BUTTON(widgets.button_executeTransform));
+    disable_button(GTK_BUTTON(widgets.button_close));
     if (widget_helpers.configureCb != NULL) {
         transform_common_config_t transformConfig = {};
         __controller_transform_config_set_computation_mode(&transformConfig, get_computation_mode_idx());
@@ -199,10 +203,6 @@ void on_button_executeTransform_clicked(GtkButton* b) {
         }
         widget_helpers.configureCb(transformConfig, true);
     }
-    __is_transformation_issued = true;
-    gtk_widget_set_visible(widgets.button_abort, TRUE);
-    disable_button(GTK_BUTTON(widgets.button_executeTransform));
-    disable_button(GTK_BUTTON(widgets.button_close));
 }
 
 void on_button_close_clicked(GtkButton* b) {

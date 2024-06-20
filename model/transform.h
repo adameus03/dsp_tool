@@ -70,7 +70,9 @@ double* transform_generate_matrix_walsh_hadamard_normalized_recursive(uint64_t m
 uint64_t transform_bits_reverse(uint64_t x, uint64_t m);
 
 complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal);
+complex_signal_t transform_idft_complex_naive(complex_signal_t* pComplexSignal);
 complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal);
+complex_signal_t transform_idft_complex_fast_p2(complex_signal_t* pComplexSignal);
 real_signal_t transform_walsh_hadamard_real_naive(real_signal_t* pRealSignal, walsh_hadamard_config_t* pConfig);
 real_signal_t transform_walsh_hadamard_unnormalized_real_fast(real_signal_t* pRealSignal, walsh_hadamard_config_t* pConfig);
 real_signal_t transform_walsh_hadamard_real_fast(real_signal_t* pRealSignal, walsh_hadamard_config_t* pConfig);

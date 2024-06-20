@@ -1,7 +1,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 
-#define THREADBOX_MAX_TASKS 1
+//#define THREADBOX_MAX_TASKS 1
 
 typedef void* (*threadbox_task_fn)(void* pTaskData);
 

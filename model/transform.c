@@ -150,6 +150,38 @@ complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal) {
     return dftSignal;
 }
 
+complex_signal_t transform_idft_complex_naive(complex_signal_t* pComplexSignal) {
+    if (pComplexSignal->info.num_samples == 0) {
+        fprintf(stderr, "Error: Won't transform a null signal\n");
+        return (complex_signal_t) {
+            .info = pComplexSignal->info,
+            .pValues = 0
+        };
+    }
+
+    complex_signal_t idftSignal = {
+        .info = pComplexSignal->info,
+    };
+
+    complex_signal_alloc_values(&idftSignal);
+
+    if (idftSignal.pValues == 0) {
+        fprintf(stderr, "Error: Failed to allocate memory for DFT signal\n");
+        return idftSignal;
+    }
+
+    for (uint64_t i = 0; i < idftSignal.info.num_samples; i++) {
+        double complex* pDftValue = idftSignal.pValues + i;
+        *pDftValue = 0.0;
+        for (uint64_t j = 0; j < idftSignal.info.num_samples; j++) {
+            *pDftValue += pComplexSignal->pValues[j] * cexp(2.0 * M_PI * I * (double)i * (double)j / (double)pComplexSignal->info.num_samples);
+        }
+        *pDftValue /= (double)pComplexSignal->info.num_samples;
+    }
+
+    return idftSignal;
+}
+
 uint64_t transform_bits_reverse(uint64_t x, uint64_t m) {
     uint64_t y = 0;
     for (uint64_t i = 0; i < m; i++) {
@@ -195,7 +227,7 @@ complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal) {
 
     for (uint64_t i = 0; i < s1.info.num_samples; i++) {
         uint64_t jRev = transform_bits_reverse(i, m);
-        assert(jRev < s1.info.num_samples);
+        // assert(jRev < s1.info.num_samples);
         s1.pValues[i] = s2.pValues[jRev];
     }
 
@@ -221,29 +253,29 @@ complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal) {
                 double complex* pTargetSublkAddValue = pTargetSublkAdd + j;
                 double complex* pTargetSublkSubValue = pTargetSublkSub + j;
 
-                fprintf(stdout, "[dbg] blk_size = %lu, num_blks = %lu, i = %lu, j = %lu\n", blk_size, num_blks, i, j);
-                fprintf(stdout, "[dbg] Before (source):  pSourceSublkCpyValue = %lf%+lfi, pSourceSublkAggValue = %lf%+lfi\n", creal(*pSourceSublkCpyValue), cimag(*pSourceSublkCpyValue), creal(*pSourceSublkAggValue), cimag(*pSourceSublkAggValue));
-                assert(pSourceSublkCpyValue < pS1->pValues + s1.info.num_samples);
-                assert(pSourceSublkAggValue < pS1->pValues + s1.info.num_samples);
-                assert(pTargetSublkAddValue < pS2->pValues + s2.info.num_samples);
-                assert(pTargetSublkSubValue < pS2->pValues + s2.info.num_samples);
+                // fprintf(stdout, "[dbg] blk_size = %lu, num_blks = %lu, i = %lu, j = %lu\n", blk_size, num_blks, i, j);
+                // fprintf(stdout, "[dbg] Before (source):  pSourceSublkCpyValue = %lf%+lfi, pSourceSublkAggValue = %lf%+lfi\n", creal(*pSourceSublkCpyValue), cimag(*pSourceSublkCpyValue), creal(*pSourceSublkAggValue), cimag(*pSourceSublkAggValue));
+                // assert(pSourceSublkCpyValue < pS1->pValues + s1.info.num_samples);
+                // assert(pSourceSublkAggValue < pS1->pValues + s1.info.num_samples);
+                // assert(pTargetSublkAddValue < pS2->pValues + s2.info.num_samples);
+                // assert(pTargetSublkSubValue < pS2->pValues + s2.info.num_samples);
 
                 // Displacements for debugging the butterfly diagram implementation of FFT
-                int sourceSublkCpyValueDisplacement = (int)(pSourceSublkCpyValue - pS1->pValues);
-                int sourceSublkAggValueDisplacement = (int)(pSourceSublkAggValue - pS1->pValues);
-                int targetSublkAddValueDisplacement = (int)(pTargetSublkAddValue - pS2->pValues);
-                int targetSublkSubValueDisplacement = (int)(pTargetSublkSubValue - pS2->pValues);
+                // int sourceSublkCpyValueDisplacement = (int)(pSourceSublkCpyValue - pS1->pValues);
+                // int sourceSublkAggValueDisplacement = (int)(pSourceSublkAggValue - pS1->pValues);
+                // int targetSublkAddValueDisplacement = (int)(pTargetSublkAddValue - pS2->pValues);
+                // int targetSublkSubValueDisplacement = (int)(pTargetSublkSubValue - pS2->pValues);
                 
                 double complex scaler = cexp(-2.0 * M_PI * I / (double)blk_size * (double)j);
-                fprintf(stdout, "[dbg] Scaler: %lf%+lfi\n", creal(scaler), cimag(scaler));
+                // fprintf(stdout, "[dbg] Scaler: %lf%+lfi\n", creal(scaler), cimag(scaler));
 
                 *pTargetSublkAddValue = *pSourceSublkCpyValue;
                 *pTargetSublkAddValue += (*pSourceSublkAggValue) * scaler;
                 *pTargetSublkSubValue = *pSourceSublkCpyValue;
                 *pTargetSublkSubValue -= (*pSourceSublkAggValue) * scaler;
 
-                fprintf(stdout, "[dbg] After (target): pTargetSublkAddValue = %lf%+lfi, pTargetSublkSubValue = %lf%+lfi\n", creal(*pTargetSublkAddValue), cimag(*pTargetSublkAddValue), creal(*pTargetSublkSubValue), cimag(*pTargetSublkSubValue));
-                fprintf(stdout, "[dbg] Displacements: sourceSublkCpyValue = %d, sourceSublkAggValue = %d, targetSublkAddValue = %d, targetSublkSubValue = %d\n", sourceSublkCpyValueDisplacement, sourceSublkAggValueDisplacement, targetSublkAddValueDisplacement, targetSublkSubValueDisplacement);
+                // fprintf(stdout, "[dbg] After (target): pTargetSublkAddValue = %lf%+lfi, pTargetSublkSubValue = %lf%+lfi\n", creal(*pTargetSublkAddValue), cimag(*pTargetSublkAddValue), creal(*pTargetSublkSubValue), cimag(*pTargetSublkSubValue));
+                // fprintf(stdout, "[dbg] Displacements: sourceSublkCpyValue = %d, sourceSublkAggValue = %d, targetSublkAddValue = %d, targetSublkSubValue = %d\n", sourceSublkCpyValueDisplacement, sourceSublkAggValueDisplacement, targetSublkAddValueDisplacement, targetSublkSubValueDisplacement);
             }
         }
         complex_signal_t* pS = pS1;
@@ -254,7 +286,7 @@ complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal) {
     complex_signal_t* pOutputSignal = pS1;
     complex_signal_t* pDisposeSignal = pS2;
 
-    assert (pS1->pValues != pS2->pValues);
+    // assert (pS1->pValues != pS2->pValues);
 
     complex_signal_free_values(pDisposeSignal);
 
@@ -265,6 +297,108 @@ complex_signal_t transform_dft_real_fast_p2(real_signal_t* pRealSignal) {
     }
 
     transform_complex_adjust_frequency_domain(pOutputSignal);
+
+    return *pOutputSignal;    
+    
+}
+
+complex_signal_t transform_idft_complex_fast_p2(complex_signal_t* pComplexSignal) {
+    fprintf(stdout, "transform_dft_real_fast_p2 called\n");
+    
+    // Set m as the smallest power of 2 that is greater than or equal to the original number of samples
+    uint64_t m = 0;
+    uint64_t n = pComplexSignal->info.num_samples;
+    while (n > 1) {
+        n >>= 1;
+        m++;
+    }
+
+    uint64_t lenDiff = (1U << m) - pComplexSignal->info.num_samples;
+    if (lenDiff > 0) {
+        fprintf(stdout, "Warning: Zero-padding the input signal copy to the nearest power of 2 for performing FFT\n");
+    }
+
+    complex_signal_t s1 = { .info = pComplexSignal->info };
+    complex_signal_t s2 = { .info = pComplexSignal->info };
+
+    s1.info.num_samples = 1U << m;
+    s2.info.num_samples = s1.info.num_samples;
+
+    complex_signal_alloc_values(&s1);
+    complex_signal_alloc_values(&s2);
+
+    for (uint64_t i = 0; i < s2.info.num_samples; i++) {
+        s2.pValues[i] = (double complex) pComplexSignal->pValues[i];
+    }
+
+    for (uint64_t i = pComplexSignal->info.num_samples; i < s2.info.num_samples; i++) {
+        s2.pValues[i] = 0.0;
+    }
+
+    for (uint64_t i = 0; i < s1.info.num_samples; i++) {
+        uint64_t jRev = transform_bits_reverse(i, m);
+        // assert(jRev < s1.info.num_samples);
+        s1.pValues[i] = s2.pValues[jRev];
+    }
+
+    complex_signal_t* pS1 = &s1;
+    complex_signal_t* pS2 = &s2;
+
+    uint64_t blk_size = 1;
+    uint64_t num_blks = s1.info.num_samples;
+
+    while (num_blks > 1) {
+        blk_size <<= 1;
+        num_blks >>= 1;
+         
+        for (uint64_t i = 0; i < num_blks; i++) {
+            double complex* pSourceSublkCpy = pS1->pValues + (blk_size * i);
+            double complex* pSourceSublkAgg = pSourceSublkCpy + (blk_size >> 1);
+            double complex* pTargetSublkAdd = pS2->pValues + (blk_size * i);
+            double complex* pTargetSublkSub = pTargetSublkAdd + (blk_size >> 1);
+
+            for (uint64_t j = 0; j < blk_size >> 1; j++) {
+                double complex* pSourceSublkCpyValue = pSourceSublkCpy + j;
+                double complex* pSourceSublkAggValue = pSourceSublkAgg + j;
+                double complex* pTargetSublkAddValue = pTargetSublkAdd + j;
+                double complex* pTargetSublkSubValue = pTargetSublkSub + j;
+
+                // fprintf(stdout, "[dbg] blk_size = %lu, num_blks = %lu, i = %lu, j = %lu\n", blk_size, num_blks, i, j);
+                // fprintf(stdout, "[dbg] Before (source):  pSourceSublkCpyValue = %lf%+lfi, pSourceSublkAggValue = %lf%+lfi\n", creal(*pSourceSublkCpyValue), cimag(*pSourceSublkCpyValue), creal(*pSourceSublkAggValue), cimag(*pSourceSublkAggValue));
+                // assert(pSourceSublkCpyValue < pS1->pValues + s1.info.num_samples);
+                // assert(pSourceSublkAggValue < pS1->pValues + s1.info.num_samples);
+                // assert(pTargetSublkAddValue < pS2->pValues + s2.info.num_samples);
+                // assert(pTargetSublkSubValue < pS2->pValues + s2.info.num_samples);
+
+                // Displacements for debugging the butterfly diagram implementation of FFT
+                // int sourceSublkCpyValueDisplacement = (int)(pSourceSublkCpyValue - pS1->pValues);
+                // int sourceSublkAggValueDisplacement = (int)(pSourceSublkAggValue - pS1->pValues);
+                // int targetSublkAddValueDisplacement = (int)(pTargetSublkAddValue - pS2->pValues);
+                // int targetSublkSubValueDisplacement = (int)(pTargetSublkSubValue - pS2->pValues);
+                
+                double complex scaler = cexp(2.0 * M_PI * I / (double)blk_size * (double)j);
+                // fprintf(stdout, "[dbg] Scaler: %lf%+lfi\n", creal(scaler), cimag(scaler));
+
+                *pTargetSublkAddValue = *pSourceSublkCpyValue;
+                *pTargetSublkAddValue += (*pSourceSublkAggValue) * scaler;
+                *pTargetSublkSubValue = *pSourceSublkCpyValue;
+                *pTargetSublkSubValue -= (*pSourceSublkAggValue) * scaler;
+
+                // fprintf(stdout, "[dbg] After (target): pTargetSublkAddValue = %lf%+lfi, pTargetSublkSubValue = %lf%+lfi\n", creal(*pTargetSublkAddValue), cimag(*pTargetSublkAddValue), creal(*pTargetSublkSubValue), cimag(*pTargetSublkSubValue));
+                // fprintf(stdout, "[dbg] Displacements: sourceSublkCpyValue = %d, sourceSublkAggValue = %d, targetSublkAddValue = %d, targetSublkSubValue = %d\n", sourceSublkCpyValueDisplacement, sourceSublkAggValueDisplacement, targetSublkAddValueDisplacement, targetSublkSubValueDisplacement);
+            }
+        }
+        complex_signal_t* pS = pS1;
+        pS1 = pS2;
+        pS2 = pS;
+    }
+
+    complex_signal_t* pOutputSignal = pS1;
+    complex_signal_t* pDisposeSignal = pS2;
+
+    // assert (pS1->pValues != pS2->pValues);
+
+    complex_signal_free_values(pDisposeSignal);
 
     return *pOutputSignal;    
     

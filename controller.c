@@ -1266,8 +1266,29 @@ static void transform_signal(transform_common_config_t config, signal_selector_t
                     }
                     break;
                 case TRANSFORM_DIRECTION_REVERSE:
-                    g_error("Not implemented");
-                    exit(EXIT_FAILURE);
+                    complex_signal_t idftSignal = {};
+                    switch (config.computationMode) {
+                        case TRANSFORM_COMPUTATION_MODE_NAIVE:
+                            idftSignal = transform_idft_complex_naive(sel == SIGNAL_A ? &signals.signalA.complex_signal : &signals.signalB.complex_signal);
+                            break;
+                        case TRANSFORM_COMPUTATION_MODE_FAST:
+                            idftSignal = transform_idft_complex_fast_p2(sel == SIGNAL_A ? &signals.signalA.complex_signal : &signals.signalB.complex_signal);
+                            break;
+                        default:
+                            g_error("Unknown value detected for config.computationMode");
+                            exit(EXIT_FAILURE);
+                            break;
+                    }
+                    __replace_signal_with_complex(sel == SIGNAL_A ? &signals.signalA : &signals.signalB, idftSignal);
+                    if (sel == SIGNAL_A) {
+                        widget_helpers.complex_plotting_settings.modeAcp = CONTROLLER_COMPLEX_PLOTTING_MODE_CARTESIAN;
+                        widget_helpers.plot_domain_settings.domain_units_A = CONTROLLER_PLOT_DOMAIN_UNITS_SECONDS;
+                        gtk_combo_box_set_active(GTK_COMBO_BOX(widgets.comboBoxText_AviewType), (gint)0);
+                    } else {
+                        widget_helpers.complex_plotting_settings.modeBcp = CONTROLLER_COMPLEX_PLOTTING_MODE_CARTESIAN;
+                        widget_helpers.plot_domain_settings.domain_units_B = CONTROLLER_PLOT_DOMAIN_UNITS_SECONDS;
+                        gtk_combo_box_set_active(GTK_COMBO_BOX(widgets.comboBoxText_BviewType), (gint)0);
+                    }
                     break;
                 default:
                     g_error("Unknown value detected for config.direction");
@@ -1350,6 +1371,7 @@ static void transform_signal_a(transform_common_config_t config, bool submitted)
         g_error("Failed to run the transformation thread for signal A!");
         exit(EXIT_FAILURE);
     }
+    //transform_signal_bg_handler(&__transformBgArgs);
 }
 
 static void transform_signal_b(transform_common_config_t config, bool submitted) {
@@ -1368,6 +1390,7 @@ static void transform_signal_b(transform_common_config_t config, bool submitted)
         g_error("Failed to run the transformation thread for signal B!");
         exit(EXIT_FAILURE);
     }
+    //transform_signal_bg_handler(&__transformBgArgs);
 }
 
 void on_comboBoxText_op_changed(GtkComboBox* c, gpointer user_data) {
@@ -2191,20 +2214,20 @@ void on_button_computeBcdist_clicked(GtkButton* b) {
 }
 
 void on_button_Atransform_clicked(GtkButton* b) {
-    if (signals.signalA.treat_as_complex) {
-        g_error("Complex signals are not yet supported as signal transformation input");
-        exit(EXIT_FAILURE);
-    }
+    // if (signals.signalA.treat_as_complex) {
+    //     g_error("Complex signals are not yet supported as signal transformation input");
+    //     exit(EXIT_FAILURE);
+    // }
     pseudo_disable_window(GTK_WINDOW(widgets.window));
     controller_transform_run( transform_signal_a, abort_transform_signal );
     g_message("controller_transform_run returned.");
 }
 
 void on_button_Btransform_clicked(GtkButton* b) {
-    if (signals.signalB.treat_as_complex) {
-        g_error("Complex signals are not yet supported as signal transformation input");
-        exit(EXIT_FAILURE);
-    }
+    // if (signals.signalB.treat_as_complex) {
+    //     g_error("Complex signals are not yet supported as signal transformation input");
+    //     exit(EXIT_FAILURE);
+    // }
     pseudo_disable_window(GTK_WINDOW(widgets.window));
     controller_transform_run( transform_signal_b, abort_transform_signal );
     g_message("controller_transform_run returned.");
