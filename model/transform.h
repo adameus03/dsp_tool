@@ -10,6 +10,11 @@
 #define HISTOGRAM_TRANSFORM_USE_LINEAR_SEARCH
 //#define HISTOGRAM_TRANSFORM_USE_BINARY_SEARCH
 
+typedef void (*transform_progress_callback_fn)(void* pData);
+typedef struct {
+    double progress;
+} transform_progress_report_t;
+
 typedef struct {
     double domain_min; // Minimum signal-for-histogram value
     double domain_max; // Maximum signal-for-histogram value
@@ -76,3 +81,5 @@ complex_signal_t transform_idft_complex_fast_p2(complex_signal_t* pComplexSignal
 real_signal_t transform_walsh_hadamard_real_naive(real_signal_t* pRealSignal, walsh_hadamard_config_t* pConfig);
 real_signal_t transform_walsh_hadamard_unnormalized_real_fast(real_signal_t* pRealSignal, walsh_hadamard_config_t* pConfig);
 real_signal_t transform_walsh_hadamard_real_fast(real_signal_t* pRealSignal, walsh_hadamard_config_t* pConfig);
+
+void transform_set_progress_callback(transform_progress_callback_fn progressCallback);  // Set the callback function to be called during the transformation

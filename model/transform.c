@@ -114,7 +114,14 @@ static void transform_real_adjust_frequency_domain(real_signal_t* pRealSignal) {
     pRealSignal->info.start_time = 0.0;
 }
 
+static transform_progress_callback_fn __progress_callback = 0;
+void transform_set_progress_callback(transform_progress_callback_fn progressCallback) {
+    __progress_callback = progressCallback;
+}
+
 //double complex __w_dftKernel
+
+static transform_progress_report_t __progress_report = { .progress = 0.0 };
 
 complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal) {
     if (pRealSignal->info.num_samples == 0) {
@@ -143,6 +150,13 @@ complex_signal_t transform_dft_real_naive(real_signal_t* pRealSignal) {
             *pDftValue += pRealSignal->pValues[j] * cexp(-2.0 * M_PI * I * (double)i * (double)j / (double)pRealSignal->info.num_samples);
         }
         *pDftValue /= (double)pRealSignal->info.num_samples;
+        
+        // if (__progress_callback != 0 && (i % 100 == 99)) {
+        //     __progress_report = (transform_progress_report_t){
+        //         .progress = (double)(i + 1) / (double)dftSignal.info.num_samples
+        //     };
+        //     __progress_callback(&__progress_report);
+        // }
     }
 
     transform_complex_adjust_frequency_domain(&dftSignal);

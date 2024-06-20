@@ -180,6 +180,8 @@ void on_button_executeTransform_clicked(GtkButton* b) {
     gtk_widget_set_visible(widgets.button_abort, TRUE);
     disable_button(GTK_BUTTON(widgets.button_executeTransform));
     disable_button(GTK_BUTTON(widgets.button_close));
+    // Sleep for 100ms to prevent a weird bug?
+    usleep(100000);
     if (widget_helpers.configureCb != NULL) {
         transform_common_config_t transformConfig = {};
         __controller_transform_config_set_computation_mode(&transformConfig, get_computation_mode_idx());

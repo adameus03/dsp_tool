@@ -1236,8 +1236,14 @@ static void abort_transform_signal() {
     g_message("Transformation task killed");
 }
 
+static void __controller_transform_progress_handler(void* pData) {
+    transform_progress_report_t* pReport = (transform_progress_report_t*)pData;
+    controller_transform_set_progress(pReport->progress);
+}
+
 static void transform_signal(transform_common_config_t config, signal_selector_t sel) {
     controller_transform_set_progress(0.0);
+    transform_set_progress_callback(__controller_transform_progress_handler);
     switch (config.transformType) {
         case TRANSFORM_TYPE_DFT:
             switch (config.direction) {
