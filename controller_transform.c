@@ -1,5 +1,6 @@
 #include "controller_transform.h"
 #include <gtk/gtk.h>
+#include <time.h> 
 #include "gui_tweaks.h"
 
 static struct ApplicationControls {
@@ -111,17 +112,27 @@ void controller_transform_run(controller_transform_callback_fn onConfiguredCb, c
     g_signal_connect (widgets.window, "destroy", G_CALLBACK(on_window_destroyed), NULL);
 }
 
+static clock_t __start_time;
+
 void controller_transform_set_progress(double fraction) {
     g_message("controller_transform_set_progress called");
     gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(widgets.progressBar), fraction);
-    gtk_label_set_text(GTK_LABEL(widgets.label_runtime), g_strdup_printf("Progress: %.2f%%", fraction * 100.0));
-    if (fraction >= 1.0) {
+    // gtk_label_set_text(GTK_LABEL(widgets.label_runtime), g_strdup_printf("Progress: %.2f%%", fraction * 100.0));
+    if (fraction <= 0.0) {
+        // Set start time
+        __start_time = clock();
+
+    } else if (fraction >= 1.0) {
         g_message("It seems like the transform computation has finished.");
         __is_transformation_issued = false;
         gtk_widget_set_visible(widgets.button_abort, FALSE);
         gtk_widget_set_visible(widgets.button_executeTransform, FALSE);
         enable_button(GTK_BUTTON(widgets.button_close));
     }
+
+    clock_t now = clock();
+    double elapsedMs = (double)(now - __start_time) / ((double)CLOCKS_PER_SEC) * 1000.0;
+    gtk_label_set_text(GTK_LABEL(widgets.label_runtime), g_strdup_printf("Progress: %.2f%% (%.2f ms)", fraction * 100.0, elapsedMs));
 }
 
 
